@@ -1,2 +1,55 @@
 # Nano-Particle-Playground
-This repository serves as a sandbox for simulating and experimenting with the behavior, interactions, and dynamics of the tiniest units of matter.
+
+This project represents a simple particle simulation framework in Python, designed to simulate the behavior of particles under various forces. It uses a basic simulation loop to update the positions and velocities of particles over time.
+
+## Contents
+
+- [Simulation.py](Simulation.py): Contains the main simulation class (`Simulation`) responsible for updating particles and applying forces.
+- [Particle.py](Particle.py): Defines the `Particle` class, which represents individual particles in the simulation.
+- [Forces.py](Forces.py): Contains force-related classes like `Gravity` and `Damping`.
+- [main.py](main.py): A sample script that demonstrates how to use the simulation framework by creating particles, applying forces, and updating the simulation.
+
+## Usage
+
+To use the particle simulation framework:
+
+1. Import the required classes from the respective files (`Simulation`, `Particle`, and `Forces`).
+2. Create particles, specify their initial properties (position, velocity, mass), and add them to the simulation.
+3. Add forces (e.g., gravity, damping) to the simulation.
+4. Use the `Update` method of the `Simulation` class to advance the simulation over time.
+5. View information about the system, such as kinetic and potential energy, using the `Display` method.
+
+Feel free to customize and extend the simulation for your specific use case.
+
+## Example
+
+Here's a basic example using the simulation framework:
+
+```python
+from Simulation import *
+from Particle import *
+from Forces import *
+
+# Create a simulation
+sim = Simulation()
+
+# Create a particle and add it to the simulation
+p1 = Particle([1, 0, 100], [1, 0, 0], 1)
+sim.Particles.append(p1)
+
+# Add gravity force to the simulation
+sim.Forces.append(Gravity())
+
+# Display information about the system
+sim.Display()
+
+# Update the simulation for a specified time interval (e.g., 3 seconds)
+sim.Update(3)
+
+# Display updated information
+sim.Display()
+
+```
+## License
+This project is available under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
