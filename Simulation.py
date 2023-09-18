@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 from Particle import Particle
 from Forces import *
 
@@ -19,7 +22,7 @@ class Simulation:
     - BouncingParticles(): Initializes a set of bouncing particles with forces and constraints.
 
     """
-    
+
     def __init__( self ):
         """
         Initializes a new Simulation instance.
@@ -30,6 +33,30 @@ class Simulation:
         # Store the ground plane
         self.Constraints = []
         
+    def Save( self ):
+        """
+        Saves all particles' current position, could expand to include velocity
+        """
+        for particle in self.Particles:
+            particle.Save()
+
+    def Plot( self ):
+        """
+        Plots a 3d axis with the paths for each particle from the simulation
+        """
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        for particle in self.Particles:
+            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2])
+
+        ax.set_xlabel('X (m)')
+        ax.set_ylabel('Y (m)')
+        ax.set_zlabel('Z (m)')
+
+        plt.show()
+        self.Display()
+
     def Update( self, dt ):    
         """
         Update the simulation for a given time step 'dt'.
@@ -37,6 +64,8 @@ class Simulation:
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
         """ 
+
+        self.Save()
 
         for particle in self.Particles:    
             particle.SumForce = np.array([0,0,0])  #-- Zero All Sums of Forces in each iteration
@@ -103,6 +132,9 @@ class Simulation:
         print( "Total     {0}J".format( ke + pe ) )
         
         return geometry
+    
+
+        
         
     def BouncingParticles( self ):
         """

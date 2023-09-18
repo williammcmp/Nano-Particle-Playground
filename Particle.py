@@ -29,7 +29,14 @@ class Particle:
         self.Velocity = np.array(velocity)
         self.SumForce = np.array(forceSum)
         self.Mass = mass
+        self.History = position
 
+    def Save(self):
+        """
+        Saves the positional history of the particle. Used for ploting the particles' path
+        """
+        self.History = np.vstack((self.History, self.Position))
+        
     def Display(self):
         """
         Returns the current position of the particle.
@@ -38,5 +45,6 @@ class Particle:
         - numpy.ndarray: The current position of the particle in [x, y, z] meters.
         """
         return self.Position
+    
 
     
