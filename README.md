@@ -76,11 +76,13 @@ sim.Particles.append(p3)
 # Display information about the system
 sim.Display()
 
-# Update the simulation for a specified time interval (e.g., 3 seconds)
-sim.Update(3)
+#  tick over the simulation for 10 steps
+for x in range(10):
+    # Update the simulation by a set time dt
+    sim.Update(0.5)
 
-# Display updated information
-sim.Display()
+# plot the simulation results
+sim.Plot()
 ```
 ## License
 This project is available under the MIT License. See the [LICENSE](LICENSE) file for more details.
