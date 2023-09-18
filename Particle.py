@@ -14,7 +14,7 @@ class Particle:
     - Display(): Returns the current position of the particle.
     """
 
-    def __init__(self, position, velocity, mass, forceSum=np.array([0, 0, 0])):
+    def __init__(self, position, velocity, mass, charge=0, forceSum=np.array([0, 0, 0])):
         """
         Initializes a new Particle instance.
 
@@ -29,6 +29,7 @@ class Particle:
         self.Velocity = np.array(velocity)
         self.SumForce = np.array(forceSum)
         self.Mass = mass
+        self.Charge = charge
         self.History = position
 
     def Save(self):
@@ -36,7 +37,7 @@ class Particle:
         Saves the positional history of the particle. Used for ploting the particles' path
         """
         self.History = np.vstack((self.History, self.Position))
-        
+
     def Display(self):
         """
         Returns the current position of the particle.

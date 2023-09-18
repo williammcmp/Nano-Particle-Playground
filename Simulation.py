@@ -32,6 +32,8 @@ class Simulation:
         self.Forces      = []    
         # Store the ground plane
         self.Constraints = []
+
+        self.Constraints.append( GroundPlane(self.Particles, 0.5) )
         
     def Save( self ):
         """
@@ -159,7 +161,7 @@ class Simulation:
         
         #-- Ground constraint
         #--
-        ground = Ground( self.Particles, 0.5 )
+        ground = GroundPlane( self.Particles, 0.5 )
         self.Constraints.append( ground )
 
 # Thhe ground of the simulation
@@ -183,7 +185,6 @@ class GroundPlane:
         - particles (list): A list of Particle objects affected by the ground.
         - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
         """
-         
         self.Particles = particles
         self.Loss = loss
         
@@ -193,7 +194,6 @@ class GroundPlane:
         """
 
         for particle in self.Particles:
-            if( particle.Position.Z < 0 ):
-                particle.Position.Z *= -1
-                particle.Velocity.Z *= -1
-                particle.Velocity *= self.Loss
+            if( particle.Position[2] < 0 ):
+                particle.Position[2] = particle.Position[2] * -1
+                particle.Velocity[2] = particle.Velocity[2] * -1 * self.Loss

@@ -67,3 +67,14 @@ class Damping:
             particle.SumForce = particle.SumForce + (particle.Velocity * -self.Scaling)
 
 
+class Lorenz:
+    def __init__( self, bField=np.array([0,0,0]), eField=np.array([0,0,0])):
+        self.eField = eField
+        self.bField = bField
+
+    def Apply( self, particles):
+
+        for particle in particles:
+            LorenzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
+            print(LorenzForce)
+            particle.SumForce = particle.SumForce + (LorenzForce)
