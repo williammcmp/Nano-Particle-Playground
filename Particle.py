@@ -9,5 +9,5 @@ class Particle:
         self.Mass     = mass                # kg
 
     def Display( self ):
-        return [self.Position]
+        return self.Position
     

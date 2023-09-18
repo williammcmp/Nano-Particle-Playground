@@ -20,22 +20,22 @@ class Simulation:
             if( particle.Mass == 0 ): continue
 
             acceleration = particle.SumForce * ( 1.0 / particle.Mass )
-            particle.Velocity += acceleration * dt
-            particle.Position += particle.Velocity * dt
+            particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
+            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( )
             
     def KineticEnergy( self ):
-        energy = 0.0
+        energy = np.array([0,0,0])
         for particle in self.Particles:
-            energy += 0.5 * particle.Mass * particle.Velocity * particle.Velocity
+            energy = energy + 0.5 * particle.Mass * particle.Velocity * particle.Velocity
         return energy
         
     def PotentialEnergy( self ):
-        energy = 0.0
+        energy = np.array([0,0,0])
         for particle in self.Particles:
-            energy += 9.8 * particle.Mass * particle.Position.Z
+            energy[2] = energy[2] + 9.8 * particle.Mass * particle.Position[2]
         return energy
         
     def Display( self ):
@@ -43,15 +43,15 @@ class Simulation:
         #--
         geometry = []        
         for particle in self.Particles:
-            geometry += particle.Display( )
+            geometry.append(particle.Display())
         
         #-- Messages
         #--
         ke = self.KineticEnergy( )
         pe = self.PotentialEnergy( )
-        print( "Kinetic   {0}".format( ke      ) )
-        print( "Potential {0}".format( pe      ) )
-        print( "Total     {0}".format( ke + pe ) )
+        print( "Kinetic   {0}J".format( ke      ) )
+        print( "Potential {0}J".format( pe      ) )
+        print( "Total     {0}J".format( ke + pe ) )
         
         return geometry
         

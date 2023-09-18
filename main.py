@@ -8,17 +8,17 @@ from Forces import *
 
 sim = Simulation()
 
-p1 = Particle([1,0,1],[0,1,0], 1)
+p1 = Particle([1,0,100],[0,0,0], 1)
 
 sim.Particles.append(p1)
 
 sim.Forces.append(Gravity())
 
-print(sim.Display)
+sim.Display()
 
-sim.Update(1)
+sim.Update(3)
 
-print(sim.Display)
+sim.Display()
 
 
 

@@ -9,15 +9,15 @@ class Gravity:
     # Applies the gravity acceleration into each particle
     def Apply( self, particles):
         for particle in particles:
-            particle.SumForce = particle.SumForce + self.Acceleration * particle.Mass
+            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass)
 
 # Viscous Drag Force
 class Damping:
     def __init__( self, scaling = 1.0 ):
-        self.Scaling   = scaling
+        self.Scaling  = scaling
 
     def Apply( self, particles ):
         for particle in particles:
-            particle.SumForce += particle.Velocity * -self.Scaling
+            particle.SumForce = particle.SumForce + (particle.Velocity * -self.Scaling)
 
 
