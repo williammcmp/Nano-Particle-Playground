@@ -6,18 +6,23 @@ from Simulation import *
 from Particle import *
 from Forces import *
 
+# Create a simulation
 sim = Simulation()
 
-p1 = Particle([1,0,100],[0,0,0], 1)
-
+# Create a particle and add it to the simulation
+p1 = Particle([1, 0, 100], [1, 0, 0], 1)
 sim.Particles.append(p1)
 
+# Add gravity force to the simulation
 sim.Forces.append(Gravity())
 
+# Display information about the system
 sim.Display()
 
+# Update the simulation for a specified time interval (e.g., 3 seconds)
 sim.Update(3)
 
+# Display updated information
 sim.Display()
 
 
