@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class Particle:
     """
@@ -48,4 +49,12 @@ class Particle:
         return self.Position
     
 
-    
+# Creates a large amount of particles
+def ParticleCreation(n, Simulation):
+    for x in range(n):
+        position = np.random.uniform(-3, 3, 3)
+        velocity = np.random.uniform(-40, 40, 3)
+        mass = random.randrange(1,5) # fixed to have smaller masses
+        charge = random.choice([-1,0,1])
+        Simulation.Particles.append(Particle(position, velocity, mass, charge))
+

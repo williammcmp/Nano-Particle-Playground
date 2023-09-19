@@ -76,5 +76,4 @@ class Lorenz:
 
         for particle in particles:
             LorenzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
-            print(LorenzForce)
             particle.SumForce = particle.SumForce + (LorenzForce)
