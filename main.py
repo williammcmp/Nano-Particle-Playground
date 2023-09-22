@@ -27,14 +27,14 @@ sim.Forces.append(Lorenz(np.array([1,2,0.5])))
 
 #  tick over the simulation
 startTime = time.time()
-for x in range(2000):
+for x in range(200):
     sim.Update(0.01)
 
 runTime = time.time() - startTime
 print(f"single threading: {runTime}s")
 
 sim.Particles = []
-print(len(sim.Particles))
+
 
 ParticleCreation(400,sim)
 
@@ -42,12 +42,25 @@ ParticleCreation(400,sim)
 
 #  tick over the simulation
 startTime = time.time()
-for x in range(2000):
+for x in range(200):
     sim.UpdateMultiThread(0.01)
 
 runTime = time.time() - startTime
 print(f"Multi threading: {runTime}s")
 
+sim.Particles = []
 
-# plot the simulation results
-sim.Plot()
+
+ParticleCreation(400,sim)
+
+# sim.Display()
+
+#  tick over the simulation
+startTime = time.time()
+for x in range(200):
+    sim.Update2(0.01)
+
+runTime = time.time() - startTime
+print(f"updated 2: {runTime}s")
+
+

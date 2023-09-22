@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import threading
+import multiprocessing
 
 from Particle import Particle
 from Forces import *
@@ -71,7 +72,7 @@ class Simulation:
         self.Save()
 
         for particle in self.Particles:    
-            particle.SumForce = np.array([0,0,0])  #-- Zero All Sums of Forces in each iteration
+            particle.SumForce[:] = 0.0  #-- Zero All Sums of Forces in each iteration
             
         for force in self.Forces:             #-- Accumulate Forces
             force.Apply(self.Particles)
@@ -79,9 +80,13 @@ class Simulation:
         for particle in self.Particles:       #-- Symplectic Euler Integration
             if( particle.Mass == 0 ): continue
 
-            acceleration = particle.SumForce * ( 1.0 / particle.Mass )
-            particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
-            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
+            # Compute acceleration
+            acceleration = particle.SumForce / particle.Mass
+
+            # Symplectic Euler Integration
+            particle.Velocity += acceleration * dt  # v = u + at
+            particle.Position += ( particle.Velocity * dt - 0.5 * acceleration * dt * dt
+                                    )  # x = x_i + vt - 0.5at^2
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( )
@@ -117,6 +122,9 @@ class Simulation:
                 - 0.5 * acceleration * dt * dt
             )
 
+            for constraint in self.Constraints:
+                constraint.Apply()
+
         # Create and start a thread for each particle
         for particle in self.Particles:
             thread = threading.Thread(target=update_particle, args=(particle,))
@@ -127,8 +135,25 @@ class Simulation:
         for thread in threads:
             thread.join()
 
+    # Another attempt at multi threading the simulation
+    def Update2(self, dt):
+        """
+        Update the simulation for a given time step 'dt'.
+
+        Parameters:
+        - dt (float): The time step (seconds) for the simulation update.
+        """
+
+        self.Save()
+
+
+        # Parallel update of particles
+        parallel_update(self.Particles, self.Forces, dt)
+
+        # Apply Penalty Constraints
         for constraint in self.Constraints:
             constraint.Apply()
+
             
     def KineticEnergy( self ):
         """
@@ -242,3 +267,34 @@ class GroundPlane:
             if( particle.Position[2] < 0 ):
                 particle.Position[2] = particle.Position[2] * -1
                 particle.Velocity[2] = particle.Velocity[2] * -1 * self.Loss
+
+
+
+def compute_acceleration(particle, forces):
+    if particle.Mass == 0:
+        return np.zeros(3)  # No acceleration for massless particles
+
+    acceleration = np.zeros(3)
+
+    for force in forces:
+        acceleration += force.Compute(particle)
+
+    return acceleration / particle.Mass
+
+def update_particle(particle, forces, dt):
+    acceleration = compute_acceleration(particle, forces)
+    particle.Velocity += acceleration * dt
+    particle.Position += (particle.Velocity * dt - 0.5 * acceleration * dt * dt)
+
+
+def parallel_update(particles, forces, dt):
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())  # Use all available CPU cores
+
+    # Compute accelerations in parallel
+    accelerations = pool.starmap(compute_acceleration, [(particle, forces) for particle in particles])
+
+    # Update particles in parallel
+    pool.starmap(update_particle, [(particle, forces, dt) for particle, acc in zip(particles, accelerations)])
+
+    pool.close()
+    pool.join()
