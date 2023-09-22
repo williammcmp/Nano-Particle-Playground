@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import threading
 
 from Particle import Particle
 from Forces import *
@@ -56,8 +57,8 @@ class Simulation:
         ax.set_ylabel('Y (m)')
         ax.set_zlabel('Z (m)')
 
+        # self.Display()
         plt.show()
-        self.Display()
 
     def Update( self, dt ):    
         """
@@ -84,6 +85,50 @@ class Simulation:
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( )
+    
+    def UpdateMultiThread(self, dt):
+        """
+        Update the simulation for a given time step 'dt'.
+
+        Parameters:
+        - dt (float): The time step (seconds) for the simulation update.
+        """
+
+        self.Save()
+
+        # Create a list to hold threads
+        threads = []
+
+        # Define a thread function for updating each particle
+        def update_particle(particle):
+            particle.SumForce = np.array([0, 0, 0])  # Zero All Sums of Forces in each iteration
+
+            for force in self.Forces:
+                force.Apply([particle])
+
+            if particle.Mass == 0:
+                return
+
+            acceleration = particle.SumForce * (1.0 / particle.Mass)
+            particle.Velocity = particle.Velocity + (acceleration * dt)
+            particle.Position = (
+                particle.Position
+                + particle.Velocity * dt
+                - 0.5 * acceleration * dt * dt
+            )
+
+        # Create and start a thread for each particle
+        for particle in self.Particles:
+            thread = threading.Thread(target=update_particle, args=(particle,))
+            threads.append(thread)
+            thread.start()
+
+        # Wait for all threads to finish
+        for thread in threads:
+            thread.join()
+
+        for constraint in self.Constraints:
+            constraint.Apply()
             
     def KineticEnergy( self ):
         """
