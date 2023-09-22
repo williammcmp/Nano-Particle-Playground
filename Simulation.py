@@ -69,7 +69,7 @@ class Simulation:
 
         Parameters:
         - duration (float): The total duration of the simulation in seconds.
-        - timeStep (float): The time step (seconds) at which the simulation is updated.
+        - timeStep (float): The time step (seconds) at which the simulation is updated. Smaller values increase resolution
 
         Example:
         ```
