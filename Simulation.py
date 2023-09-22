@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from Particle import Particle
 from Forces import *
@@ -58,6 +59,38 @@ class Simulation:
 
         plt.show()
         self.Display()
+
+    def Run(self, duration=10, timeStep=0.1):
+        """
+        Run the particle simulation for a specified duration with a given time step.
+
+        This method sets up the simulation environment and updates the simulation for the specified duration
+        by repeatedly calling the `Update` method at regular time intervals.
+
+        Parameters:
+        - duration (float): The total duration of the simulation in seconds.
+        - timeStep (float): The time step (seconds) at which the simulation is updated.
+
+        Example:
+        ```
+        sim.Run(duration=10.0, timeStep=0.1)
+        ```
+
+        Output:
+        The simulation progresses in time steps, and progress is displayed using a progress bar.
+
+        After completion, the total simulated time and time step size are printed.
+
+        Returns:
+        None
+        """
+        print("Setting up Simulation enviroment\n")
+
+        for x in tqdm(range(int(duration / timeStep))):
+            self.Update(timeStep)
+
+
+        print(f"\nSimulationed time: {duration}, Simulated at {timeStep}s time-steps.\n")
 
     def Update( self, dt ):    
         """
@@ -136,33 +169,6 @@ class Simulation:
         return geometry
     
 
-        
-        
-    def BouncingParticles( self ):
-        """
-        Initialize a set of bouncing particles with forces and constraints.
-        """
-
-        #-- A number of particles along X-Axis with increasing mass
-        #--
-        for index in range( 10 ): 
-            particle = Particle( 
-                Point3d( index, 0, 100 ), 
-                Vector3d.Zero, index + 1 )
-            self.Particles.append( particle )
-        
-        #-- Setup forces
-        #--
-        gravity = Gravity( self.Particles )
-        self.Forces.append( gravity )
-        
-        drag = Damping( self.Particles, 0.1 )
-        self.Forces.append( drag )
-        
-        #-- Ground constraint
-        #--
-        ground = GroundPlane( self.Particles, 0.5 )
-        self.Constraints.append( ground )
 
 # Thhe ground of the simulation
 class GroundPlane:

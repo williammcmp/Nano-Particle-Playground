@@ -51,10 +51,63 @@ class Particle:
 
 # Creates a large amount of particles
 def ParticleCreation(n, Simulation):
+    """
+    Create a specified number of particles and add them to the simulation.
+
+    This function generates random positions, velocities, masses, and charges for a given number of particles
+    and then creates Particle objects with these properties. These particles are added to the provided Simulation object.
+
+    Parameters:
+    - n (int): The number of particles to create.
+    - Simulation (ParticleSimulation): The simulation object to which the particles will be added.
+
+    Example:
+    ```
+    sim = ParticleSimulation()
+    ParticleCreation(n=100, Simulation=sim)
+    ```
+
+    Output:
+    The function creates and adds `n` particles to the simulation object.
+
+    Returns:
+    None
+    """
     for x in range(n):
         position = np.random.uniform(-3, 3, 3)
         velocity = np.random.uniform(-40, 40, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses
         charge = random.choice([-1,0,1])
         Simulation.Particles.append(Particle(position, velocity, mass, charge))
+
+
+def LoadTestParticles(sim):
+    """
+    Load a set of predefined test particles into a simulation.
+
+    This function creates a set of predefined Particle objects with specific positions, velocities,
+    masses, and charges. These particles are then added to the provided simulation object.
+
+    Parameters:
+    - sim (ParticleSimulation): The simulation object to which the test particles will be added.
+
+    Example:
+    ```
+    sim = ParticleSimulation()
+    LoadTestParticles(sim)
+    ```
+
+    Output:
+    The function creates and adds predefined test particles to the simulation object.
+
+    Returns:
+    None
+    """
+    # Create a particle and add it to the simulation
+    p1 = Particle([2, 1, 2], [0.3, -0.4, 28], 1, -1)
+    p2= Particle([1.5, 1.1, 2], [0.3, 0.1, 33], 1, 1)
+    p3 = Particle([3, 2, 2], [0.2, 0.5, 29], 1, 0)
+    sim.Particles.append(p1)
+    sim.Particles.append(p2)
+    sim.Particles.append(p3)
 
