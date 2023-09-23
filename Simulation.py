@@ -44,40 +44,41 @@ class Simulation:
         for particle in self.Particles:
             particle.Save()
 
-    def PlotPaths( self ):
+    def PlotPaths( self, title="" ):
         """
         Plots a 3d axis with the paths for each particle from the simulation
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
+        colors = ['red', 'green', 'blue']
+
         for particle in self.Particles:
-            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2], s=particle.Mass)
+            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2], c=colors[particle.Charge +1])
 
         ax.set_xlabel('X (m)')
         ax.set_ylabel('Y (m)')
         ax.set_zlabel('Z (m)')
+        ax.set_title(title)
 
         plt.show()
         self.Display()
 
     def Plot( self , title=""):
         """
-        Plots a 3d axis with the positon of the particles
+        Plots a 2d axis with the positon of the particles
         """
-        # Create a 3D scatter plot
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
 
+        colors = ['red', 'green', 'blue']
         # Plot the data points
         for particle in self.Particles:
-            ax.scatter(particle.Position[0], particle.Position[1], particle.Position[2], s=particle.Mass)
+            plt.scatter(particle.Position[0], particle.Position[1], s=particle.Mass^2, c=colors[particle.Charge + 1])
+        
 
         # Customize the plot (optional)
-        ax.set_xlabel('X (m)')
-        ax.set_ylabel('Y (m)')
-        ax.set_zlabel('Z (m)')
-        ax.set_title(title)
+        plt.xlabel('X (m)')
+        plt.ylabel('Y (m)')
+        plt.title(title)
 
         # Show the plot
         plt.show()
@@ -94,6 +95,7 @@ class Simulation:
         - duration (float): The total duration of the simulation in seconds.
         - timeStep (float): The time step (seconds) at which the simulation is updated. Smaller values increase resolution
         - saveHistory (boolean): Controls if the positional history of the partiles are saved. (faster if not saved)
+        
         Example:
         ```
         sim.Run(duration=10.0, timeStep=0.1)
@@ -115,10 +117,10 @@ class Simulation:
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
             for x in tqdm(range(int(duration / timeStep))):
+                self.Save() # saves the particles postion
                 self.Update(timeStep)
         else:
             for x in tqdm(range(int(duration / timeStep))):
-                self.save() # saves the particles postion
                 self.Update(timeStep)
 
 
@@ -244,4 +246,4 @@ class GroundPlane:
         for particle in self.Particles:
             if( particle.Position[2] < 0 ):
                 particle.Position[2] = particle.Position[2] * -1
-                particle.Velocity[2] = particle.Velocity[2] * -1 * self.Loss
+                particle.Velocity = particle.Velocity * np.array([0.9, 0.9, -1 * self.Loss])

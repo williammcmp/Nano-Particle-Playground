@@ -74,10 +74,10 @@ def ParticleCreation(n, Simulation):
     None
     """
     for x in range(n):
-        position = np.random.uniform(-3, 3, 3)
-        velocity = np.random.uniform(-40, 40, 3)
+        position = np.random.uniform(-3, 3, 3) + np.array([0,0,1])
+        velocity = np.random.uniform(-2, 2, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses
-        charge = random.choice([-1,0,1])
+        charge = random.choice([-1,0, 1])
         Simulation.Particles.append(Particle(position, velocity, mass, charge))
 
 

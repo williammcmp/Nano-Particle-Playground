@@ -10,14 +10,16 @@ sim = Simulation()
 # LoadTestParticles(sim)
 
 # Creates the particles
-ParticleCreation(100,sim)
+np.random.seed(0)
+ParticleCreation(4000,sim)
 
 # Add gravity force to the simulation
 sim.Forces.append(Gravity())
-sim.Forces.append(Lorenz(np.array([1.0,0.0,0.0])))
+sim.Forces.append(Lorenz(np.array([2.0,2.0,0.0])))
 
 # Runns the simulation 
-sim.Run(2, 0.01)
+sim.Run(10, 0.01)
 
 # plot the simulation results
-sim.Plot()
+sim.Plot("4,000 Particles after 10s")
+# sim.PlotPaths()
