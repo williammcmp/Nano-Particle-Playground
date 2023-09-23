@@ -20,8 +20,8 @@ class Gravity:
         Parameters:
         - acceleration (float, optional): The acceleration due to gravity in meters per second squared. Default is 9.8 m/s^2.
         """
-
-        self.Acceleration = np.array([ 0.0, 0.0, -acceleration ])
+        self.name = "Gravity"
+        self.Acceleration = np.array([0.0,0.0,-acceleration ])
 
     # Applies the gravity acceleration into each particle
     def Apply( self, particles):
@@ -34,6 +34,9 @@ class Gravity:
 
         for particle in particles:
             particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass)
+    
+    def Info(self):
+        return f"\t{self.name} = {self.Acceleration}\n"
 
 # Viscous Drag Force
 class Damping:
@@ -68,12 +71,16 @@ class Damping:
 
 
 class Lorenz:
-    def __init__( self, bField=np.array([0,0,0]), eField=np.array([0,0,0])):
+    def __init__( self, bField=np.array([0.0,0.0,0.0]), eField=np.array([0.0,0.0,0.0])):
         self.eField = eField
         self.bField = bField
+        self.name = "Lorenz"
 
     def Apply( self, particles):
 
         for particle in particles:
             LorenzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
             particle.SumForce = particle.SumForce + (LorenzForce)
+
+    def Info( self ):
+        return f"\tElectric = {self.eField}\n\tMagnetic = {self.bField}\n"
