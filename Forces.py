@@ -71,16 +71,48 @@ class Damping:
 
 
 class Lorenz:
+    """
+    Represents a Lorenz force acting on particles in a simulation.
+
+    Attributes:
+    - eField (numpy.ndarray): An array representing the electric field in the Lorenz force.
+    - bField (numpy.ndarray): An array representing the magnetic field in the Lorenz force.
+    - name (str): A name for the Lorenz force.
+
+    Methods:
+    - Apply(particles): Applies the Lorenz force to a list of particles.
+    - Info(): Returns information about the electric and magnetic fields in the Lorenz force.
+
+    """
     def __init__( self, bField=np.array([0.0,0.0,0.0]), eField=np.array([0.0,0.0,0.0])):
+        """
+        Initializes a new Lorenz force instance.
+
+        Parameters:
+        - bField (numpy.ndarray): An array representing the magnetic field in the Lorenz force.
+        - eField (numpy.ndarray): An array representing the electric field in the Lorenz force.
+        """
         self.eField = eField
         self.bField = bField
         self.name = "Lorenz"
 
     def Apply( self, particles):
+        """
+        Applies the Lorenz force to a list of particles.
+
+        Parameters:
+        - particles (list): A list of Particle objects to which the force is applied.
+        """
 
         for particle in particles:
             LorenzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
             particle.SumForce = particle.SumForce + (LorenzForce)
 
     def Info( self ):
+        """
+        Returns information about the electric and magnetic fields in the Lorenz force.
+
+        Returns:
+        - str: A string containing information about the electric and magnetic fields.
+        """
         return f"\tElectric = {self.eField}\n\tMagnetic = {self.bField}\n"

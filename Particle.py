@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import numpy as np
 import random
 
@@ -73,7 +74,8 @@ def ParticleCreation(n, Simulation):
     Returns:
     None
     """
-    for x in range(n):
+    print("\nGenerating particles:")
+    for x in tqdm(range(n), unit=" Particle(s)"):
         position = np.random.uniform(-3, 3, 3) + np.array([0,0,1])
         velocity = np.random.uniform(-2, 2, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses

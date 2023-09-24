@@ -15,20 +15,24 @@ class Simulation:
     - Particles (list): A list of Particle objects in the simulation.
     - Forces (list): A list of Force objects acting on the particles.
     - Constraints (list): A list of constraint objects affecting the particles.
+    - Duration (float): A count of the simulation time used - accounts for separate or different time intervals
 
     Methods:
     - Update(dt): Updates the simulation for a given time step 'dt'.
-    - KineticEnergy(): Calculates and returns the kinetic energy of the system.
-    - PotentialEnergy(): Calculates and returns the potential energy of the system.
-    - Display(): Displays information about the simulation, including kinetic and potential energy.
-    - BouncingParticles(): Initializes a set of bouncing particles with forces and constraints.
-
+    - Save(): Saves all particles' current position.
+    - PlotPaths(title=""): Plots a 3D axis with the paths for each particle from the simulation.
+    - Plot(): Plots a 2D axis with the position of the particles.
+    - Run(duration=10, timeStep=0.1, saveHistory=True): Runs the particle simulation for a specified duration with a given time step.
+    - Update(dt): Updates the simulation for a given time step 'dt'.
+    - FroceList(): Returns a string listing information about the applied forces.
     """
 
     def __init__( self ):
         """
         Initializes a new Simulation instance.
         """
+
+        self.Duration = 0
 
         self.Particles   = []
         self.Forces      = []    
@@ -46,7 +50,10 @@ class Simulation:
 
     def PlotPaths( self, title="" ):
         """
-        Plots a 3d axis with the paths for each particle from the simulation
+        Plots a 3D axis with the paths for each particle from the simulation.
+
+        Parameters:
+        - title (str): The title for the plot (optional).
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -64,10 +71,11 @@ class Simulation:
         plt.show()
         self.Display()
 
-    def Plot( self , title=""):
+    def Plot( self ):
         """
         Plots a 2d axis with the positon of the particles
         """
+        title=f"{len(self.Particles)} Particles over {self.Duration}s"
 
         colors = ['red', 'green', 'blue']
         # Plot the data points
@@ -79,6 +87,7 @@ class Simulation:
         plt.xlabel('X (m)')
         plt.ylabel('Y (m)')
         plt.title(title)
+        # TODO add labels to indicate what color each charged particle is
 
         # Show the plot
         plt.show()
@@ -88,14 +97,11 @@ class Simulation:
         """
         Run the particle simulation for a specified duration with a given time step.
 
-        This method sets up the simulation environment and updates the simulation for the specified duration
-        by repeatedly calling the `Update` method at regular time intervals.
-
         Parameters:
         - duration (float): The total duration of the simulation in seconds.
-        - timeStep (float): The time step (seconds) at which the simulation is updated. Smaller values increase resolution
-        - saveHistory (boolean): Controls if the positional history of the partiles are saved. (faster if not saved)
-        
+        - timeStep (float): The time step (seconds) at which the simulation is updated.
+        - saveHistory (boolean): Controls if the positional history of the particles is saved.
+
         Example:
         ```
         sim.Run(duration=10.0, timeStep=0.1)
@@ -110,39 +116,45 @@ class Simulation:
         Returns:
         None
         """
-        print("\nSetting up enviroment\n")
-        print(f"Running Particle Simulation\n")
+        print("\nInitialising Particle Simulations.\nSetting up enviroment\n")
+
+        self.Duration += duration # adding the sim time to track over multiple simulations
+
+        print(f"Pre-calculating Forces per particles:")
+        # Caclaute the forces at the start of a sim run - assumes they dont change over time. (faster this way)
+        for force in tqdm(self.Forces, unit="Force "):             #-- Accumulate Forces
+            force.Apply(self.Particles)
+
+
+        print(f"\nSimulating particles:")
         startTime = time.time()
+
 
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
-            for x in tqdm(range(int(duration / timeStep))):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
                 self.Save() # saves the particles postion
                 self.Update(timeStep)
         else:
-            for x in tqdm(range(int(duration / timeStep))):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
                 self.Update(timeStep)
 
 
         print("\n Simulation:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {time.time() - startTime}s")
+        print(f"\tTotal number of calculatios = {int(duration / timeStep) * len(self.Particles)}")
 
         print(f"\nForces:")
         print(self.FroceList())
 
-    def Update( self, dt ):    
+    # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
+    def Update( self, dt):    
         """
         Update the simulation for a given time step 'dt'.
 
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
         """ 
-
-        for particle in self.Particles:    
-            particle.SumForce = np.array([0,0,0])  #-- Zero All Sums of Forces in each iteration
-            
-        for force in self.Forces:             #-- Accumulate Forces
-            force.Apply(self.Particles)
             
         for particle in self.Particles:       #-- Symplectic Euler Integration
             if( particle.Mass == 0 ): continue
@@ -153,58 +165,14 @@ class Simulation:
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( )
-            
-    def KineticEnergy( self ):
-        """
-        Calculate and return the kinetic energy of the system.
-
-        Returns:
-        - numpy.ndarray: The kinetic energy of the system in [x, y, z] joules.
-        """
-
-        energy = np.array([0,0,0])
-        for particle in self.Particles:
-            energy = energy + 0.5 * particle.Mass * particle.Velocity * particle.Velocity
-        return energy
-        
-    def PotentialEnergy( self ):
-        """
-        Calculate and return the potential energy of the system.
-
-        Returns:
-        - numpy.ndarray: The potential energy of the system in [x, y, z] joules.
-        """
-
-        energy = np.array([0,0,0])
-        for particle in self.Particles:
-            energy[2] = energy[2] + 9.8 * particle.Mass * particle.Position[2]
-        return energy
-        
-    def Display( self ):
-        """
-        Display information about the simulation, including kinetic and potential energy.
-
-        Returns:
-        - list: A list of particle geometries.
-        """
-
-        #-- Geometry
-        #--
-        geometry = []        
-        for particle in self.Particles:
-            geometry.append(particle.Display())
-        
-        #-- Messages
-        #--
-        ke = self.KineticEnergy( )
-        pe = self.PotentialEnergy( )
-        print( "Kinetic   {0}J".format( ke      ) )
-        print( "Potential {0}J".format( pe      ) )
-        print( "Total     {0}J".format( ke + pe ) )
-        
-        return geometry
     
     def FroceList( self ):
+        """
+        Returns a string listing information about the applied forces.
+
+        Returns:
+        - str: A string listing information about the applied forces.
+        """
         forceList = ""
         for force in self.Forces:
             forceList += force.Info()
