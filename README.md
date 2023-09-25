@@ -43,7 +43,7 @@ Feel free to customize and extend the simulation for your specific use case.
 
 To run the particle simulation:
 ```bash
-python main.py
+python src/main.py
 ```
 
 ## Examples
