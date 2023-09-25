@@ -48,13 +48,12 @@ class Simulation:
         for particle in self.Particles:
             particle.Save()
 
-    def PlotPaths( self, title="" ):
+    def PlotPaths( self ):
         """
         Plots a 3D axis with the paths for each particle from the simulation.
-
-        Parameters:
-        - title (str): The title for the plot (optional).
         """
+        title=f"{len(self.Particles)} Particles over {self.Duration}s"
+
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -127,11 +126,11 @@ class Simulation:
 
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
-            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Save() # saves the particles postion
                 self.Update(timeStep)
         else:
-            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Update(timeStep)
 
 
@@ -141,6 +140,7 @@ class Simulation:
 
         print(f"\nForces:")
         print(self.FroceList())
+        self.Save()
 
     # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
     def Update( self, dt):    
@@ -156,7 +156,7 @@ class Simulation:
         for force in self.Forces:             #-- Accumulate Forces
             force.Apply(self.Particles)
             
-        for particle in self.Particles:       #-- Symplectic Euler Integration
+        for particle in self.Particles:       #-- Cal the position and velocities for each particle
             if( particle.Mass == 0 ): continue
 
             acceleration = particle.SumForce * ( 1.0 / particle.Mass )
