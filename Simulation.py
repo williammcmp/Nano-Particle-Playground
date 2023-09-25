@@ -69,7 +69,7 @@ class Simulation:
         ax.set_title(title)
 
         plt.show()
-        self.Display()
+
 
     def Plot( self ):
         """
@@ -120,11 +120,6 @@ class Simulation:
 
         self.Duration += duration # adding the sim time to track over multiple simulations
 
-        print(f"Pre-calculating Forces per particles:")
-        # Caclaute the forces at the start of a sim run - assumes they dont change over time. (faster this way)
-        for force in tqdm(self.Forces, unit="Force "):             #-- Accumulate Forces
-            force.Apply(self.Particles)
-
 
         print(f"\nSimulating particles:")
         startTime = time.time()
@@ -155,6 +150,11 @@ class Simulation:
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
         """ 
+        for particle in self.Particles:
+            particle.SumForce = np.array([0,0,0])      
+
+        for force in self.Forces:             #-- Accumulate Forces
+            force.Apply(self.Particles)
             
         for particle in self.Particles:       #-- Symplectic Euler Integration
             if( particle.Mass == 0 ): continue
@@ -179,39 +179,3 @@ class Simulation:
         
         return forceList
             
-    
-
-
-# Thhe ground of the simulation
-class GroundPlane:
-    """
-    Represents the ground of the simulation.
-
-    Attributes:
-    - Particles (list): A list of Particle objects affected by the ground.
-    - Loss (float): A coefficient representing energy loss upon bouncing.
-
-    Methods:
-    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
-    """
-
-    def __init__( self, particles, loss = 1.0 ):
-        """
-        Initializes a new GroundPlane instance.
-
-        Parameters:
-        - particles (list): A list of Particle objects affected by the ground.
-        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
-        """
-        self.Particles = particles
-        self.Loss = loss
-        
-    def Apply( self ):
-        """
-        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
-        """
-
-        for particle in self.Particles:
-            if( particle.Position[2] < 0 ):
-                particle.Position[2] = particle.Position[2] * -1
-                particle.Velocity = particle.Velocity * np.array([0.9, 0.9, -1 * self.Loss])

@@ -108,6 +108,7 @@ class Lorenz:
             LorenzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
             particle.SumForce = particle.SumForce + (LorenzForce)
 
+
     def Info( self ):
         """
         Returns information about the electric and magnetic fields in the Lorenz force.
@@ -116,3 +117,38 @@ class Lorenz:
         - str: A string containing information about the electric and magnetic fields.
         """
         return f"\tElectric = {self.eField}\n\tMagnetic = {self.bField}\n"
+
+
+# The ground of the simulation
+class GroundPlane:
+    """
+    Represents the ground of the simulation.
+
+    Attributes:
+    - Particles (list): A list of Particle objects affected by the ground.
+    - Loss (float): A coefficient representing energy loss upon bouncing.
+
+    Methods:
+    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+    """
+
+    def __init__( self, particles, loss = 1.0 ):
+        """
+        Initializes a new GroundPlane instance.
+
+        Parameters:
+        - particles (list): A list of Particle objects affected by the ground.
+        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
+        """
+        self.Particles = particles
+        self.Loss = loss
+        
+    def Apply( self ):
+        """
+        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+        """
+
+        for particle in self.Particles:
+            if( particle.Position[2] < 0 ):
+                particle.Position[2] = particle.Position[2] * -1
+                particle.Velocity = particle.Velocity * np.array([0.9, 0.9, -1 * self.Loss])
