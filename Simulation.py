@@ -69,12 +69,12 @@ class Simulation:
 
         plt.show()
 
-
+    # TODO add sim figures to plot (color legend, forces, particles mass range....)
     def Plot( self ):
         """
         Plots a 2d axis with the positon of the particles
         """
-        title=f"{len(self.Particles)} Particles over {self.Duration}s"
+        title=f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         colors = ['red', 'green', 'blue']
         # Plot the data points
