@@ -15,7 +15,7 @@ ParticleCreation(1000,sim)
 
 # Add gravity force to the simulation
 sim.Forces.append(Gravity())
-sim.Forces.append(Lorenz(np.array([0,0,10.0])))
+sim.Forces.append(Lorentz(np.array([0,0,10.0])))
 
 # Runns the simulation 
 sim.Run(5, 0.01, False)
