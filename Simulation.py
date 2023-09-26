@@ -79,7 +79,7 @@ class Simulation:
         colors = ['red', 'green', 'blue']
         # Plot the data points
         for particle in self.Particles:
-            plt.scatter(particle.Position[0], particle.Position[1], s=particle.Mass^2, c=colors[particle.Charge + 1])
+            plt.scatter(particle.Position[0], particle.Position[1], s=particle.Mass**2, c=colors[particle.Charge + 1])
         
 
         # Customize the plot (optional)
@@ -142,6 +142,20 @@ class Simulation:
         print(self.FroceList())
         self.Save()
 
+    # faster run method - intended for very large number of particles
+    def FastRun( self, duration=10, timeStep=0.1, ):
+        
+        self.Duration += duration
+
+        [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
+
+        print("Computing simulation")
+
+        for x in tqdm(range(int(duration / timeStep))): # run the simulation FAST
+            self.FastUpdate(0.01, position, velocity, force, mass, charge)
+
+        reloadParticels(self.Particles, position, velocity, force, mass, charge)
+
     # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
     def Update( self, dt):    
         """
@@ -165,6 +179,24 @@ class Simulation:
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( )
+
+    # faster update method, not as accurate and unable to store history (no path plot) - intedned for very large particle counts
+    def FastUpdate(self, dt, position, velocity, force, mass, charge):
+        # Cal forces
+        force *= 0 # zero out forces, allows for re-calcuations each loop
+        force += np.array([0,0,-9.8]) #gravity
+        force += (charge * np.cross(velocity, np.array([10, -1, -2]))) #magnetic force
+        
+        # update position and velocitioes
+        acceleration = force / mass
+        velocity += acceleration * dt
+        position += velocity*dt - 0.5*acceleration*dt*dt
+        
+        negative_z = position[:, 2] < 0 # find when particle below xy plane (-z values)
+        
+        velocity[negative_z] *= np.array([0.9,0.9,-1]) # bounce logic (flip z and reduce x,y Velcoties)
+        
+        position[:,2] = abs(position[:,2]) # the ground plane
     
     def FroceList( self ):
         """
@@ -179,3 +211,32 @@ class Simulation:
         
         return forceList
             
+
+# converts Particle objs to array for after computing
+def calNumPyArray(Particles):
+    position = np.zeros([len(Particles), 3])
+    velocity = np.zeros([len(Particles), 3])
+    force = np.zeros([len(Particles), 3])
+    mass = np.zeros([len(Particles), 1])
+    charge = np.zeros([len(Particles), 1])
+
+    print("Unloading particles -> obj to array")
+    for x in tqdm(range(len(Particles))):
+        position[x] = Particles[x].Position
+        velocity[x] = Particles[x].Velocity
+        force[x] = Particles[x].SumForce
+        mass[x] = Particles[x].Mass
+        charge[x] = Particles[x].Charge
+
+    return [position, velocity, force, mass, charge]
+
+# Saves the particle array state to Particle objects
+def reloadParticels(Particles, position, velocity, force, mass, charge):
+    print("Re-loading Particles -> array to obj")
+    for x in tqdm(range(len(Particles))):
+        Particles[x].Position = position[x]
+        Particles[x].Velocity = velocity[x]
+        Particles[x].SumForce = force[x]
+        Particles[x].Mass = mass[x][0]
+        Particles[x].Charge = charge[x][0]
+        
