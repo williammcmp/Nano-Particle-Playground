@@ -76,7 +76,7 @@ def ParticleCreation(n, Simulation):
     """
     print("\nGenerating particles:")
     for x in tqdm(range(n), unit=" Particle(s)"):
-        position = np.random.uniform(-3, 3, 3) + np.array([0,0,1])
+        position = np.random.uniform(0, 3, 3) + np.array([0,0,1])
         velocity = np.random.uniform(-2, 2, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses
         charge = random.choice([-1,0, 1])
@@ -106,9 +106,9 @@ def LoadTestParticles(sim):
     None
     """
     # Create a particle and add it to the simulation
-    p1 = Particle([2, 1, 2], [0.3, -0.4, 28], 1, -1)
-    p2= Particle([1.5, 1.1, 2], [0.3, 0.1, 33], 1, 1)
-    p3 = Particle([3, 2, 2], [0.2, 0.5, 29], 1, 0)
+    p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
+    p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
+    p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
     sim.Particles.append(p1)
     sim.Particles.append(p2)
     sim.Particles.append(p3)

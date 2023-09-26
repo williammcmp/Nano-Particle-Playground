@@ -2,11 +2,9 @@
 
 This project represents a simple particle simulation framework in Python, designed to simulate the behavior of particles under various forces. It uses a basic simulation loop to update the positions and velocities of particles over time.
 
-<!-- ![Image of the simulation running a 3 particle system](img/1000000%20Particles%205s.png) -->
-
 <p align="center">
   <img src="img/3-particle.png" width="400" height="300"/>
-  <img src="img/1000000%20Particles%205s.png" width="400" height="300"/> 
+  <img src="img/10000%20Particles%205s.png" width="400" height="300"/> 
 </p>
 
 

@@ -48,13 +48,12 @@ class Simulation:
         for particle in self.Particles:
             particle.Save()
 
-    def PlotPaths( self, title="" ):
+    def PlotPaths( self ):
         """
         Plots a 3D axis with the paths for each particle from the simulation.
-
-        Parameters:
-        - title (str): The title for the plot (optional).
         """
+        title=f"{len(self.Particles)} Particles over {self.Duration}s"
+
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -69,13 +68,13 @@ class Simulation:
         ax.set_title(title)
 
         plt.show()
-        self.Display()
 
+    # TODO add sim figures to plot (color legend, forces, particles mass range....)
     def Plot( self ):
         """
         Plots a 2d axis with the positon of the particles
         """
-        title=f"{len(self.Particles)} Particles over {self.Duration}s"
+        title=f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         colors = ['red', 'green', 'blue']
         # Plot the data points
@@ -120,11 +119,6 @@ class Simulation:
 
         self.Duration += duration # adding the sim time to track over multiple simulations
 
-        print(f"Pre-calculating Forces per particles:")
-        # Caclaute the forces at the start of a sim run - assumes they dont change over time. (faster this way)
-        for force in tqdm(self.Forces, unit="Force "):             #-- Accumulate Forces
-            force.Apply(self.Particles)
-
 
         print(f"\nSimulating particles:")
         startTime = time.time()
@@ -132,11 +126,11 @@ class Simulation:
 
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
-            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Save() # saves the particles postion
                 self.Update(timeStep)
         else:
-            for x in tqdm(range(int(duration / timeStep)), unit=" Time Step"):
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Update(timeStep)
 
 
@@ -146,6 +140,7 @@ class Simulation:
 
         print(f"\nForces:")
         print(self.FroceList())
+        self.Save()
 
     # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
     def Update( self, dt):    
@@ -155,8 +150,13 @@ class Simulation:
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
         """ 
+        for particle in self.Particles:
+            particle.SumForce = np.array([0,0,0])      
+
+        for force in self.Forces:             #-- Accumulate Forces
+            force.Apply(self.Particles)
             
-        for particle in self.Particles:       #-- Symplectic Euler Integration
+        for particle in self.Particles:       #-- Cal the position and velocities for each particle
             if( particle.Mass == 0 ): continue
 
             acceleration = particle.SumForce * ( 1.0 / particle.Mass )
@@ -179,39 +179,3 @@ class Simulation:
         
         return forceList
             
-    
-
-
-# Thhe ground of the simulation
-class GroundPlane:
-    """
-    Represents the ground of the simulation.
-
-    Attributes:
-    - Particles (list): A list of Particle objects affected by the ground.
-    - Loss (float): A coefficient representing energy loss upon bouncing.
-
-    Methods:
-    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
-    """
-
-    def __init__( self, particles, loss = 1.0 ):
-        """
-        Initializes a new GroundPlane instance.
-
-        Parameters:
-        - particles (list): A list of Particle objects affected by the ground.
-        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
-        """
-        self.Particles = particles
-        self.Loss = loss
-        
-    def Apply( self ):
-        """
-        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
-        """
-
-        for particle in self.Particles:
-            if( particle.Position[2] < 0 ):
-                particle.Position[2] = particle.Position[2] * -1
-                particle.Velocity = particle.Velocity * np.array([0.9, 0.9, -1 * self.Loss])
