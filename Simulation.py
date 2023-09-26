@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import numpy as np
 import time
 from tqdm import tqdm
@@ -66,6 +67,8 @@ class Simulation:
         ax.set_ylabel('Y (m)')
         ax.set_zlabel('Z (m)')
         ax.set_title(title)
+        # Add a colorbar to the plot
+        plt.colorbar(label='Charge')
 
         plt.show()
 
@@ -76,12 +79,22 @@ class Simulation:
         """
         title=f"{len(self.Particles):,} Particles over {self.Duration}s"
 
-        colors = ['red', 'green', 'blue']
-        # Plot the data points
-        for particle in self.Particles:
-            plt.scatter(particle.Position[0], particle.Position[1], s=particle.Mass**2, c=colors[particle.Charge + 1])
-        
+        [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
 
+        cmap = ListedColormap(['red', 'green', 'blue'])  # Define your custom colormap here
+
+        # Normalize the charge values to match the colormap indices
+        normalize = plt.Normalize(charge.min(), charge.max())
+
+        # Create a scatter plot with the custom colormap
+        plt.scatter(
+            position[:, 0],
+            position[:, 1],
+            s=mass,
+            c=charge,  # Use the charge values for color mapping
+            cmap=cmap,
+            norm=normalize,
+)
         # Customize the plot (optional)
         plt.xlabel('X (m)')
         plt.ylabel('Y (m)')
@@ -140,21 +153,32 @@ class Simulation:
 
         print(f"\nForces:")
         print(self.FroceList())
-        self.Save()
 
     # faster run method - intended for very large number of particles
-    def FastRun( self, duration=10, timeStep=0.1, ):
+    def FastRun( self, duration=10, timeStep=0.1):
+        print("\nInitialising Particle Simulations.\n\n\t...Setting up enviroment for FAST MODE\n")
         
         self.Duration += duration
 
         [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
 
-        print("Computing simulation")
+
+        print("\nSimulating particles (fast mode):")
+        startTime = time.time()
 
         for x in tqdm(range(int(duration / timeStep))): # run the simulation FAST
             self.FastUpdate(0.01, position, velocity, force, mass, charge)
 
+        endTime = time.time()
+
         reloadParticels(self.Particles, position, velocity, force, mass, charge)
+
+        print("\n Simulation:")
+        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {endTime - startTime}s")
+        print(f"\tTotal number of calculatios = {int(duration / timeStep) * len(self.Particles)}")
+
+        print(f"\nForces:")
+        print(self.FroceList())
 
     # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
     def Update( self, dt):    
@@ -220,7 +244,7 @@ def calNumPyArray(Particles):
     mass = np.zeros([len(Particles), 1])
     charge = np.zeros([len(Particles), 1])
 
-    print("Unloading particles -> obj to array")
+    print("\nobj -> array")
     for x in tqdm(range(len(Particles))):
         position[x] = Particles[x].Position
         velocity[x] = Particles[x].Velocity
@@ -232,7 +256,7 @@ def calNumPyArray(Particles):
 
 # Saves the particle array state to Particle objects
 def reloadParticels(Particles, position, velocity, force, mass, charge):
-    print("Re-loading Particles -> array to obj")
+    print("\narray -> obj")
     for x in tqdm(range(len(Particles))):
         Particles[x].Position = position[x]
         Particles[x].Velocity = velocity[x]
