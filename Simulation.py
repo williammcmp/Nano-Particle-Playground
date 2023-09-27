@@ -58,17 +58,15 @@ class Simulation:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        colors = ['red', 'green', 'blue']
 
         for particle in self.Particles:
-            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2], c=colors[particle.Charge +1])
+            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2])
 
         ax.set_xlabel('X (m)')
         ax.set_ylabel('Y (m)')
         ax.set_zlabel('Z (m)')
         ax.set_title(title)
-        # Add a colorbar to the plot
-        plt.colorbar(label='Charge')
+
 
         plt.show()
 
@@ -81,18 +79,19 @@ class Simulation:
 
         [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
 
-        cmap = ListedColormap(['red', 'green', 'blue'])  # Define your custom colormap here
+        # cmap = ListedColormap(['red', 'green', 'blue'])  # Define your custom colormap here
 
         # Normalize the charge values to match the colormap indices
-        normalize = plt.Normalize(charge.min(), charge.max())
+        # normalize = plt.Normalize(charge.min(), charge.max())
+        normalize = plt.Normalize(mass.min(), mass.max())
 
         # Create a scatter plot with the custom colormap
         plt.scatter(
             position[:, 0],
             position[:, 1],
-            s=mass,
-            c=charge,  # Use the charge values for color mapping
-            cmap=cmap,
+            # s=mass,
+            c=mass,  # Use the charge values for color mapping
+            # cmap="Set1_r",
             norm=normalize,
 )
         # Customize the plot (optional)
@@ -100,6 +99,26 @@ class Simulation:
         plt.ylabel('Y (m)')
         plt.title(title)
         # TODO add labels to indicate what color each charged particle is
+        plt.colorbar(label='Mass (kg)')
+
+        # Show the plot
+        plt.show()
+
+    def Histogram(self):
+        """
+        Plots a histogram of particle masses.
+        """
+        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
+
+        position, _, _, mass, _ = calNumPyArray(self.Particles)
+
+        # Create a histogram of particle masses
+        plt.hist(np.linalg.norm(position, axis=1), bins=20, edgecolor='k', alpha=0.7, color='blue')
+
+        # Customize the plot (optional)
+        plt.xlabel('Distance from orgin')
+        plt.ylabel('Frequency')
+        plt.title(title)
 
         # Show the plot
         plt.show()
@@ -218,7 +237,7 @@ class Simulation:
         
         negative_z = position[:, 2] < 0 # find when particle below xy plane (-z values)
         
-        velocity[negative_z] *= np.array([0.9,0.9,-1]) # bounce logic (flip z and reduce x,y Velcoties)
+        velocity[negative_z] *= np.array([0,0,0]) # bounce logic (flip z and reduce x,y Velcoties)
         
         position[:,2] = abs(position[:,2]) # the ground plane
     
