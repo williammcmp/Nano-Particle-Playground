@@ -153,4 +153,4 @@ class GroundPlane:
             if( particle.Position[2] < 0 ):
                 particle.Position[2] = 0.001
                 # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([0.8, 0.8, -1 * self.Loss])
+                particle.Velocity = particle.Velocity * np.array([0, 0, -0* self.Loss])
