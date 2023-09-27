@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import numpy as np
 import random
 
@@ -51,10 +52,64 @@ class Particle:
 
 # Creates a large amount of particles
 def ParticleCreation(n, Simulation):
-    for x in range(n):
-        position = np.random.uniform(-3, 3, 3)
-        velocity = np.random.uniform(-40, 40, 3)
+    """
+    Create a specified number of particles and add them to the simulation.
+
+    This function generates random positions, velocities, masses, and charges for a given number of particles
+    and then creates Particle objects with these properties. These particles are added to the provided Simulation object.
+
+    Parameters:
+    - n (int): The number of particles to create.
+    - Simulation (ParticleSimulation): The simulation object to which the particles will be added.
+
+    Example:
+    ```
+    sim = ParticleSimulation()
+    ParticleCreation(n=100, Simulation=sim)
+    ```
+
+    Output:
+    The function creates and adds `n` particles to the simulation object.
+
+    Returns:
+    None
+    """
+    print("\nGenerating particles:")
+    for x in tqdm(range(n), unit=" Particle(s)"):
+        position = np.random.uniform(0, 3, 3) + np.array([0,0,1])
+        velocity = np.random.uniform(-2, 2, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses
-        charge = random.choice([-1,0,1])
+        charge = random.choice([-1,0, 1])
         Simulation.Particles.append(Particle(position, velocity, mass, charge))
+
+
+def LoadTestParticles(sim):
+    """
+    Load a set of predefined test particles into a simulation.
+
+    This function creates a set of predefined Particle objects with specific positions, velocities,
+    masses, and charges. These particles are then added to the provided simulation object.
+
+    Parameters:
+    - sim (ParticleSimulation): The simulation object to which the test particles will be added.
+
+    Example:
+    ```
+    sim = ParticleSimulation()
+    LoadTestParticles(sim)
+    ```
+
+    Output:
+    The function creates and adds predefined test particles to the simulation object.
+
+    Returns:
+    None
+    """
+    # Create a particle and add it to the simulation
+    p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
+    p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
+    p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
+    sim.Particles.append(p1)
+    sim.Particles.append(p2)
+    sim.Particles.append(p3)
 
