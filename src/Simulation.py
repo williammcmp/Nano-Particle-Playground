@@ -1,11 +1,9 @@
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import numpy as np
 import time
 from tqdm import tqdm
 
-from Particle import Particle
-from Forces import *
+from src.Forces import *
 
 
 class Simulation:
@@ -42,6 +40,20 @@ class Simulation:
 
         self.Constraints.append( GroundPlane(self.Particles, 0.5) )
         
+    def AddParticles( self , Particles):
+        """
+        Adds Particles to the Simulation
+        """
+        for partilce in Particles:
+            self.Particles.append(partilce)
+
+    def AddForce( self , Forces ):
+        """
+        Adds Froces to the Simulation
+        """
+        for force in Forces:
+            self.Forces.append(force)
+
     def Save( self ):
         """
         Saves all particles' current position, could expand to include velocity
@@ -77,7 +89,7 @@ class Simulation:
         """
         title=f"{len(self.Particles):,} Particles over {self.Duration}s"
 
-        [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
+        [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
 
         # cmap = ListedColormap(['red', 'green', 'blue'])  # Define your custom colormap here
 
@@ -106,11 +118,11 @@ class Simulation:
 
     def Histogram(self):
         """
-        Plots a histogram of particle masses.
+        Plots a histogram of particle's displacment from the origin.
         """
         title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
-        position, _, _, mass, _ = calNumPyArray(self.Particles)
+        position, _, _, mass, _ = self.__calNumPyArray(self.Particles)
 
         # Create a histogram of particle masses
         plt.hist(np.linalg.norm(position, axis=1), bins=20, edgecolor='k', alpha=0.7, color='blue')
@@ -179,7 +191,7 @@ class Simulation:
         
         self.Duration += duration
 
-        [position, velocity, force, mass, charge] = calNumPyArray(self.Particles)
+        [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
 
 
         print("\nSimulating particles (fast mode):")
@@ -190,7 +202,7 @@ class Simulation:
 
         endTime = time.time()
 
-        reloadParticels(self.Particles, position, velocity, force, mass, charge)
+        self.__reloadParticels(self.Particles, position, velocity, force, mass, charge)
 
         print("\n Simulation:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {endTime - startTime}s")
@@ -255,31 +267,31 @@ class Simulation:
         return forceList
             
 
-# converts Particle objs to array for after computing
-def calNumPyArray(Particles):
-    position = np.zeros([len(Particles), 3])
-    velocity = np.zeros([len(Particles), 3])
-    force = np.zeros([len(Particles), 3])
-    mass = np.zeros([len(Particles), 1])
-    charge = np.zeros([len(Particles), 1])
+    # converts Particle objs to array for after computing
+    def __calNumPyArray(self, Particles):
+        position = np.zeros([len(Particles), 3])
+        velocity = np.zeros([len(Particles), 3])
+        force = np.zeros([len(Particles), 3])
+        mass = np.zeros([len(Particles), 1])
+        charge = np.zeros([len(Particles), 1])
 
-    print("\nobj -> array")
-    for x in tqdm(range(len(Particles))):
-        position[x] = Particles[x].Position
-        velocity[x] = Particles[x].Velocity
-        force[x] = Particles[x].SumForce
-        mass[x] = Particles[x].Mass
-        charge[x] = Particles[x].Charge
+        print("\nobj -> array")
+        for x in tqdm(range(len(Particles))):
+            position[x] = Particles[x].Position
+            velocity[x] = Particles[x].Velocity
+            force[x] = Particles[x].SumForce
+            mass[x] = Particles[x].Mass
+            charge[x] = Particles[x].Charge
 
-    return [position, velocity, force, mass, charge]
+        return [position, velocity, force, mass, charge]
 
-# Saves the particle array state to Particle objects
-def reloadParticels(Particles, position, velocity, force, mass, charge):
-    print("\narray -> obj")
-    for x in tqdm(range(len(Particles))):
-        Particles[x].Position = position[x]
-        Particles[x].Velocity = velocity[x]
-        Particles[x].SumForce = force[x]
-        Particles[x].Mass = mass[x][0]
-        Particles[x].Charge = charge[x][0]
+    # Saves the particle array state to Particle objects
+    def __reloadParticels(self, Particles, position, velocity, force, mass, charge):
+        print("\narray -> obj")
+        for x in tqdm(range(len(Particles))):
+            Particles[x].Position = position[x]
+            Particles[x].Velocity = velocity[x]
+            Particles[x].SumForce = force[x]
+            Particles[x].Mass = mass[x][0]
+            Particles[x].Charge = charge[x][0]
         
