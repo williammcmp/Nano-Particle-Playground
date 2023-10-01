@@ -1,0 +1,5 @@
+src/__pycache__/__init__.cpython-310.pyc
+src/__pycache__/Particle.cpython-310.pyc
+tests/__pycache__/__init__.cpython-310.pyc
+tests/__pycache__/test_Partilce.cpython-310-pytest-7.4.2.pyc
+tests/__pycache__/test_tineting.cpython-310-pytest-7.4.2.pyc
