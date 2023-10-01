@@ -1,4 +1,4 @@
-from Particle import Particle
+from src.Particle import Particle
 from tqdm import tqdm
 import numpy as np
 import random
@@ -31,9 +31,7 @@ def GenerateTestParticles(Simulation):
     p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
     p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
     p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
-    Simulation.Particles.append(p1)
-    Simulation.Particles.append(p2)
-    Simulation.Particles.append(p3)
+    Simulation.AddParticles([p1,p2,p3])
 
 # Creates a large amount of particles
 def GenerateParticles(n, Simulation):
@@ -60,12 +58,15 @@ def GenerateParticles(n, Simulation):
     None
     """
     print(f"\nGenerating {n} Particles:")
+    particles = []
     for x in tqdm(range(n), unit=" Particle(s)"):
         position = np.random.uniform(0, 3, 3) + np.array([0,0,1])
         velocity = np.random.uniform(-2, 2, 3)
         mass = random.randrange(1,5) # fixed to have smaller masses
         charge = random.choice([-1,0, 1])
-        Simulation.Particles.append(Particle(position, velocity, mass, charge))
+        particles.append(Particle(position, velocity, mass, charge))
+
+    Simulation.AddParticles(particles)
 
 
 # Generates particles in the nano-sized regime
@@ -89,10 +90,13 @@ def GenerateNanoParticles(n, Simulation):
     ```
     """
     print(f"\nGenerating {n} Nano-Particles:")
+    particles = []
     for x in tqdm(range(n), unit=" Particle(s)"):
         # between 20 mu meters
         position = np.array([0.0000001,0,0]) # all start from origin
         velocity = np.array([np.random.normal(loc=0, scale=10),np.random.normal(loc=0, scale=10),random.randint(0,10)]) * 1e-7 
         mass = np.abs(np.random.normal(loc=100, scale=25))* 1e-19  # mass of particles (~ 10^-19kg)
         charge = 0;
-        Simulation.Particles.append(Particle(position, velocity, mass, charge))
+        particles.append(Particle(position, velocity, mass, charge))
+
+    Simulation.AddParticles(particles)
