@@ -2,6 +2,7 @@
 from src.Simulation import *
 from src.Particle import *
 from src.Forces import *
+from src.ParticleGenerator import *
 
 # Create a simulation
 sim = Simulation()
@@ -11,7 +12,7 @@ sim = Simulation()
 
 # Creates the particles
 np.random.seed(0)
-ParticleCreation(1000,sim)
+GenerateParticles(1000,sim)
 
 # Add gravity force to the simulation
 sim.Forces.append(Gravity())
