@@ -8,15 +8,15 @@ from src.ParticleGenerator import *
 sim = Simulation()
 
 # Load test particles
-# LoadTestParticles(sim)
+GenerateTestParticles(sim)
 
 # Creates the particles
 np.random.seed(0)
-GenerateParticles(100,sim)
+# GenerateParticles(100,sim)
 
 # Add gravity force to the simulation
 sim.AddForce([Gravity()])
-sim.AddForce([Lorentz(np.array([0,0,10.0]))])
+# sim.AddForce([Lorentz(np.array([0,0,10.0]))])
 
 # Runns the simulation 
 sim.Run(5, 0.01, False)
