@@ -118,7 +118,7 @@ class Simulation:
 
     def Histogram(self):
         """
-        Plots a histogram of particle masses.
+        Plots a histogram of particle's displacment from the origin.
         """
         title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
