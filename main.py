@@ -1,7 +1,7 @@
 # Importing all the required Classes
-from Simulation import *
-from Particle import *
-from Forces import *
+from src.Simulation import *
+from src.Particle import *
+from src.Forces import *
 
 # Create a simulation
 sim = Simulation()
