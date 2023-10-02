@@ -133,7 +133,7 @@ class Simulation:
         ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color='blue')
 
         # Customize the plot (optional)
-        ax.set_xlabel('Distance from origin')
+        ax.set_xlabel('Distance from origin (m)')
         ax.set_ylabel('Frequency')
         ax.set_title(title)
 
