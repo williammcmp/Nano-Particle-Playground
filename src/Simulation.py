@@ -87,34 +87,30 @@ class Simulation:
         """
         Plots a 2d axis with the positon of the particles
         """
-        title=f"{len(self.Particles):,} Particles over {self.Duration}s"
+        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
 
-        # cmap = ListedColormap(['red', 'green', 'blue'])  # Define your custom colormap here
-
-        # Normalize the charge values to match the colormap indices
-        # normalize = plt.Normalize(charge.min(), charge.max())
-        normalize = plt.Normalize(mass.min(), mass.max())
-
         # Create a scatter plot with the custom colormap
-        plt.scatter(
+        fig, ax = plt.subplots()
+        scatter = ax.scatter(
             position[:, 0],
             position[:, 1],
-            # s=mass,
-            c=mass,  # Use the charge values for color mapping
-            # cmap="Set1_r",
-            norm=normalize,
-)
-        # Customize the plot (optional)
+            c=mass,  # Use the mass values for color mapping
+            cmap="viridis",  # Choose a colormap (you can change this)
+            alpha=0.7,  # Adjust transparency
+        )
+
+        # Customize the plot
         plt.xlabel('X (m)')
         plt.ylabel('Y (m)')
         plt.title(title)
-        # TODO add labels to indicate what color each charged particle is
-        plt.colorbar(label='Mass (kg)')
+
+        # Add colorbar
+        cbar = plt.colorbar(scatter, ax=ax, label='Mass (kg)')
 
         # Show the plot
-        plt.show()
+        return fig, cbar
 
     def Histogram(self):
         """

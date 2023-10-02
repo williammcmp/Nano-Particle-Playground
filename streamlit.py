@@ -6,7 +6,7 @@ import numpy as np
 
 from src.Particle import Particle
 from src.Simulation import Simulation
-from src.ParticleGenerator import GenerateTestParticles
+from src.ParticleGenerator import *
 
 # Define the Streamlit app
 def main():
@@ -28,13 +28,8 @@ def main():
     plt.rcParams.update(rc)
     # st.title("Particle Simulation App")
 
-    # # Create a simulation instance
-    # simulation = Simulation()
-
-    # # Button to generate test particles
-    # if st.button("Generate Test Particles"):
-    #     GenerateTestParticles(simulation)
-    #     st.success("Test particles generated!")
+    # Create a simulation instance
+    
 
     # # Display simulation info
     # if simulation.Particles:
@@ -44,59 +39,34 @@ def main():
     
 
 
-# Set page layout to wide
+    # Set page layout to wide
     st.set_page_config(layout="wide")
 
     # Sidebar
     st.sidebar.header("Simulation Settings")
 
     # Add sliders to the sidebar
-    slider1 = st.sidebar.slider("How may particles you you want to generate?", min_value=0, max_value=10000, value=50)
-    slider2 = st.sidebar.slider("Slider 2", min_value=0, max_value=100, value=25)
-    slider3 = st.sidebar.slider("Slider 3", min_value=0, max_value=100, value=75)
+    slider1 = st.sidebar.slider("Number of Particles", min_value=0, max_value=10000, value=50)
+    slider2 = st.sidebar.slider("Simulation time (s)", min_value=0, max_value=30, value=5)
+    slider3 = st.sidebar.slider("Time step (ms)", min_value=1, max_value=100, value=10)
 
     # Main content
     st.title("Particle Simulation App")
 
-    # Add content to the main area
-    st.write("This is the main content area.")
-    st.write(f"Number of random points generated: {slider1}")
-    st.write(f"Slider 2 Value: {slider2}")
-    st.write(f"Slider 3 Value: {slider3}")
+    simulation = Simulation()
 
-    # Set the range for the slider
-    range_values = st.slider("Select a Range:", min_value=0, max_value=100, value=(25, 75))
+    # Button to generate test particles
+    # if st.button(f"Run Particle Simulation"):
+    GenerateNanoParticles(slider1, simulation)
+    simulation.Run(slider2, slider3/100)
+    # st.success(f"Simculation Complete")
 
-    # Display the selected range
-    st.write(f"Selected Range: {range_values[0]} to {range_values[1]}")
 
-    min_value = 10
-    max_value = 1000000
-    default_value = 1000
+    fig, cbar = simulation.Plot()
 
-    selected_value = st.slider(
-        "Select a value (log scale)",
-        min_value=min_value,
-        max_value=max_value,
-        value=default_value,
-        format="%d",  # Format the displayed value as an integer
-    )
-
-    # Display the selected value
-    st.write(f"Selected value: {selected_value}")
-
-    x = np.random.rand(slider1)
-    y = np.random.rand(slider1)
-
-    # Create a scatter plot
-    fig, ax = plt.subplots()
-    ax.scatter(x, y)
-    ax.set_xlabel('X-axis')
-    ax.set_ylabel('Y-axis')
-    ax.set_title('Scatter Plot')
-
-    # Display the plot in Streamlit
     st.pyplot(fig)
+
+    
 
 
         # You can add more features and visualization here
