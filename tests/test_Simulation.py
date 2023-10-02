@@ -16,7 +16,7 @@ def test_simulation_initialization(simulation):
     assert isinstance(simulation, Simulation)
     assert len(simulation.Particles) == 0
     assert len(simulation.Forces) == 0
-    assert len(simulation.Constraints) == 1  # Default constraint (GroundPlane)
+    assert len(simulation.Constraints) == 0
     assert simulation.Duration == 0
 
 def test_simulation_save(simulation):
@@ -82,10 +82,37 @@ def test_add_multi_forces(simulation):
     assert simulation.Forces[0] == mock_force1
     assert simulation.Forces[1] == mock_force2
 
+def test_add_constraint(simulation):
+    # Create mock forces
+    mock_constrain = GroundPlane()
+
+
+    # Add forces to the simulation
+    simulation.AddConstraints([mock_constrain])
+
+    # Check if forces were added correctly
+    assert len(simulation.Constraints) == 1
+    assert simulation.Constraints[0] == mock_constrain
+
+def test_add_constraints(simulation):
+    # Create mock forces
+    mock_constrain = GroundPlane()
+    mock_constrain2 = GroundPlane()
+
+
+    # Add forces to the simulation
+    simulation.AddConstraints([mock_constrain, mock_constrain2])
+
+    # Check if forces were added correctly
+    assert len(simulation.Constraints) == 2
+    assert simulation.Constraints[0] == mock_constrain
+    assert simulation.Constraints[1] == mock_constrain2
+
 def test_run(simulation):
     mock_force = Gravity()
 
     simulation.AddForce([mock_force])
+    simulation.AddConstraints([GroundPlane()])
 
     # Adds the test the test particles to the sim
     GenerateTestParticles(simulation)

@@ -132,7 +132,7 @@ class GroundPlane:
     - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
     """
 
-    def __init__( self, particles, loss = 1.0 ):
+    def __init__( self, loss = 1.0 ):
         """
         Initializes a new GroundPlane instance.
 
@@ -140,17 +140,25 @@ class GroundPlane:
         - particles (list): A list of Particle objects affected by the ground.
         - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
         """
-        self.Particles = particles
+
         self.Loss = loss
         
-    def Apply( self ):
+    def Apply( self, particles):
         """
         Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
         """
 
-        for particle in self.Particles:
+        for particle in particles:
 
             if( particle.Position[2] < 0 ):
                 particle.Position[2] = 0.001
                 # TODO add method to make the ground more sticky
                 particle.Velocity = particle.Velocity * np.array([0, 0, -0* self.Loss])
+
+    def Info( self ):
+        """
+        Returns information about the ground plane
+        Returns:
+        - str: A string containing information about the ground plane
+        """
+        return f"Ground Plane = `True`"

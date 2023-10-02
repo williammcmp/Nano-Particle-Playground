@@ -41,8 +41,8 @@ def test_lorentz_force(sample_particles):
         assert np.array_equal(particle.SumForce, charge_term)
 
 def test_ground_plane_constraint(sample_particles):
-    ground_plane = GroundPlane(sample_particles, loss=0.5)
-    ground_plane.Apply()
+    ground_plane = GroundPlane(loss=0.5)
+    ground_plane.Apply(sample_particles)
 
     # Assert that the ground constraint is applied to the particles
     for particle in sample_particles:

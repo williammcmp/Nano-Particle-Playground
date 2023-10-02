@@ -38,7 +38,8 @@ class Simulation:
         # Store the ground plane
         self.Constraints = []
 
-        self.Constraints.append( GroundPlane(self.Particles, 0.5) )
+        # TODO update test to add the ground plane when needed
+        # self.Constraints.append( GroundPlane(self.Particles, 0.5) )
         
     def AddParticles( self , Particles):
         """
@@ -54,6 +55,13 @@ class Simulation:
         for force in Forces:
             self.Forces.append(force)
 
+    def AddConstraints( self, Constraints):
+        """
+        Adds Constraints to the Simulation
+        """
+        for constrant in Constraints:
+            self.Constraints.append(constrant)
+
     def Save( self ):
         """
         Saves all particles' current position, could expand to include velocity
@@ -61,9 +69,9 @@ class Simulation:
         for particle in self.Particles:
             particle.Save()
 
-    def PlotPaths( self ):
+    def PlotPaths( self , txt=""):
         """
-        Plots a 3D axis with the paths for each particle from the simulation.
+        Returns a 3D axis with the paths for each particle from the simulation.
         """
         title=f"{len(self.Particles)} Particles over {self.Duration}s"
 
@@ -80,14 +88,13 @@ class Simulation:
         ax.set_title(title)
 
 
-        plt.show()
+        return fig
 
-    # TODO add sim figures to plot (color legend, forces, particles mass range....)
-    def Plot( self ):
+    def Plot( self):
         """
-        Plots a 2d axis with the positon of the particles
+        Returns a 2D axis with the positon of the particles
         """
-        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
+        title = f"{len(self.Particles):,} Particles after {self.Duration}s"
 
         [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
 
@@ -110,26 +117,27 @@ class Simulation:
         cbar = plt.colorbar(scatter, ax=ax, label='Mass (kg)')
 
         # Show the plot
-        return fig, cbar
+        return fig
 
-    def Histogram(self):
+    def Histogram(self, bins = 20):
         """
-        Plots a histogram of particle's displacment from the origin.
+        Returns a histogram of particle's displacment from the origin.
         """
         title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         position, _, _, mass, _ = self.__calNumPyArray(self.Particles)
 
         # Create a histogram of particle masses
-        plt.hist(np.linalg.norm(position, axis=1), bins=20, edgecolor='k', alpha=0.7, color='blue')
+         # Create a histogram of particle masses
+        fig, ax = plt.subplots()
+        ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color='blue')
 
         # Customize the plot (optional)
-        plt.xlabel('Distance from orgin')
-        plt.ylabel('Frequency')
-        plt.title(title)
+        ax.set_xlabel('Distance from origin')
+        ax.set_ylabel('Frequency')
+        ax.set_title(title)
 
-        # Show the plot
-        plt.show()
+        return fig
 
 
     def Run(self, duration=10, timeStep=0.1, saveHistory=True):
@@ -173,13 +181,17 @@ class Simulation:
             for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Update(timeStep)
 
+        computeTime = time.time() - startTime
+        numCals = int(duration / timeStep) * len(self.Particles)
 
         print("\n Simulation:")
-        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {time.time() - startTime}s")
-        print(f"\tTotal number of calculatios = {int(duration / timeStep) * len(self.Particles)}")
+        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
+        print(f"\tTotal number of calculatios = {numCals}")
 
         print(f"\nForces:")
         print(self.FroceList())
+
+        return computeTime, numCals
 
     # faster run method - intended for very large number of particles
     def FastRun( self, duration=10, timeStep=0.1):
@@ -200,14 +212,18 @@ class Simulation:
 
         self.__reloadParticels(self.Particles, position, velocity, force, mass, charge)
 
+        computeTime = time.time() - startTime
+        numCals = int(duration / timeStep) * len(self.Particles)
+
         print("\n Simulation:")
-        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {endTime - startTime}s")
-        print(f"\tTotal number of calculatios = {int(duration / timeStep) * len(self.Particles)}")
+        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
+        print(f"\tTotal number of calculatios = {numCals}")
 
         print(f"\nForces:")
         print(self.FroceList())
 
-    # TODO remove the particles from active list once that have become stationary -> np.diff(last 5 position) = 0.005?? may need to adjust the tollarance
+        return computeTime, numCals
+
     def Update( self, dt):    
         """
         Update the simulation for a given time step 'dt'.
@@ -219,7 +235,7 @@ class Simulation:
             particle.SumForce = np.array([0,0,0])      
 
         for force in self.Forces:             #-- Accumulate Forces
-            force.Apply(self.Particles)
+            force.Apply( self.Particles )
             
         for particle in self.Particles:       #-- Cal the position and velocities for each particle
             if( particle.Mass == 0 ): continue
@@ -229,7 +245,7 @@ class Simulation:
             particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
-            constraint.Apply( )
+            constraint.Apply( self.Particles )
 
     # faster update method, not as accurate and unable to store history (no path plot) - intedned for very large particle counts
     def FastUpdate(self, dt, position, velocity, force, mass, charge):
