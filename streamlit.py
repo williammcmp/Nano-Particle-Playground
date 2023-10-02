@@ -47,7 +47,7 @@ def buildSideBar(simMode):
         simDuration = st.sidebar.slider("Simulation time (s)", min_value=0, max_value=30, value=5)
         simTimeStep = st.sidebar.slider("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
     else:
-        fastMode = False
+        fastMode = st.sidebar.toggle("Enable Fast Mode") 
         partilceNumber = 3
         simDuration = st.sidebar.slider("Simulation time (s)", min_value=0, max_value=30, value=5)
         simTimeStep = st.sidebar.slider("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
@@ -97,7 +97,7 @@ if electric:
 st.sidebar.divider()
 st.sidebar.markdown("Constrains selected:")
 if fastMode :
-    groundPlane = st.sidebar.checkbox("Ground Plane", value=True, disable=True)
+    groundPlane = st.sidebar.checkbox("Ground Plane", value=False, disabled=True)
 else:
     groundPlane = st.sidebar.checkbox("Ground Plane", value=True)
     if groundPlane:
