@@ -34,7 +34,10 @@ def GenerateTestParticles(Simulation):
     Simulation.AddParticles([p1,p2,p3])
 
 # Creates a large amount of particles
-def GenerateParticles(n, Simulation):
+def GenerateParticles(n, Simulation, mode = "Origin",
+                      positionX = 0, positionY = 0, 
+                      positionZ = 0, massRange = [1, 5],
+                      avgEnergy = 3, charged = True):
     """
     Create a specified number of particles and add them to the simulation.
 
@@ -57,14 +60,28 @@ def GenerateParticles(n, Simulation):
     Returns:
     None
     """
+
+
+
     print(f"\nGenerating {n} Particles:")
     particles = []
     for x in tqdm(range(n), unit=" Particle(s)"):
-        position = np.random.uniform(0, 3, 3) + np.array([0,0,1])
-        velocity = np.random.uniform(-2, 2, 3)
-        mass = random.randrange(1,5) # fixed to have smaller masses
-        charge = random.choice([-1,0, 1])
-        particles.append(Particle(position, velocity, mass, charge))
+        if mode == "Origin":
+            position = np.array([0,0,0])
+        else:
+            x_pos = np.random.normal(positionX)
+            y_pos = np.random.normal(positionY)
+            z_pos = np.random.normal(positionZ)
+            position = np.array([x_pos, y_pos, z_pos])
+        # mass = random.randrange(int(massRange[0]),int(massRange[1])) # fixed to have smaller masses
+        mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
+        velAvg = np.sqrt((2*avgEnergy)/mass)
+        velocity = np.random.uniform(-velAvg, velAvg, 3)
+        if charged:
+            charge = random.choice([-1,0, 1])
+            particles.append(Particle(position, velocity, mass, charge))
+        else: 
+            particles.append(Particle(position, velocity, mass))
 
     Simulation.AddParticles(particles)
 
