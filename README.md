@@ -58,6 +58,11 @@ To run the particle simulation:
 python src/main.py
 ```
 
+To run the Streamlit app:
+```bash
+streamlit run streamlit.py
+```
+
 ## Running Tests
 To run the tests for this project, you will need to have pytest installed. If you haven't installed it yet, you can do so using pip:
 
