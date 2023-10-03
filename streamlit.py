@@ -43,14 +43,14 @@ plt.rcParams.update(rc)
 def buildSideBar(simMode):
     if simMode == "Silicon Nano-Particles":
         fastMode = st.sidebar.toggle("Enable Fast Mode") 
-        partilceNumber = st.sidebar.slider("Number of Particles", min_value=0, max_value=10000, value=50)
-        simDuration = st.sidebar.slider("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.slider("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
     else:
         fastMode = st.sidebar.toggle("Enable Fast Mode") 
         partilceNumber = 3
-        simDuration = st.sidebar.slider("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.slider("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
     
     return fastMode, partilceNumber, simDuration, simTimeStep 
 
