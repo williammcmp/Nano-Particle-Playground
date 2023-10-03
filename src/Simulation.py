@@ -129,7 +129,7 @@ class Simulation:
 
         # Create a histogram of particle masses
         fig, ax = plt.subplots()
-        ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color='blue')
+        ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color="#5433b8")
 
         # Customize the plot (optional)
         ax.set_xlabel('Distance from origin (m)')
