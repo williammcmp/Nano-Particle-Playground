@@ -96,7 +96,7 @@ class Simulation:
         """
         title = f"{len(self.Particles):,} Particles after {self.Duration}s"
 
-        [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
+        [position, velocity, force, mass, charge] = self.__calNumPyArray()
 
         # Create a scatter plot with the custom colormap
         fig, ax = plt.subplots()
@@ -125,10 +125,9 @@ class Simulation:
         """
         title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
-        position, _, _, mass, _ = self.__calNumPyArray(self.Particles)
+        position, _, _, mass, charge = self.__calNumPyArray()
 
         # Create a histogram of particle masses
-         # Create a histogram of particle masses
         fig, ax = plt.subplots()
         ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color='blue')
 
@@ -199,7 +198,7 @@ class Simulation:
         
         self.Duration += duration
 
-        [position, velocity, force, mass, charge] = self.__calNumPyArray(self.Particles)
+        [position, velocity, force, mass, charge] = self.__calNumPyArray()
 
 
         print("\nSimulating particles (fast mode):")
@@ -277,23 +276,30 @@ class Simulation:
             forceList += force.Info()
         
         return forceList
+    
+    def StreamletData( self ):
+        
+        position, velocity, force, mass, charge = self.__calNumPyArray()
+                
+            
+        return position, velocity, force, mass, charge
             
 
     # converts Particle objs to array for after computing
-    def __calNumPyArray(self, Particles):
-        position = np.zeros([len(Particles), 3])
-        velocity = np.zeros([len(Particles), 3])
-        force = np.zeros([len(Particles), 3])
-        mass = np.zeros([len(Particles), 1])
-        charge = np.zeros([len(Particles), 1])
+    def __calNumPyArray(self):
+        position = np.zeros([len(self.Particles), 3])
+        velocity = np.zeros([len(self.Particles), 3])
+        force = np.zeros([len(self.Particles), 3])
+        mass = np.zeros([len(self.Particles), 1])
+        charge = np.zeros([len(self.Particles), 1])
 
         print("\nobj -> array")
-        for x in tqdm(range(len(Particles))):
-            position[x] = Particles[x].Position
-            velocity[x] = Particles[x].Velocity
-            force[x] = Particles[x].SumForce
-            mass[x] = Particles[x].Mass
-            charge[x] = Particles[x].Charge
+        for x in tqdm(range(len(self.Particles))):
+            position[x] = self.Particles[x].Position
+            velocity[x] = self.Particles[x].Velocity
+            force[x] = self.Particles[x].SumForce
+            mass[x] = self.Particles[x].Mass
+            charge[x] = self.Particles[x].Charge
 
         return [position, velocity, force, mass, charge]
 
