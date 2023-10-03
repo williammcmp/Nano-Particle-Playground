@@ -3,6 +3,8 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import random
 
 from src.Particle import Particle
 from src.Simulation import Simulation
@@ -51,16 +53,28 @@ def buildSideBar(simMode):
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
-    
+  
     return fastMode, partilceNumber, simDuration, simTimeStep 
 
+def buildPartilceDistributions(simMode):
+    # if simMode == "Standard":
+    a = st.sidebar.expander("Particle Distribution Settings")
+    positionType = a.selectbox("Starting Position:", ["Origin", "Random"])
+    if positionType == "Random":
+        positionX = a.number_input("Average inital X pos:")
+        positionY = a.number_input("Average inital Y pos:")
+        positionZ = a.number_input("Average inital Z pos:", min_value=0, value=1)
+    else:
+        positionX = 1
+        positionY = 1
+        positionZ = 0
 
-# # Display simulation info
-# if simulation.Particles:
-#     st.subheader("Simulation Info")
-#     st.write(f"Number of Particles: {len(simulation.Particles)}")
-#     st.write(f"Total Duration: {simulation.Duration} seconds")
+    massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
+    AvgEnergy = a.slider("Average Energy (J)", value=3)
+    charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
 
+    # Return the values as a tuple
+    return positionType, positionX, positionY, positionZ, massRange, AvgEnergy, charged
 
 
 # ------------
@@ -69,43 +83,50 @@ def buildSideBar(simMode):
 st.sidebar.header("Simulation Settings")
 st.sidebar.markdown("Change the Simulation settings:  👇")
 
-simMode = st.sidebar.selectbox("Simulation Mode:", ["Three Particle system (testing)", "Silicon Nano-Particles", "Standard"])
+simMode = st.sidebar.selectbox("Simulation Mode:", ["Standard","Three Particle system (testing)", "Silicon Nano-Particles"])
 
 fastMode, partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
+if simMode == "Standard":
+    st.sidebar.divider()
+    mode, positionX, positionY, positionZ, massRange, avgEnergy, charged = buildPartilceDistributions(simMode)
+
+
 # Forces of the Simulation 
-st.sidebar.divider()
-st.sidebar.markdown("Forces selected:")
-gravity = st.sidebar.checkbox("Gravity", value=True)
-magnetic = st.sidebar.checkbox("Magnetic field")
+# st.sidebar.divider()
+a = st.sidebar.expander("Simulation Forces")
+gravity = a.checkbox("Gravity", value=True)
+magnetic = a.checkbox("Magnetic field")
 if magnetic:
-    c = st.sidebar.container()
+    c = a.container()
     c.markdown("Define the Magnetic Field (T):")
     magneticX = c.number_input("Magnetic X", value=1.0)
     magneticY = c.number_input("Magnetic Y", value=0.0)
     magneticZ = c.number_input("Magnetic Z", value=0.0)
 
-electric = st.sidebar.checkbox("Electric field")
+electric = a.checkbox("Electric field")
 if electric:
-    c = st.sidebar.container()
+    c = a.container()
     c.markdown("Define the Electric Field (T):")
     electricX = c.number_input("Electric X", value=0.0)
     electricY = c.number_input("Electric Y", value=0.0)
     electricZ = c.number_input("Electric Z", value=0.0)
 
 # Constraints of the Simulation
-st.sidebar.divider()
-st.sidebar.markdown("Constrains selected:")
+# st.sidebar.divider()
+a = st.sidebar.expander("Simulation Constrains")
 if fastMode :
-    groundPlane = st.sidebar.checkbox("Ground Plane", value=False, disabled=True)
+    groundPlane = a.checkbox("Ground Plane", value=True, disabled=True)
 else:
-    groundPlane = st.sidebar.checkbox("Ground Plane", value=True)
+    groundPlane = a.checkbox("Ground Plane", value=True)
     if groundPlane:
-        particleBounce = st.sidebar.checkbox("Particle Bounce")
+        particleBounce = a.checkbox("Particle Bounce")
         if particleBounce:
-            particleBounceFactor = st.sidebar.number_input("Damping coeffiecent")
-
-
+            particleBounceFactor = a.number_input("Damping coeffiecent")
+rand = a.checkbox("Fixed Random Seed", value=True)
+if rand:
+    randSeed = a.number_input("Seed Number", step=1, value=2)
+    random.seed(randSeed)
 
 # ------------
 # Introduction
@@ -133,7 +154,7 @@ with row3_1:
 if simMode == "Silicon Nano-Particles":
     GenerateNanoParticles(partilceNumber, simulation)
 elif simMode == "Standard":
-    GenerateParticles(partilceNumber, simulation)
+    GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
 else:
     GenerateTestParticles(simulation)
 
@@ -143,7 +164,7 @@ initalPos = simulation.Plot()
 if gravity :  simulation.AddForce([Gravity()])
 if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magneticZ]))])
 if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
-if groundPlane: simulation.AddConstraints([GroundPlane()])
+if groundPlane and not fastMode: simulation.AddConstraints([GroundPlane()])
 
 # Change the run mode
 if fastMode:
@@ -181,6 +202,8 @@ with st.expander("See Simulation Info"):
 # Displaying plots
 # ------------
 
+position, velocity, force, mass, charge = simulation.StreamletData()
+
 scatter = st.container()
 
 spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
@@ -202,7 +225,46 @@ spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 
 with graphs1:
     st.pyplot(simulation.Histogram())
 
+    fig, ax = plt.subplots()
+    ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#5433b8")
+
+    # Customize the plot (optional)
+    ax.set_xlabel('Masses (kg)')
+    ax.set_ylabel('Frequency')
+    ax.set_title("Mass of particles")
+
+    st.pyplot(fig)
+
+    fig, ax = plt.subplots()
+    ax.scatter(mass, np.linalg.norm(position, axis=1), color="#5433b8")
+
+    # Customize the plot (optional)
+    ax.set_xlabel('Mass of Particle (kg)')
+    ax.set_ylabel('Displacement from Origin (m)')
+    ax.set_title("Mass Vs Displacement")
+
+    st.pyplot(fig)
+
 with graphs2:
+    # Create a colormap for charge values
+    cmap = plt.get_cmap('coolwarm')
+    normalize = plt.Normalize(charge.min(), charge.max())
+    colors = cmap(normalize(charge))
+
+    # Create a scatter plot with colored points
+    fig, ax = plt.subplots()
+    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, cmap=cmap, marker='o')
+
+    # Add a colorbar to indicate charge values
+    cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+    # Customize the plot (optional)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_title('Particle Scatter Plot')
+
+    # Display the plot in Streamlit
+    st.pyplot(fig)
     if not fastMode:
         fig = simulation.PlotPaths()
         st.pyplot(fig)
