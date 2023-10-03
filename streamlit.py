@@ -41,14 +41,14 @@ plt.rcParams.update(rc)
 # ------------
 
 def buildSideBar(simMode):
-    if simMode == "Silicon Nano-Particles":
+    if simMode == "Three Particle system (testing)":
         fastMode = st.sidebar.toggle("Enable Fast Mode") 
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
+        partilceNumber = 3
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
     else:
         fastMode = st.sidebar.toggle("Enable Fast Mode") 
-        partilceNumber = 3
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
     
@@ -69,7 +69,7 @@ def buildSideBar(simMode):
 st.sidebar.header("Simulation Settings")
 st.sidebar.markdown("Change the Simulation settings:  👇")
 
-simMode = st.sidebar.selectbox("Simulation Mode:", ["Three Particle system (testing)", "Silicon Nano-Particles"])
+simMode = st.sidebar.selectbox("Simulation Mode:", ["Three Particle system (testing)", "Silicon Nano-Particles", "Standard"])
 
 fastMode, partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
@@ -132,6 +132,8 @@ with row3_1:
 # Generates the particles bases on what mode were are in
 if simMode == "Silicon Nano-Particles":
     GenerateNanoParticles(partilceNumber, simulation)
+elif simMode == "Standard":
+    GenerateParticles(partilceNumber, simulation)
 else:
     GenerateTestParticles(simulation)
 
@@ -153,26 +155,25 @@ else:
 # ------------
 # Sim Info
 # ------------
-info = st.container()
-info1_spacer, info1, info2, info3 = info.columns([0.1, 1,1, 1])
 
-info1.markdown(f'''**Simulation Info:**
-- Particles = {len(simulation.Particles)}
+with st.expander("See Simulation Info"):
+    info1_spacer, info1, info2, info3 = st.columns([0.1, 1,1, 1])
+
+    info1.write(f'''```
+    - Particles = {len(simulation.Particles)}
 - Simulated time = {simDuration}s
 - Time intervals = {simTimeStep}s
 - Compute Time = {computeTime:.4}s
 - Total number of calculations = {numCals}''')
 
-info.divider()
 
+    info2.markdown(f"**Forces:**")
+    for force in simulation.Forces:
+        info2.text(f"{force.Info()}")
 
-info2.markdown(f"**Forces:**")
-for force in simulation.Forces:
-    info2.text(f"{force.Info()}")
-
-info3.markdown(f"**Constraints:**")
-for constaint in simulation.Constraints:
-    info3.text(f"{constaint.Info()}")
+    # info3.markdown(f"**Constraints:**")
+    # for constaint in simulation.Constraints:
+    #     info3.text(f"{constaint.Info()}")
 
 
 
