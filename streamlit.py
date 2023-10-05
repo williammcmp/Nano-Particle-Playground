@@ -70,7 +70,7 @@ def buildPartilceDistributions(simMode):
         positionZ = 0
 
     massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
-    AvgEnergy = a.slider("Average Energy (J)", value=3)
+    AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
     charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
 
     # Return the values as a tuple
@@ -129,24 +129,6 @@ if rand:
     random.seed(randSeed)
 
 # ------------
-# Introduction
-# ------------
-row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
-with row0_1:
-    st.title('Particle Playground - Beta')
-with row0_2:
-    st.text("")
-    st.subheader('Developed by [William McMahon-Puce](https://www.linkedin.com/in/william-mcmahon-puce-b9b3a9210//)')
-row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
-with row3_1:
-    st.markdown("Hi there, this Streamlit app serves as a sandbox for simulating and experimenting with the behavior, interactions and dynamics of partiicles. Different simulation modes will allow you to play with sized regimes of particles.")
-    st.markdown("You can find the source code in the [Nano Particle Playground](https://github.com/williammcmp/Nano-Particle-Playground)")
-    st.markdown(f"**Simulation Mode:** `{simMode}`")
-    
-
-
-
-# ------------
 # Settiing up the Sim
 # ------------
 
@@ -172,29 +154,67 @@ if fastMode:
 else:
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
 
-
 # ------------
-# Sim Info
+# Introduction
 # ------------
 
-with st.expander("See Simulation Info"):
-    info1_spacer, info1, info2, info3 = st.columns([0.1, 1,1, 1])
+intro_info = f'''
 
-    info1.write(f'''```
-    - Particles = {len(simulation.Particles)}
+1. Choose the simulation mode from the sidebar. Current mode `{simMode}`
+    - `FastMode` is not accurate - just fast
+2. Adjust the simulation settings in the sidebar as needed.
+3. The simulation will update after each setting change.
+4. Explore the results and visualizations on the main page.
+
+## Simulation Modes
+
+- **Standard:** Have complete control over the simulation, particles and forces.
+- **Three Particle system:** This mode demonstrates the behavior of three particles.
+- **Silicon Nano-Particles:** (WIP) Simulates silicon nanoparticles in a magnetic field.
+
+## Particle Initial Distribution (normal)
+
+- Choose whether particles start at the origin or have random positions.
+- Specify the average initial positions (X, Y, Z).
+- Adjust the average mass and inital Kenetic Energy.
+- Toggle charged particles (positive, negative, or neutral).
+
+All distribution follow a normal distribution.
+
+Feel free to explore and experiment with different settings to see how the particles behave!
+'''
+
+sim_info = f'''
+## General Info:
+
+```
+- Particles = {len(simulation.Particles):,}
 - Simulated time = {simDuration}s
-- Time intervals = {simTimeStep}s
+- Time Step intervals = {simTimeStep}s
+- Calacuation mode = {simMode}
 - Compute Time = {computeTime:.4}s
-- Total number of calculations = {numCals}''')
+- Total number of calculations = {numCals:,}
+```
+'''
 
+row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
+with row0_1:
+    st.title('Particle Playground - Beta')
+with row0_2:
+    st.text("")
+    st.subheader('Developed by [William McMahon-Puce](https://www.linkedin.com/in/william-mcmahon-puce-b9b3a9210//)')
+row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
+with row3_1:
+    st.markdown("Hi there, this Streamlit app serves as a sandbox for simulating and experimenting with the behavior, interactions and dynamics of partiicles. Different simulation modes will allow you to play with sized regimes of particles.")
+    st.markdown("You can find the source code in the [Nano Particle Playground](https://github.com/williammcmp/Nano-Particle-Playground)")
+    
+    with st.expander("How to Use The Particle Simulation"):
+        st.markdown(intro_info)
+    
+    with st.expander("Simulation Computation Info (Stats)"):
+        st.markdown(sim_info)
 
-    info2.markdown(f"**Forces:**")
-    for force in simulation.Forces:
-        info2.text(f"{force.Info()}")
-
-    # info3.markdown(f"**Constraints:**")
-    # for constaint in simulation.Constraints:
-    #     info3.text(f"{constaint.Info()}")
+    st.markdown(f"**Simulation Mode:** `{simMode}`")
 
 
 
