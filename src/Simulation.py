@@ -248,21 +248,36 @@ class Simulation:
 
     # faster update method, not as accurate and unable to store history (no path plot) - intedned for very large particle counts
     def FastUpdate(self, dt, position, velocity, force, mass, charge):
-        # Cal forces
-        force *= 0 # zero out forces, allows for re-calcuations each loop
-        force += np.array([0,0,-9.8]) #gravity
-        force += (charge * np.cross(velocity, np.array([10, -1, -2]))) #magnetic force
+        # zero out forces, allows for re-calcuations each loop
+        force *= 0
+
+        # Applying the forces
+        for f in self.Forces:
+            if str(f) == "Gravity":
+                force += f.Field()
+                
+            elif str(f) == "Lorentz":
+                force += charge * f.Field()[1] + charge *(np.cross(velocity, f.Field()[0]))
+                
+            else: 
+                print(f)
+                # pass
         
         # update position and velocitioes
         acceleration = force / mass
         velocity += acceleration * dt
         position += velocity*dt - 0.5*acceleration*dt*dt
         
-        negative_z = position[:, 2] < 0 # find when particle below xy plane (-z values)
-        
-        velocity[negative_z] *= np.array([0,0,0]) # bounce logic (flip z and reduce x,y Velcoties)
-        
-        position[:,2] = abs(position[:,2]) # the ground plane
+        # Applying the C
+        for c in self.Constraints:
+            if str(c) == "Ground Plane": 
+                print("A)")
+                negative_z = position[:, 2] < 0 # find when particle below xy plane (-z values)
+                velocity[negative_z] *= np.array([0,0,0]) # bounce logic (flip z and reduce x,y Velcoties)
+                position[:,2] = abs(position[:,2]) # the ground plane
+            else:
+                print(c)
+                # pass
     
     def FroceList( self ):
         """
@@ -280,8 +295,7 @@ class Simulation:
     def StreamletData( self ):
         
         position, velocity, force, mass, charge = self.__calNumPyArray()
-                
-            
+                   
         return position, velocity, force, mass, charge
             
 
