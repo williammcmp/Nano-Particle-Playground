@@ -223,6 +223,7 @@ with row3_1:
 
 position, velocity, force, mass, charge = simulation.StreamletData()
 
+st.divider()
 scatter = st.container()
 
 spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
@@ -237,7 +238,7 @@ with graphs2:
 
 
 other = st.container()
-other.divider()
+# other.divider()
 
 spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
 
