@@ -161,7 +161,6 @@ else:
 intro_info = f'''
 
 1. Choose the simulation mode from the sidebar. Current mode `{simMode}`
-    - `FastMode` is not accurate - just fast
 2. Adjust the simulation settings in the sidebar as needed.
 3. The simulation will update after each setting change.
 4. Explore the results and visualizations on the main page.
