@@ -31,12 +31,17 @@ class Gravity:
         Parameters:
         - particles (list): A list of Particle objects to which gravity is applied.
         """
-
         for particle in particles:
             particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass)
     
+    def Field( self ):
+        return self.Acceleration
+
     def Info(self):
         return f"\t{self.name} = {self.Acceleration}\n"
+    
+    def __str__(self) :
+        return "Gravity"
 
 # Viscous Drag Force
 class Damping:
@@ -59,6 +64,7 @@ class Damping:
         """
         self.Scaling  = scaling
 
+
     def Apply( self, particles ):
         """
         Applies the viscous drag force to a list of particles.
@@ -69,6 +75,11 @@ class Damping:
         for particle in particles:
             particle.SumForce = particle.SumForce + (particle.Velocity * -self.Scaling)
 
+    def Field (self ):
+        return np.array([self.Scaling, self.Scaling, self.Scaling])
+    
+    def __str__(self):
+        return "Damping"
 
 class Lorentz:
     """
@@ -108,6 +119,9 @@ class Lorentz:
             LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
             particle.SumForce = particle.SumForce + (LorentzForce)
 
+    def Field (self ):
+        return [self.bField, self.eField]
+
 
     def Info( self ):
         """
@@ -118,8 +132,10 @@ class Lorentz:
         """
         return f"\tElectric = {self.eField}\n\tMagnetic = {self.bField}\n"
 
+    def __str__(self):
+        return "Lorentz"
 
-# The ground of the simulation
+# The ground of the simulation (Contraint)
 class GroundPlane:
     """
     Represents the ground of the simulation.
@@ -155,6 +171,7 @@ class GroundPlane:
                 # TODO add method to make the ground more sticky
                 particle.Velocity = particle.Velocity * np.array([0, 0, -0* self.Loss])
 
+
     def Info( self ):
         """
         Returns information about the ground plane
@@ -162,3 +179,6 @@ class GroundPlane:
         - str: A string containing information about the ground plane
         """
         return f"Ground Plane = `True`"
+    
+    def __str__( self ):
+        return "Ground Plane"
