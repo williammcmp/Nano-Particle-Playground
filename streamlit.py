@@ -44,15 +44,16 @@ plt.rcParams.update(rc)
 
 def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
-        fastMode = st.sidebar.toggle("Enable Fast Mode") 
         partilceNumber = 3
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
+        fastMode = False
     else:
-        fastMode = st.sidebar.toggle("Enable Fast Mode") 
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=1, max_value=100, value=10)/100 # convert to seconds
+        fastMode = False
+     
+    simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
+    simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5)/100 # convert to seconds
+
+        
   
     return fastMode, partilceNumber, simDuration, simTimeStep 
 
@@ -84,6 +85,7 @@ st.sidebar.header("Simulation Settings")
 st.sidebar.markdown("Change the Simulation settings:  👇")
 
 simMode = st.sidebar.selectbox("Simulation Mode:", ["Standard","Three Particle system (testing)", "Silicon Nano-Particles"])
+st.sidebar.divider()
 
 fastMode, partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
@@ -96,21 +98,27 @@ if simMode == "Standard":
 # st.sidebar.divider()
 a = st.sidebar.expander("Simulation Forces")
 gravity = a.checkbox("Gravity", value=True)
-magnetic = a.checkbox("Magnetic field")
-if magnetic:
-    c = a.container()
-    c.markdown("Define the Magnetic Field (T):")
-    magneticX = c.number_input("Magnetic X", value=1.0)
-    magneticY = c.number_input("Magnetic Y", value=0.0)
-    magneticZ = c.number_input("Magnetic Z", value=0.0)
 
-electric = a.checkbox("Electric field")
-if electric:
-    c = a.container()
-    c.markdown("Define the Electric Field (T):")
-    electricX = c.number_input("Electric X", value=0.0)
-    electricY = c.number_input("Electric Y", value=0.0)
-    electricZ = c.number_input("Electric Z", value=0.0)
+# Disabled charged based forces if particles are not charged
+if not charged: 
+    electric = a.checkbox("Electric field", disabled=True, value=False)
+    magnetic = a.checkbox("Magnetic field", disabled=True, value=False)
+else:
+    magnetic = a.checkbox("Magnetic field")
+    if magnetic:
+        c = a.container()
+        c.markdown("Define the Magnetic Field (T):")
+        magneticX = c.number_input("Magnetic X", value=1.0)
+        magneticY = c.number_input("Magnetic Y", value=0.0)
+        magneticZ = c.number_input("Magnetic Z", value=0.0)
+
+    electric = a.checkbox("Electric field")
+    if electric:
+        c = a.container()
+        c.markdown("Define the Electric Field (T):")
+        electricX = c.number_input("Electric X", value=0.0)
+        electricY = c.number_input("Electric Y", value=0.0)
+        electricZ = c.number_input("Electric Z", value=0.0)
 
 # Constraints of the Simulation
 # st.sidebar.divider()
