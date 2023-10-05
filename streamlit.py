@@ -37,7 +37,6 @@ rc = {'figure.figsize':(8,4.5),
         'ytick.labelsize': 12}
 plt.rcParams.update(rc)
 
-
 # ------------
 # Helper functions
 # ------------
@@ -47,7 +46,7 @@ def buildSideBar(simMode):
         partilceNumber = 3
         fastMode = False
     else:
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=0, max_value=10000, value=50)
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=50, max_value=10000, value=100, step=50)
         fastMode = False
      
     simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
@@ -148,6 +147,7 @@ elif simMode == "Standard":
 else:
     GenerateTestParticles(simulation)
 
+# Allows for plotting inital positions
 initalPos = simulation.Plot()
 
 # Apply forces to the sim
@@ -222,8 +222,6 @@ with row3_1:
         st.markdown(sim_info)
 
 
-
-
 # ------------
 # Displaying plots
 # ------------
@@ -255,7 +253,7 @@ with graphs1:
     st.pyplot(simulation.Histogram())
 
     fig, ax = plt.subplots()
-    ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#5433b8")
+    ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
 
     # Customize the plot (optional)
     ax.set_xlabel('Masses (kg)')
@@ -265,7 +263,13 @@ with graphs1:
     st.pyplot(fig)
 
     fig, ax = plt.subplots()
-    ax.scatter(mass, np.linalg.norm(position, axis=1), color="#5433b8")
+    cmap = plt.get_cmap('viridis')
+    normalize = plt.Normalize(charge.min(), charge.max())
+    colors = cmap(normalize(charge))
+    sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
+
+    # Add a colorbar to indicate charge values
+    cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
     # Customize the plot (optional)
     ax.set_xlabel('Mass of Particle (kg)')
@@ -276,13 +280,13 @@ with graphs1:
 
 with graphs2:
     # Create a colormap for charge values
-    cmap = plt.get_cmap('coolwarm')
+    cmap = plt.get_cmap('viridis')
     normalize = plt.Normalize(charge.min(), charge.max())
     colors = cmap(normalize(charge))
 
     # Create a scatter plot with colored points
     fig, ax = plt.subplots()
-    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, cmap=cmap, marker='o')
+    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, cmap=cmap, alpha=0.5)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
