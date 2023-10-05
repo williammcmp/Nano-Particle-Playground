@@ -213,7 +213,6 @@ with row3_1:
     with st.expander("Simulation Computation Info (Stats)"):
         st.markdown(sim_info)
 
-    st.markdown(f"**Simulation Mode:** `{simMode}`")
 
 
 
@@ -224,6 +223,8 @@ with row3_1:
 position, velocity, force, mass, charge = simulation.StreamletData()
 
 st.divider()
+st.markdown(f"**Simulation Mode:** `{simMode}`")
+
 scatter = st.container()
 
 spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
