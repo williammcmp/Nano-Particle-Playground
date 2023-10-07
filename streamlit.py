@@ -57,21 +57,29 @@ def buildSideBar(simMode):
     return fastMode, partilceNumber, simDuration, simTimeStep 
 
 def buildPartilceDistributions(simMode):
-    # if simMode == "Standard":
-    a = st.sidebar.expander("Particle Distribution Settings")
-    positionType = a.selectbox("Starting Position:", ["Origin", "Random"])
-    if positionType == "Random":
-        positionX = a.number_input("Average inital X pos:")
-        positionY = a.number_input("Average inital Y pos:")
-        positionZ = a.number_input("Average inital Z pos:", min_value=0, value=1)
+    if simMode == "Standard":
+        a = st.sidebar.expander("Particle Distribution Settings")
+        positionType = a.selectbox("Starting Position:", ["Origin", "Random"])
+        if positionType == "Random":
+            positionX = a.number_input("Average inital X pos:")
+            positionY = a.number_input("Average inital Y pos:")
+            positionZ = a.number_input("Average inital Z pos:", min_value=0, value=1)
+        else:
+            positionX = 1
+            positionY = 1
+            positionZ = 0
+
+        massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
+        AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
+        charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
     else:
+        positionType = False
         positionX = 1
         positionY = 1
         positionZ = 0
-
-    massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
-    AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
-    charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
+        massRange = False
+        AvgEnergy = False
+        charged = True
 
     # Return the values as a tuple
     return positionType, positionX, positionY, positionZ, massRange, AvgEnergy, charged
@@ -88,9 +96,11 @@ st.sidebar.divider()
 
 fastMode, partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
-if simMode == "Standard":
-    st.sidebar.divider()
-    mode, positionX, positionY, positionZ, massRange, avgEnergy, charged = buildPartilceDistributions(simMode)
+
+st.sidebar.divider()
+mode, positionX, positionY, positionZ, massRange, avgEnergy, charged = buildPartilceDistributions(simMode)
+
+
 
 
 # Forces of the Simulation 
