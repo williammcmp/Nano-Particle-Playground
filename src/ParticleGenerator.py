@@ -71,12 +71,13 @@ def GenerateParticles(n, Simulation, mode = "Origin",
         else:
             x_pos = np.random.normal(positionX)
             y_pos = np.random.normal(positionY)
-            z_pos = np.random.normal(positionZ)
+            z_pos = np.abs(np.random.normal(positionZ))
             position = np.array([x_pos, y_pos, z_pos])
         mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
-        velAvg = np.sqrt((2*avgEnergy)/mass)
+        velAvg = np.sqrt((2/3*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
         velocity = np.random.uniform(-velAvg, velAvg, 3)
-        print(velocity)
+        velocity[2] = np.abs(velocity[2])
+
         if charged:
             charge = random.choice([-1,0, 1])
             particles.append(Particle(position, velocity, mass, charge))
