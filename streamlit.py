@@ -44,17 +44,15 @@ plt.rcParams.update(rc)
 def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
         partilceNumber = 3
-        fastMode = False
     else:
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=50, max_value=10000, value=100, step=50)
-        fastMode = False
      
     simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
     simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5)/100 # convert to seconds
 
         
   
-    return fastMode, partilceNumber, simDuration, simTimeStep 
+    return partilceNumber, simDuration, simTimeStep 
 
 def buildPartilceDistributions(simMode):
     if simMode == "Standard":
@@ -94,7 +92,7 @@ st.sidebar.markdown("Change the Simulation settings:  👇")
 simMode = st.sidebar.selectbox("Simulation Mode:", ["Standard","Three Particle system (testing)", "Silicon Nano-Particles"])
 st.sidebar.divider()
 
-fastMode, partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
+partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
 
 st.sidebar.divider()
@@ -132,14 +130,12 @@ else:
 # Constraints of the Simulation
 # st.sidebar.divider()
 a = st.sidebar.expander("Simulation Constrains")
-if fastMode :
-    groundPlane = a.checkbox("Ground Plane", value=True, disabled=True)
-else:
-    groundPlane = a.checkbox("Ground Plane", value=True)
-    if groundPlane:
-        particleBounce = a.checkbox("Particle Bounce")
-        if particleBounce:
-            particleBounceFactor = a.number_input("Damping coeffiecent")
+
+groundPlane = a.checkbox("Ground Plane", value=True)
+if groundPlane:
+    particleBounce = a.checkbox("Particle Bounce")
+    if particleBounce:
+        particleBounceFactor = a.number_input("Damping coeffiecent")
 rand = a.checkbox("Fixed Random Seed", value=True)
 if rand:
     randSeed = a.number_input("Seed Number", step=1, value=2)
@@ -164,13 +160,10 @@ initalPos = simulation.Plot()
 if gravity :  simulation.AddForce([Gravity()])
 if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magneticZ]))])
 if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
-if groundPlane and not fastMode: simulation.AddConstraints([GroundPlane()])
+if groundPlane : simulation.AddConstraints([GroundPlane()])
 
-# Change the run mode
-if fastMode:
-    computeTime, numCals = simulation.FastRun(simDuration, simTimeStep)
-else:
-    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+# Run the Sim
+computeTime, numCals = simulation.Run(simDuration, simTimeStep)
 
 # ------------
 # Introduction
@@ -308,9 +301,9 @@ with graphs2:
 
     # Display the plot in Streamlit
     st.pyplot(fig)
-    if not fastMode:
-        fig = simulation.PlotPaths()
-        st.pyplot(fig)
+
+    fig = simulation.PlotPaths()
+    st.pyplot(fig)
 
 
 
