@@ -3,10 +3,8 @@
 This project represents a simple particle simulation framework in Python, designed to simulate the behavior of particles under various forces. It uses a basic simulation loop to update the positions and velocities of particles over time.
 
 <p align="center">
-  <img src="img/3-particle.png" width="400" height="300"/>
-  <img src="img/10000%20Particles%205s.png" width="400" height="300"/> 
+  <img src="img/streamlit__demo.png"  style="max-height:400px;"/> 
 </p>
-
 
 
 ## Contents
@@ -18,6 +16,7 @@ This project represents a simple particle simulation framework in Python, design
 |   └── ParticleGeneration.py
 ├── tests/
     └── ...
+├── stremlit.py
 └── main.py
 ```
 
@@ -26,6 +25,7 @@ This project represents a simple particle simulation framework in Python, design
 - [ParticleGeneration.py](src/ParticleGenerator.py): Helper functions to generate specific groups of Particles.
 - [Forces.py](src/Forces.py): Contains force-related classes like `Gravity` and `Damping`.
 - [main.py](main.py): A sample script that demonstrates how to use the simulation framework by creating particles, applying forces, and updating the simulation.
+- [stremlit.py](stremlit.py): Streamlit app demo of the simulation, allowing for easy access to the Particle Simulation through Streamlit services.
 
 ## Prerequisites
 Make sure you have the following prerequisites installed:
@@ -37,10 +37,17 @@ Make sure you have the following prerequisites installed:
 You can install these packages using pip if they are not already installed:
 
 ``` bash
-pip install numpy matplotlib
+install -r requirements.txt
 ```
 
-## Usage
+## Usage (local)
+
+### Getting Started
+Clone this repository to your local machine:
+
+```bash
+git clone https://github.com/williammcmp/Nano-Particle-Playground.git 
+```
 
 To use the particle simulation framework:
 
@@ -52,13 +59,21 @@ To use the particle simulation framework:
 6. View a 3d plot of the particle's tragectories with the `Plot` method.
 
 Feel free to customize and extend the simulation for your specific use case.
+[Examples](#examples)
 
+### Running the Simulation locally
 To run the particle simulation:
 ```bash
 python src/main.py
 ```
 
-To run the Streamlit app:
+### Running a local Streamlit app
+Ensure `streamlit` is installed:
+```bash
+pip install streamlit
+```
+
+To run the Streamlit app locally: 
 ```bash
 streamlit run streamlit.py
 ```
@@ -81,8 +96,6 @@ The tests cover various aspects of the Simulation application, ensuring it behav
 
 ## Examples
 
-![Image of the simulation running a 3 particle system](img/400-particle.png)
-
 Here's a basic example using the simulation framework:
 
 ### Enviromment setup
@@ -90,17 +103,14 @@ Here's a basic example using the simulation framework:
 Import the library functions and initalise the simulation
 
 ```python
-from Simulation import *
-from Particle import *
-from Forces import *
+from Simulation import * # The simulation framwork
+from Particle import * # The particle definitions
+from Forces import * # The defined forces
+from GenerateParticles import * # Helper function for creating particles
 
 # Create a simulation
 sim = Simulation()
-
-# Add gravity force to the simulation
-sim.Forces.append(Gravity())
 ```
-Other forces can be added to the simulation, define them in the [Froces.py](Forces.py)
 
 ### Creating particles
 Create the particles and add them to the simulation. Define each particles postion, velocities and mass.
@@ -112,11 +122,28 @@ p3 = Particle([3, 2, 2], [0.2, 0.5, 29], 1)
 sim.AddParticles([p1, p2, p3])
 ```
 
+Particles can be generated in groups using the helper function in [GenerateParticles.py](/src/ParticleGenerator.py)
+```python
+# Generate the 3 particles system
+# Same mass, intial velocity, different charges (-1, 0 +1)
+threeParticle = GenerateTestParticles(sim)
+
+# Generate a normal distribution of N-particles (SI scale - kg, m, m/s)
+# The distributions can be modified, refer to the doc-strings
+manyParticles = GenerateParticles(100, sim)
+
+# Generates N-particles in the nano-scale regime (modeling Silicon) (nm, ng, nm/s)
+nanoParticles = GenerateNanoParticles(100, sim)
+```
+
 ### Adding the forces
 Use Forces to define the rules of motion that the particels must follow
 ```python
+# initalise the Force object
 grav = Gravity()
 
+# Add the Froce object.
+# Multiple object can be added in the list
 sim.AddForce([grav])
 ```
 
@@ -129,11 +156,17 @@ The `Run` method runs the simulation, taking 2 paramaters:
 ```python
 duration = 5 # total simulation time of 5s
 timeStep = 0.01 # updates will be calcuated at 0.01 time invervals
+saveHistory = True # saves the particle's position on each iteration (sim Runs faster when = False)
 
-sim.Run(duration, timeStep)
+sim.Run(duration, timeStep, saveHistory)
 ```
 
 ### Plotting the results
+
+<p align="center">
+  <img src="img/3d_plot__example.png" style="max-height:400px;"/> 
+</p>
+
 There are several methods that will visually display that results of the simulaiton. These plot methods can be called at any time, even if future `sim.Run()` events are to occur.
 
 - Plot: Plots a 2d axis with the positon of the particles
@@ -141,10 +174,13 @@ There are several methods that will visually display that results of the simulai
 - PlotHistogram: Plots a histogram of particle's displacment from the origin.
 
 ```python
+# Plot the current position of the particle 
 sim.Plot()
 
+# Plot the paths of the paricles
 sim.PlotPaths()
 
+# Display a histogram of the paticles mass vs displacement from origin
 sim.PlotHistogram()
 ```
 
