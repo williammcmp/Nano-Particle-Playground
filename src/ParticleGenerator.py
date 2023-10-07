@@ -74,7 +74,7 @@ def GenerateParticles(n, Simulation, mode = "Origin",
             z_pos = np.abs(np.random.normal(positionZ))
             position = np.array([x_pos, y_pos, z_pos])
         mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
-        velAvg = np.sqrt((2/3*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
+        velAvg = np.sqrt(((2/3)*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
         velocity = np.random.uniform(-velAvg, velAvg, 3)
         velocity[2] = np.abs(velocity[2])
 

@@ -137,9 +137,9 @@ class Lorentz:
         Parameters:
         - particles (list): A list of Particle objects to which the force is applied.
         """
-
+        # TODO fix this for nano-scale
         for particle in particles:
-            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField * (1e-9 ** 2)))
+            LorentzForce = particle.Charge * self.eField + particle.Charge*1e-19 *(np.cross(particle.Velocity, self.bField * (1e-9 ** 2)))
             particle.SumForce = particle.SumForce + (LorentzForce)
 
     def Field (self ):
@@ -186,7 +186,7 @@ class GroundPlane:
         """
         Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
         """
-
+        # Method not working for nano particles
         for particle in particles:
 
             if( particle.Position[2] < 0 ):
