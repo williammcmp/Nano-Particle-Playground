@@ -46,13 +46,11 @@ def buildSideBar(simMode):
         partilceNumber = 3
         fastMode = False
     else:
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=50, max_value=10000, value=100, step=50)
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=100, step=5)
         fastMode = False
      
     simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-    simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5)/100 # convert to seconds
-
-        
+    simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
   
     return fastMode, partilceNumber, simDuration, simTimeStep 
 
@@ -72,6 +70,27 @@ def buildPartilceDistributions(simMode):
         massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
         AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
         charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
+
+    elif simMode == "Silicon Nano-Particles":
+        a = st.sidebar.expander("Nano-Particle Distribution Settings")
+        positionType = a.selectbox("Starting Position:", ["Origin"], disabled =True)
+        positionX = 1
+        positionY = 1
+        positionZ = 0
+        sizeRange = a.slider('Partice Diamater (nm)', 10, 300, (50, 250)) # easier to convert this to mass than input very small numbers
+        AvgEnergy = a.slider("Average Inital Energy (J)", value=3)/10000000000
+        charged = a.checkbox("Charged Particles (+1 C, 0 C, -1 C)", value=True)
+
+        # Convert size into mass based on Silicon Density
+        massRange = []  
+        for size in sizeRange:
+            volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
+            density = 2330 # desnity of Silicon
+
+            # mass of silicon particle
+            mass =  volume * density # mass = volume of sphear * density of Silicon
+            massRange.append(mass)
+
     else:
         positionType = False
         positionX = 1
@@ -140,6 +159,7 @@ else:
         particleBounce = a.checkbox("Particle Bounce")
         if particleBounce:
             particleBounceFactor = a.number_input("Damping coeffiecent")
+
 rand = a.checkbox("Fixed Random Seed", value=True)
 if rand:
     randSeed = a.number_input("Seed Number", step=1, value=2)
@@ -151,7 +171,8 @@ if rand:
 
 # Generates the particles bases on what mode were are in
 if simMode == "Silicon Nano-Particles":
-    GenerateNanoParticles(partilceNumber, simulation)
+    # GenerateNanoParticles(partilceNumber, simulation)
+    GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
 elif simMode == "Standard":
     GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
 else:
@@ -167,10 +188,16 @@ if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electr
 if groundPlane and not fastMode: simulation.AddConstraints([GroundPlane()])
 
 # Change the run mode
-if fastMode:
-    computeTime, numCals = simulation.FastRun(simDuration, simTimeStep)
+# if fastMode:
+#     computeTime, numCals = simulation.FastRun(simDuration, simTimeStep)
+# else:
+#     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+
+if simMode == "Silicon Nano-Particles":
+    computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
 else:
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+
 
 # ------------
 # Introduction

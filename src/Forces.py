@@ -32,7 +32,17 @@ class Gravity:
         - particles (list): A list of Particle objects to which gravity is applied.
         """
         for particle in particles:
-            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass)
+            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass) 
+    
+    def NanoApply( self, particles):
+        """
+        Applies the gravitational force to a list of nano-particles.
+
+        Parameters:
+        - particles (list): A list of Particle objects to which gravity is applied.
+        """
+        for particle in particles:
+            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass * 1e9)
     
     def Field( self ):
         return self.Acceleration
@@ -116,7 +126,20 @@ class Lorentz:
         """
 
         for particle in particles:
-            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
+            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField * (1e9 ** 2)))
+            particle.SumForce = particle.SumForce + (LorentzForce)
+    
+
+    def NanoApply( self, particles):
+        """
+        Applies the Lorentz force to a list of nano-particles.
+
+        Parameters:
+        - particles (list): A list of Particle objects to which the force is applied.
+        """
+
+        for particle in particles:
+            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField * (1e-9 ** 2)))
             particle.SumForce = particle.SumForce + (LorentzForce)
 
     def Field (self ):
@@ -167,9 +190,9 @@ class GroundPlane:
         for particle in particles:
 
             if( particle.Position[2] < 0 ):
-                particle.Position[2] = 0.001
+                particle.Position[2] = 0.0000000001
                 # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([0, 0, -0* self.Loss])
+                particle.Velocity = particle.Velocity * np.array([0, 0, -1* self.Loss])
 
 
     def Info( self ):

@@ -189,6 +189,36 @@ class Simulation:
 
         print(f"\nForces:")
         print(self.FroceList())
+    
+    def NanoRun(self, duration=10, timeStep=0.1, saveHistory=True):
+        
+        print("\nInitialising nano-Particle Simulations.\nSetting up enviroment\n")
+
+        self.Duration += duration # adding the sim time to track over multiple simulations
+
+
+        print(f"\nSimulating particles:")
+        startTime = time.time()
+
+
+        # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
+        if saveHistory:
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
+                self.Save() # saves the particles postion
+                self.NanoUpdate(timeStep)
+        else:
+            for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
+                self.NanoUpdate(timeStep)
+
+        computeTime = time.time() - startTime
+        numCals = int(duration / timeStep) * len(self.Particles)
+
+        print("\n Simulation:")
+        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
+        print(f"\tTotal number of calculatios = {numCals}")
+
+        print(f"\nForces:")
+        print(self.FroceList())
 
         return computeTime, numCals
 
@@ -239,7 +269,30 @@ class Simulation:
         for particle in self.Particles:       #-- Cal the position and velocities for each particle
             if( particle.Mass == 0 ): continue
 
-            acceleration = particle.SumForce * ( 1.0 / particle.Mass )
+            acceleration = particle.SumForce * ( 1 / particle.Mass )
+            particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
+            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
+            
+        for constraint in self.Constraints:   #-- Apply Penalty Constraints
+            constraint.Apply( self.Particles )
+    
+    def NanoUpdate( self, dt):    
+        """
+        Update the simulation for a given time step 'dt'.
+
+        Parameters:
+        - dt (float): The time step (seconds) for the simulation update.
+        """ 
+        for particle in self.Particles:
+            particle.SumForce = np.array([0,0,0])      
+
+        for force in self.Forces:             #-- Accumulate Forces
+            force.NanoApply( self.Particles )
+            
+        for particle in self.Particles:       #-- Cal the position and velocities for each particle
+            if( particle.Mass == 0 ): continue
+
+            acceleration = particle.SumForce * ( 1 / particle.Mass )
             particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
             particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
             

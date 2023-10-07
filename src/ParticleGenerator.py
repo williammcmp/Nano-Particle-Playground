@@ -73,10 +73,10 @@ def GenerateParticles(n, Simulation, mode = "Origin",
             y_pos = np.random.normal(positionY)
             z_pos = np.random.normal(positionZ)
             position = np.array([x_pos, y_pos, z_pos])
-        # mass = random.randrange(int(massRange[0]),int(massRange[1])) # fixed to have smaller masses
         mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
         velAvg = np.sqrt((2*avgEnergy)/mass)
         velocity = np.random.uniform(-velAvg, velAvg, 3)
+        print(velocity)
         if charged:
             charge = random.choice([-1,0, 1])
             particles.append(Particle(position, velocity, mass, charge))
@@ -106,14 +106,14 @@ def GenerateNanoParticles(n, Simulation):
     GenerateNanoParticles(100, sim)
     ```
     """
+    # 1 meter unit = 10^-9 m
     print(f"\nGenerating {n} Nano-Particles:")
     particles = []
     for x in tqdm(range(n), unit=" Particle(s)"):
-        # between 20 mu meters
-        position = np.array([0.0000001,0,0]) # all start from origin
-        velocity = np.array([np.random.normal(loc=0, scale=10),np.random.normal(loc=0, scale=10),random.randint(0,10)]) * 1e-7 
-        mass = np.abs(np.random.normal(loc=100, scale=25))* 1e-19  # mass of particles (~ 10^-19kg)
-        charge = 0;
+        position = np.array([0,0,0]) # all start from origin (nm)
+        velocity = np.array([np.random.normal(loc=0, scale=10),np.random.normal(loc=0, scale=10),random.randint(0,10)]) # (nm/s)
+        mass = np.abs(np.random.normal(loc=97, scale=25)) # (Kg)
+        charge = random.choice([-1,0, 1]) # (c)
         particles.append(Particle(position, velocity, mass, charge))
 
     Simulation.AddParticles(particles)
