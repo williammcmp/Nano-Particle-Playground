@@ -183,11 +183,6 @@ if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magne
 if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
 if groundPlane : simulation.AddConstraints([GroundPlane()])
 
-# Change the run mode
-# if fastMode:
-#     computeTime, numCals = simulation.FastRun(simDuration, simTimeStep)
-# else:
-#     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
 
 if simMode == "Silicon Nano-Particles":
     computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)

@@ -189,6 +189,8 @@ class Simulation:
 
         print(f"\nForces:")
         print(self.FroceList())
+
+        return computeTime, numCals
     
     def NanoRun(self, duration=10, timeStep=0.1, saveHistory=True):
         

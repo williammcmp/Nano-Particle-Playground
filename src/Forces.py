@@ -126,7 +126,7 @@ class Lorentz:
         """
 
         for particle in particles:
-            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField * (1e9 ** 2)))
+            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
             particle.SumForce = particle.SumForce + (LorentzForce)
     
 
@@ -190,9 +190,9 @@ class GroundPlane:
         for particle in particles:
 
             if( particle.Position[2] < 0 ):
-                particle.Position[2] = 0.0000000001
+                particle.Position[2] = 0.000001
                 # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([0, 0, -1* self.Loss])
+                particle.Velocity = particle.Velocity * np.array([0, 0, -0])
 
 
     def Info( self ):
