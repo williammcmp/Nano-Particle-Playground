@@ -268,6 +268,9 @@ with row3_1:
     
     with st.expander("Simulation Computation Info (Stats)"):
         st.markdown(sim_info)
+        st.markdown("Froces:")
+        st.markdown(simulation.FroceList())
+
 
 
 # ------------
