@@ -155,7 +155,9 @@ groundPlane = a.checkbox("Ground Plane", value=True)
 if groundPlane:
     particleBounce = a.checkbox("Particle Bounce")
     if particleBounce:
-        particleBounceFactor = a.number_input("Damping coeffiecent")
+        particleBounceFactor = a.number_input("Bounce factor (0 - no bounce, 1 lots of bounce)")
+    else:
+        particleBounceFactor = 0
 rand = a.checkbox("Fixed Random Seed", value=True)
 if rand:
     randSeed = a.number_input("Seed Number", step=1, value=2)
@@ -181,7 +183,7 @@ initalPos = simulation.Plot()
 if gravity :  simulation.AddForce([Gravity()])
 if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magneticZ]))])
 if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
-if groundPlane : simulation.AddConstraints([GroundPlane()])
+if groundPlane : simulation.AddConstraints([GroundPlane(particleBounceFactor)])
 
 
 if simMode == "Silicon Nano-Particles":
@@ -207,16 +209,34 @@ intro_info = f'''
 - **Three Particle system:** This mode demonstrates the behavior of three particles.
 - **Silicon Nano-Particles:** (WIP) Simulates silicon nanoparticles in a magnetic field.
 
-## Particle Initial Distribution (normal)
+## Particle Initial Distribution
 
-- Choose whether particles start at the origin or have random positions.
-- Specify the average initial positions (X, Y, Z).
-- Adjust the average mass and inital Kenetic Energy.
-- Toggle charged particles (positive, negative, or neutral).
+Not avaliable in Simulation mode `Three Particle system (testing)`.
 
-All distribution follow a normal distribution.
+- **Starting Position:** Choose whether particles start at the origin or have random positions.
+    - When using random positions you can specify the average initial positions (X, Y, Z) following a normal distribution.
+- **Mass Range:** Specifiy the mass range of the particles. (This is a uniform distribtion)
+- **Average Inital Kenetic Energy:** Taken from a normal distribution at the averge you state. 
+    - Inital kenitic energy is used as it's a better defining parameter that an inital average inital velocity.
+- **Charged Particles:** Toggle charged particles (positive, negative, or neutral).
 
-Feel free to explore and experiment with different settings to see how the particles behave!
+## Simulation Forces
+
+- **Gravity:** Standard Gravity, defined as -9.8m/s^2 along the z-axis
+- **Magentic field:** Linear Magnetic field to act on charged particles that are moving (requires `charged particles`). It's axial strength can be defined.
+- **Electic field:** Linear Electric field to act on charged particles (requires `charged particles`). It's axial strength can be defined.
+
+## Simulation Constraints
+
+- **Ground Plane:** Adds a ground plane at the z = 0. 
+    - By default, when a paritcle collides with the ground the particle will come to rest (sticky ground)
+- **Particle Bounce:** Allows the particle to bounce (requires a `Ground Plane`) 
+    - Removes the sticky ground effect.
+- **Bounce Factor:** Defines how bouncey the Ground Plane is. 
+    - < 1 inelastic collision (energy loss per collision)
+    - = 1 elastic collision (no energy gained or loss per collision)
+    - \> 1 driven system (energy gained per collision)
+
 '''
 
 sim_info = f'''
@@ -294,7 +314,7 @@ with graphs1:
     cmap = plt.get_cmap('viridis')
     normalize = plt.Normalize(charge.min(), charge.max())
     colors = cmap(normalize(charge))
-    sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
+    sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
@@ -314,7 +334,7 @@ with graphs2:
 
     # Create a scatter plot with colored points
     fig, ax = plt.subplots()
-    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, cmap=cmap, alpha=0.5)
+    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')

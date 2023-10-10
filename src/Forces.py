@@ -190,9 +190,9 @@ class GroundPlane:
         for particle in particles:
 
             if( particle.Position[2] < 0 ):
-                particle.Position[2] = 0.000001
+                particle.Position[2] = 0.000001 # reset the particle's position to above the ground plane
                 # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([0, 0, -0])
+                particle.Velocity = particle.Velocity * np.array([self.Loss, self.Loss, -1*self.Loss])
 
 
     def Info( self ):
@@ -201,7 +201,7 @@ class GroundPlane:
         Returns:
         - str: A string containing information about the ground plane
         """
-        return f"Ground Plane = `True`"
+        return f"Ground Plane energy loss factor = {np.array([self.Loss, self.Loss, -1*self.Loss])}"
     
     def __str__( self ):
         return "Ground Plane"
