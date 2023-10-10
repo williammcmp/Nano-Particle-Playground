@@ -9,3 +9,12 @@ src/__pycache__/Simulation.cpython-310.pyc
 tests/__pycache__/test_Simulation.cpython-310-pytest-7.4.2.pyc
 tests/test_Forces.py
 tests/__pycache__/test_Forces.cpython-310-pytest-7.4.2.pyc
+src/__pycache__/__init__.cpython-39.pyc
+src/__pycache__/Forces.cpython-39.pyc
+src/__pycache__/Particle.cpython-39.pyc
+src/__pycache__/ParticleGenerator.cpython-39.pyc
+src/__pycache__/Simulation.cpython-39.pyc
+tests/__pycache__/__init__.cpython-39.pyc
+tests/__pycache__/test_Forces.cpython-39-pytest-7.1.2.pyc
+tests/__pycache__/test_Partilce.cpython-39-pytest-7.1.2.pyc
+tests/__pycache__/test_Simulation.cpython-39-pytest-7.1.2.pyc
