@@ -182,6 +182,7 @@ class GroundPlane:
 
         self.Loss = loss
         
+    # try to apply the ground plane in the nano-update method(?)
     def Apply( self, particles):
         """
         Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.

@@ -8,18 +8,18 @@ from src.ParticleGenerator import *
 sim = Simulation()
 
 # Load test particles
-GenerateTestParticles(sim)
+# GenerateTestParticles(sim)
 
 # Creates the particles
 np.random.seed(0)
-# GenerateParticles(100,sim)
+GenerateParticles(10000,sim)
 
 # Add gravity force to the simulation
 sim.AddForce([Gravity()])
 # sim.AddForce([Lorentz(np.array([0,0,10.0]))])
 
 # Runns the simulation 
-sim.Run(5, 0.01, False)
+sim.FastRun(5, 0.01)
 
 # plot the simulation results
 sim.Plot()
