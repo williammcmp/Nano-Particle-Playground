@@ -3,27 +3,6 @@
 import pandas as pd
 import os
 
-def load_data_from_excel(file_path, sheet_name):
-    """
-    Load data from an Excel file.
-
-    Args:
-        file_path (str): The path to the Excel file.
-        sheet_name (str): The name of the Excel sheet to read.
-
-    Returns:
-        pd.DataFrame or None: A pandas DataFrame containing the data from the Excel file.
-            Returns None if the file is not found or an error occurs during loading.
-    """
-    try:
-        data = pd.read_excel(file_path, sheet_name=sheet_name)
-        return data
-    except FileNotFoundError:
-        print(f"File not found at: {file_path}")
-        return None
-    except Exception as e:
-        print(f"Error loading data from Excel file: {file_path}")
-        return None
 
 def load_data_from_csv(file_path):
     """
