@@ -353,11 +353,43 @@ with graphs2:
     fig = simulation.PlotPaths()
     st.pyplot(fig)
 
+# Replace 'your_file.csv' with the actual path to your CSV file
+
+
+# Read the CSV file into a DataFrame
+df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
+
+# Choose the columns for the scatter plot
+x = df['Diamater (nm)']/ 10
+y = df['distance from edge (nm)']/10000
+
+
+print(df)
+print(x)
+print(y)
+
+plt.scatter(x,y, s=10)
+plt.show()
 
 
 
 
 
+fig, ax = plt.subplots()
+cmap = plt.get_cmap('viridis')
+normalize = plt.Normalize(charge.min(), charge.max())
+colors = cmap(normalize(charge))
+sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
+sa = ax.scatter(x,y, s=10)
 
+# Add a colorbar to indicate charge values
+cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+# Customize the plot (optional)
+ax.set_xlabel('Mass of Particle (kg)')
+ax.set_ylabel('Displacement from Origin (m)')
+ax.set_title("Mass Vs Displacement")
+
+st.pyplot(fig)
 
 

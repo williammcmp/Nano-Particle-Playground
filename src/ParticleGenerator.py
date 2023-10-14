@@ -1,3 +1,4 @@
+# src/ParticleGenerator.py
 from src.Particle import Particle
 from tqdm import tqdm
 import numpy as np
