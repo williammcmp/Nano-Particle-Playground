@@ -11,6 +11,7 @@ from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
 from src.DataLoader import load_experimental_data
+from src.streamlitText import *
 
 simulation = Simulation() # initalise the simulation object
 
@@ -197,55 +198,6 @@ else:
 # Introduction
 # ------------
 
-intro_info = f'''
-
-1. Choose the simulation mode from the sidebar. Current mode `{simMode}`
-2. Adjust the simulation settings in the sidebar as needed.
-3. The simulation will update after each setting change.
-4. Explore the results and visualizations on the main page.
-
-## Simulation Modes
-
-- **Standard:** Have complete control over the simulation, particles and forces.
-- **Three Particle system:** This mode demonstrates the behavior of three particles.
-- **Silicon Nano-Particles:** (WIP) Simulates silicon nanoparticles in a magnetic field.
-
-## Particle Initial Distribution
-
-Not avaliable in Simulation mode `Three Particle system (testing)`.
-
-- **Starting Position:** Choose whether particles start at the origin or have random positions.
-    - When using random positions you can specify the average initial positions (X, Y, Z) following a normal distribution.
-- **Mass Range:** Specifiy the mass range of the particles. (This is a uniform distribtion)
-- **Average Inital Kenetic Energy:** Taken from a normal distribution at the averge you state. 
-    - Inital kenitic energy is used as it's a better defining parameter that an inital average inital velocity.
-- **Charged Particles:** Toggle charged particles (positive, negative, or neutral).
-
-## Simulation Forces
-
-- **Gravity:** Standard Gravity, defined as -9.8m/s^2 along the z-axis
-- **Magentic field:** Linear Magnetic field to act on charged particles that are moving (requires `charged particles`). It's axial strength can be defined.
-- **Electic field:** Linear Electric field to act on charged particles (requires `charged particles`). It's axial strength can be defined.
-
-## Simulation Constraints
-
-- **Ground Plane:** Adds a ground plane at the z = 0. 
-    - By default, when a paritcle collides with the ground the particle will come to rest (sticky ground)
-- **Particle Bounce:** Allows the particle to bounce (requires a `Ground Plane`) 
-    - Removes the sticky ground effect.
-- **Bounce Factor:** Defines how bouncey the Ground Plane is. 
-    - < 1 inelastic collision (energy loss per collision)
-    - = 1 elastic collision (no energy gained or loss per collision)
-    - \> 1 driven system (energy gained per collision)
-
-'''
-
-people_info = f'''
-**Students:** Christ Nohan, William McMahon-Puce
-
-**Superviors:** James Chon, Saulius Juodkazis
-'''
-
 sim_info = f'''
 ## General Info:
 
@@ -281,12 +233,12 @@ with row0_2:
     )
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
-    st.markdown(people_info)
+    st.markdown(people_info())
     st.markdown("[Project and page description]")
     st.markdown("The source code can be fond on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
     
     with st.expander("How to Use The Particle Simulation"):
-        st.markdown(intro_info)
+        st.markdown(intro_info(simMode))
     
     with st.expander("Simulation Computation Info (Stats)"):
         st.markdown(sim_info)
