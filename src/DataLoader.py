@@ -3,10 +3,19 @@
 import pandas as pd
 import os
 
-# Loads data from excel file
 def load_data_from_excel(file_path, sheet_name):
+    """
+    Load data from an Excel file.
+
+    Args:
+        file_path (str): The path to the Excel file.
+        sheet_name (str): The name of the Excel sheet to read.
+
+    Returns:
+        pd.DataFrame or None: A pandas DataFrame containing the data from the Excel file.
+            Returns None if the file is not found or an error occurs during loading.
+    """
     try:
-        # Load data from the Excel file
         data = pd.read_excel(file_path, sheet_name=sheet_name)
         return data
     except FileNotFoundError:
@@ -14,26 +23,54 @@ def load_data_from_excel(file_path, sheet_name):
         return None
     except Exception as e:
         print(f"Error loading data from Excel file: {file_path}")
-        return None  # Return None if there's an error
-    
+        return None
+
 def load_data_from_csv(file_path):
+    """
+    Load data from a CSV file.
+
+    Args:
+        file_path (str): The path to the CSV file.
+
+    Returns:
+        pd.DataFrame or None: A pandas DataFrame containing the data from the CSV file.
+            Returns None if the file is not found or an error occurs during loading.
+    """
     try:
-        # Read data from the CSV file into a pandas DataFrame
         data = pd.read_csv(file_path)
         return data
     except FileNotFoundError:
         print(f"File not found at: {file_path}")
         return None
     except Exception as e:
-        print(f"Error loading data from CSV file:: {str(e)}")
+        print(f"Error loading data from CSV file: {str(e)}")
         return None
-    
-#  Gets a list of files for the specified folder path
+
 def get_file_names(folder_path):
+    """
+    Get a list of filenames in the specified folder path.
+
+    Args:
+        folder_path (str): The path to the folder from which to retrieve filenames.
+
+    Returns:
+        list of str: A list of filenames in the specified folder.
+    """
     return os.listdir(folder_path)
 
 # Adjust values depending on what side of the crator they are recorded from
 def experimental_adjustment(experimental_csv, experimental_data, data_df):
+    """
+    Adjust and append experimental data to a combined DataFrame based on the position relative to the ablation creator.
+
+    Args:
+        experimental_csv (str): The name of the experimental CSV file.
+        experimental_data (pd.DataFrame): The experimental data loaded from the CSV file.
+        data_df (pd.DataFrame): The combined data DataFrame to which the experimental data will be appended.
+
+    Returns:
+        pd.DataFrame: The updated combined data DataFrame.
+    """
     
     # Checks the position relative to the ablation creator the data is from
 
@@ -119,28 +156,37 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
     return data_df
 
 
-#  Loads data from a specific experiment mode (no B-filed, B Into page, B Out of page)
 def load_experimental_data(experiment_type):
-    # Create the experimental data frame - use Zeros to initalise the DF with values (removed latter)
+    """
+    Load experimental data for a specific experiment mode.
+
+    Args:
+        experiment_type (str): The type of experiment mode (no B-field, B into page, B out of page).
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the loaded experimental data.
+    """
+
+    # Create the experimental data frame - use Zeros to initialize the DF with values (removed later)
     data_df = pd.DataFrame({
         "X": [0],
         "Y": [0],
         "Width": [0]
     })
 
-    # Gets the file names for the folder 
-    experimental_csv_list = get_file_names("data/"+experiment_type)
+    # Gets the file names for the folder
+    experimental_csv_list = get_file_names("data/" + experiment_type)
 
     # Loads the data from each file in the folder
     for experimental_csv in experimental_csv_list:
         
-        # loads the data from excel file
-        experimental_data = load_data_from_csv("data/"+experiment_type+"/"+experimental_csv)
+        # loads the data from the CSV file
+        experimental_data = load_data_from_csv("data/" + experiment_type + "/" + experimental_csv)
 
-        # based on where the data was recorded relative to the creator, values need to be adjusted
+        # Based on where the data was recorded relative to the creator, values need to be adjusted
         data_df = experimental_adjustment(experimental_csv, experimental_data, data_df)
 
-    # Remove the zeros used to initalis the DataFrame 
+    # Remove the zeros used to initialize the DataFrame
     data_df = data_df.iloc[1:]
 
     return data_df
