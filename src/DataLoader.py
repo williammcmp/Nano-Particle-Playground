@@ -3,7 +3,6 @@
 import pandas as pd
 import os
 
-
 def load_data_from_csv(file_path):
     """
     Load data from a CSV file.
