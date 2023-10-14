@@ -144,25 +144,3 @@ def load_experimental_data(experiment_type):
     data_df = data_df.iloc[1:]
 
     return data_df
-
-
-
-
-
-data_df = load_experimental_data("BFieldIn")
-
-
-import matplotlib.pyplot as plt
-
-# Assuming you already have your DataFrame data_df
-
-# Plot the 'X' and 'Y' columns
-plt.scatter(data_df['X'], data_df['Y'])
-
-# Customize the plot (optional)
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.title('X vs. Y')
-
-# Show the plot
-plt.show()
