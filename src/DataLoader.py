@@ -53,6 +53,7 @@ def load_experimental_data(experiment_type):
 
         # Positive X-axis
         if experimental_csv[0] == "R": # Right of the creator
+            # TODO: add fix for missing Right1 in BFieldIn set
             
             # Create a new DataFrame for the data
             data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
