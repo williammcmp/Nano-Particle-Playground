@@ -240,6 +240,12 @@ Not avaliable in Simulation mode `Three Particle system (testing)`.
 
 '''
 
+people_info = f'''
+**Students:** Christ Nohan, William McMahon-Puce
+
+**Superviors:** James Chon, Saulius Juodkazis
+'''
+
 sim_info = f'''
 ## General Info:
 
@@ -255,14 +261,29 @@ sim_info = f'''
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
 with row0_1:
-    st.title('Particle Playground - Beta')
+    st.title('Characterisation of laser-ablated silicon nanoparticles')
 with row0_2:
-    st.text("")
-    st.subheader('Developed by [William McMahon-Puce](https://www.linkedin.com/in/william-mcmahon-puce-b9b3a9210//)')
+    image_container = st.container()
+
+    # Add the image to the container
+    image_container.image("img/swin_logo.png", width=200)
+
+    # Apply CSS style to align the container to the right
+    image_container.markdown(
+        """
+        <style>
+        .st-dt {
+            float: right;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
-    st.markdown("Hi there, this Streamlit app serves as a sandbox for simulating and experimenting with the behavior, interactions and dynamics of partiicles. Different simulation modes will allow you to play with sized regimes of particles.")
-    st.markdown("You can find the source code in the [Nano Particle Playground](https://github.com/williammcmp/Nano-Particle-Playground)")
+    st.markdown(people_info)
+    st.markdown("[Project and page description]")
+    st.markdown("The source code can be fond on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
     
     with st.expander("How to Use The Particle Simulation"):
         st.markdown(intro_info)
