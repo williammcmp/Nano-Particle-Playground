@@ -39,7 +39,6 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
 
     # Positive X-axis
     if experimental_csv[0] == "R": # Right of the creator
-        # TODO: add fix for missing Right1 in BFieldIn set
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -49,6 +48,10 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
         
         # Increasing the distance from the creator for further images
         max_value = data_df["X"].max() # max value of the whole data set
+
+        # Account for the missing Right1 values for BFieldIn
+        if max_value == 0 and experimental_csv[5] == 2:
+            max_value += 2285
 
         # Increasing by the pervious image's max positional value
         data['X'] = data['X'] + max_value
@@ -77,7 +80,7 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
         data_df = pd.concat([data_df, data], ignore_index=True)
 
     # Positive Y-axis
-    elif experimental_csv[0] == "R": # Above the creator
+    elif experimental_csv[0] == "T": # Above the creator
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -95,7 +98,7 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
         data_df = pd.concat([data_df, data], ignore_index=True)
 
     # Negative Y-axis 
-    elif experimental_csv[0] == "L": # Bellow the crator
+    elif experimental_csv[0] == "B": # Bellow the crator
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
         
@@ -146,7 +149,7 @@ def load_experimental_data(experiment_type):
 
 
 
-data_df = load_experimental_data("BFieldOut")
+data_df = load_experimental_data("BFieldIn")
 
 
 import matplotlib.pyplot as plt
