@@ -1,3 +1,4 @@
+# src/Particle.py
 import numpy as np
 
 class Particle:

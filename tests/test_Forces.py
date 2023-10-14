@@ -1,4 +1,4 @@
-# test_forces.py
+# tests/test_forces.py
 
 import pytest
 import numpy as np
