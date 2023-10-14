@@ -12,6 +12,7 @@ from src.Forces import *
 from src.ParticleGenerator import *
 from src.DataLoader import load_experimental_data
 from src.streamlitText import *
+from src.nanoParticlePlots import *
 
 simulation = Simulation() # initalise the simulation object
 
@@ -111,7 +112,7 @@ def buildPartilceDistributions(simMode):
 st.sidebar.header("Simulation Settings")
 st.sidebar.markdown("Change the Simulation settings:  👇")
 
-simMode = st.sidebar.selectbox("Simulation Mode:", ["Standard","Three Particle system (testing)", "Silicon Nano-Particles"])
+simMode = st.sidebar.selectbox("Simulation Mode:", ["Silicon Nano-Particles","Three Particle system (testing)", "Standard"])
 st.sidebar.divider()
 
 partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
@@ -236,62 +237,129 @@ with row3_1:
     st.markdown(people_info())
     st.markdown("[Project and page description]")
     st.markdown("The source code can be fond on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
-    
-    with st.expander("How to Use The Particle Simulation"):
-        st.markdown(intro_info(simMode))
-    
-    with st.expander("Simulation Computation Info (Stats)"):
-        st.markdown(sim_info)
-        st.markdown("Froces:")
-        st.markdown(simulation.FroceList())
 
 
 
 # ------------
 # Displaying plots
 # ------------
-
-position, velocity, force, mass, charge = simulation.StreamletData()
-
 st.divider()
-st.markdown(f"**Simulation Mode:** `{simMode}`")
 
-scatter = st.container()
+if simMode == "Silicon Nano-Particles":
+    ExperimentalMain(simulation)
+else:
+    position, velocity, force, mass, charge = simulation.StreamletData()
 
-spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
+    st.markdown(f"**Simulation Mode:** `{simMode}`")
 
-with graphs1:
-    st.markdown("Inital positon")
-    st.pyplot(initalPos)
+    scatter = st.container()
 
-with graphs2:
-    st.markdown("Final position")
-    st.pyplot(simulation.Plot())
+    spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
+
+    with graphs1:
+        st.markdown("Inital positon")
+        st.pyplot(initalPos)
+
+    with graphs2:
+        st.markdown("Final position")
+        st.pyplot(simulation.Plot())
 
 
-other = st.container()
-# other.divider()
+    other = st.container()
+    # other.divider()
 
-spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
+    spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
 
-with graphs1:
-    st.pyplot(simulation.Histogram())
+    with graphs1:
+        st.pyplot(simulation.Histogram())
 
-    fig, ax = plt.subplots()
-    ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
+        fig, ax = plt.subplots()
+        ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
 
-    # Customize the plot (optional)
-    ax.set_xlabel('Masses (kg)')
-    ax.set_ylabel('Frequency')
-    ax.set_title("Mass of particles")
+        # Customize the plot (optional)
+        ax.set_xlabel('Masses (kg)')
+        ax.set_ylabel('Frequency')
+        ax.set_title("Mass of particles")
 
-    st.pyplot(fig)
+        st.pyplot(fig)
+
+        fig, ax = plt.subplots()
+        cmap = plt.get_cmap('viridis')
+        normalize = plt.Normalize(charge.min(), charge.max())
+        colors = cmap(normalize(charge))
+        sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
+
+        # Add a colorbar to indicate charge values
+        cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+        # Customize the plot (optional)
+        ax.set_xlabel('Mass of Particle (kg)')
+        ax.set_ylabel('Displacement from Origin (m)')
+        ax.set_title("Mass Vs Displacement")
+
+        st.pyplot(fig)
+
+    with graphs2:
+        # Create a colormap for charge values
+        cmap = plt.get_cmap('viridis')
+        normalize = plt.Normalize(charge.min(), charge.max())
+        colors = cmap(normalize(charge))
+
+        # Create a scatter plot with colored points
+        fig, ax = plt.subplots()
+        sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
+
+        # Add a colorbar to indicate charge values
+        cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+        # Customize the plot (optional)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title('Particle Scatter Plot')
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
+        fig = simulation.PlotPaths()
+        st.pyplot(fig)
+
+    # Replace 'your_file.csv' with the actual path to your CSV file
+
+
+    # # Read the CSV file into a DataFrame
+    # df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
+
+    # # Choose the columns for the scatter plot
+    # x = df['Diamater (nm)']/ 10
+    # y = df['distance from edge (nm)']/10000
+
+
+    # print(df)
+    # print(x)
+    # print(y)
+
+    # plt.scatter(x,y, s=10)
+    # plt.show()
+
+    # volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
+    # density = 2330 # desnity of Silicon
+
+    # # mass of silicon particle
+    # mass =  volume * density # mass = volume of sphear * density of Silicon
+
+
+    data_df = load_experimental_data("NoBField")
+
+    x = data_df["Width"]
+    y = np.sqrt(data_df["X"]**2 + data_df["Y"]**2)
+
 
     fig, ax = plt.subplots()
     cmap = plt.get_cmap('viridis')
     normalize = plt.Normalize(charge.min(), charge.max())
     colors = cmap(normalize(charge))
-    sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
+    # sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
+    sa = ax.scatter(x,y, s=10)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
@@ -300,80 +368,14 @@ with graphs1:
     ax.set_xlabel('Mass of Particle (kg)')
     ax.set_ylabel('Displacement from Origin (m)')
     ax.set_title("Mass Vs Displacement")
+    ax.set_xlim(0,100)
 
     st.pyplot(fig)
 
-with graphs2:
-    # Create a colormap for charge values
-    cmap = plt.get_cmap('viridis')
-    normalize = plt.Normalize(charge.min(), charge.max())
-    colors = cmap(normalize(charge))
+with st.expander("How to Use The Particle Simulation"):
+    st.markdown(intro_info(simMode))
 
-    # Create a scatter plot with colored points
-    fig, ax = plt.subplots()
-    sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
-
-    # Add a colorbar to indicate charge values
-    cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-    # Customize the plot (optional)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_title('Particle Scatter Plot')
-
-    # Display the plot in Streamlit
-    st.pyplot(fig)
-
-    fig = simulation.PlotPaths()
-    st.pyplot(fig)
-
-# Replace 'your_file.csv' with the actual path to your CSV file
-
-
-# # Read the CSV file into a DataFrame
-# df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
-
-# # Choose the columns for the scatter plot
-# x = df['Diamater (nm)']/ 10
-# y = df['distance from edge (nm)']/10000
-
-
-# print(df)
-# print(x)
-# print(y)
-
-# plt.scatter(x,y, s=10)
-# plt.show()
-
-# volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
-# density = 2330 # desnity of Silicon
-
-# # mass of silicon particle
-# mass =  volume * density # mass = volume of sphear * density of Silicon
-
-
-data_df = load_experimental_data("NoBField")
-
-x = data_df["Width"]
-y = np.sqrt(data_df["X"]**2 + data_df["Y"]**2)
-
-
-fig, ax = plt.subplots()
-cmap = plt.get_cmap('viridis')
-normalize = plt.Normalize(charge.min(), charge.max())
-colors = cmap(normalize(charge))
-# sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
-sa = ax.scatter(x,y, s=10)
-
-# Add a colorbar to indicate charge values
-cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-# Customize the plot (optional)
-ax.set_xlabel('Mass of Particle (kg)')
-ax.set_ylabel('Displacement from Origin (m)')
-ax.set_title("Mass Vs Displacement")
-ax.set_xlim(0,100)
-
-st.pyplot(fig)
-
-
+with st.expander("Simulation Computation Info (Stats)"):
+    st.markdown(sim_info)
+    st.markdown("Froces:")
+    st.markdown(simulation.FroceList())

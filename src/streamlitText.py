@@ -52,3 +52,19 @@ def people_info():
     **Superviors:** James Chon, Saulius Juodkazis
     '''
     return people_info
+
+
+def expermentalMainText():
+    mainText = f'''
+    ## Simulation and Experimnetal Results
+
+    We invesigated how applying a magnetic field during the ablation process affected the particle's displacement from the ablation creator to test if the abalated particles are charged.
+    
+    The plot shows expermental data overlayed the simulation's predicted results.
+
+    Experminental data was collected using images captured on a Scanning Electron Microscope ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/)
+
+    Invesigate the options below to see how the magnetic field effects the Silicon nanoparticles.
+    '''
+
+    return mainText
