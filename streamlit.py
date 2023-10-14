@@ -10,6 +10,7 @@ from src.Particle import Particle
 from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
+from src.DataLoader import load_experimental_data
 
 simulation = Simulation() # initalise the simulation object
 
@@ -356,30 +357,39 @@ with graphs2:
 # Replace 'your_file.csv' with the actual path to your CSV file
 
 
-# Read the CSV file into a DataFrame
-df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
+# # Read the CSV file into a DataFrame
+# df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
 
-# Choose the columns for the scatter plot
-x = df['Diamater (nm)']/ 10
-y = df['distance from edge (nm)']/10000
-
-
-print(df)
-print(x)
-print(y)
-
-plt.scatter(x,y, s=10)
-plt.show()
+# # Choose the columns for the scatter plot
+# x = df['Diamater (nm)']/ 10
+# y = df['distance from edge (nm)']/10000
 
 
+# print(df)
+# print(x)
+# print(y)
 
+# plt.scatter(x,y, s=10)
+# plt.show()
+
+# volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
+# density = 2330 # desnity of Silicon
+
+# # mass of silicon particle
+# mass =  volume * density # mass = volume of sphear * density of Silicon
+
+
+data_df = load_experimental_data("NoBField")
+
+x = data_df["Width"]
+y = np.sqrt(data_df["X"]**2 + data_df["Y"]**2)
 
 
 fig, ax = plt.subplots()
 cmap = plt.get_cmap('viridis')
 normalize = plt.Normalize(charge.min(), charge.max())
 colors = cmap(normalize(charge))
-sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
+# sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
 sa = ax.scatter(x,y, s=10)
 
 # Add a colorbar to indicate charge values
@@ -389,6 +399,7 @@ cbar = plt.colorbar(sc, ax=ax, label='Charge')
 ax.set_xlabel('Mass of Particle (kg)')
 ax.set_ylabel('Displacement from Origin (m)')
 ax.set_title("Mass Vs Displacement")
+ax.set_xlim(0,100)
 
 st.pyplot(fig)
 
