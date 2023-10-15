@@ -182,7 +182,7 @@ class Simulation:
                 self.Update(timeStep)
 
         computeTime = time.time() - startTime
-        numCals = int(duration / timeStep) * len(self.Particles)
+        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + len(self.Constraints) + 1)
 
         print("\n Simulation:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")

@@ -80,7 +80,6 @@ def buildPartilceDistributions(simMode):
         charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
 
     elif simMode == "Silicon Nano-Particles":
-        a = st.sidebar.expander("Nano-Particle Distribution Settings")
         positionType = "origin"
         positionX = 1
         positionY = 1
@@ -136,7 +135,7 @@ else:
         c.markdown("Define the Magnetic Field (T):")
         magneticX = c.number_input("Magnetic X", value=0.0)/1000
         magneticY = c.number_input("Magnetic Y", value=0.0)
-        magneticZ = c.number_input("Magnetic Z", value=1.0) # default it is out of the page
+        magneticZ = c.number_input("Magnetic Z", value=0.018) # default it is out of the page
 
     electric = a.checkbox("Electric field")
     if electric:

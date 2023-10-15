@@ -49,46 +49,45 @@ def ExperimentalMain(simulation, sim_info):
         fig = simulation.PlotPaths()
         st.pyplot(fig)
 
-    col_1, col_2, col_3 = row2.columns([1,1,1])
+    col_1, col_2 = row2.columns([1,1])
 
     with col_1:
-        # Create a colormap for charge values
-        cmap = plt.get_cmap('viridis')
-        normalize = plt.Normalize(charge.min(), charge.max())
-        colors = cmap(normalize(charge))
+        # Reshape the position array to make it one-dimensional
 
-        # Create a scatter plot with colored points
-        fig, ax = plt.subplots()
-        sc = ax.scatter(position[:, 0] * 1e3, position[:, 1] * 1e3, c=colors, alpha=0.7)
+        # Create the dataframe for easer ploting
+        data = np.hstack((position, charge))
 
-        # Add a colorbar to indicate charge values
-        cbar = plt.colorbar(sc, ax=ax, label='Charge')
+        fig, ax = plt.subplots(figsize=(10,6))
 
-        # Customize the plot (optional)
+        for charge_val in [-1, 0, 1]:
+            # Extract x and y positions of particles with charge value 0
+            x_positions = data[data[:, 3] == charge_val][:, 0]
+            y_positions = data[data[:, 3] == charge_val][:, 1]
+
+            # Create a scatter plot
+            ax.scatter(x_positions * 1e3, y_positions * 1e3, label=f"Charge {charge_val}", alpha=0.7)
+        
+        # Ploting the particles highlighed with different charges
+        
         ax.set_xlabel('X (nm)')
         ax.set_ylabel('Y (nm)')
         ax.set_title('Simulated position of Silicion Nano-Particles')
         ax.grid(True)
+        ax.legend()
 
-        # Display the plot in Streamlit
         st.pyplot(fig)
 
     with col_2:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(10,6))
         ax.hist(np.linalg.norm(mass*10, axis=1), bins=10, edgecolor='k', alpha=0.7)
 
-        # Customize the plot (optional)
         ax.set_xlabel('Particle diamater (nm)')
         ax.set_ylabel('Frequency')
         ax.set_title("Histogram of Simulated Silicon nano-particle size")
         
         st.pyplot(fig)
+        
 
-    with col_3:
-        # Create the dataframe for easer ploting
-        data = pd.DataFrame({"X": position[0],
-                            "Y": position[1],
-                            "charge": charge})
 
 def plotExperimentalData(dataSeries):
     # This dictionary makes it easer to load the data files
