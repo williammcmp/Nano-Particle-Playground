@@ -134,9 +134,9 @@ else:
     if magnetic:
         c = a.container()
         c.markdown("Define the Magnetic Field (T):")
-        magneticX = c.number_input("Magnetic X", value=1.0)/1000
+        magneticX = c.number_input("Magnetic X", value=0.0)/1000
         magneticY = c.number_input("Magnetic Y", value=0.0)
-        magneticZ = c.number_input("Magnetic Z", value=0.0)
+        magneticZ = c.number_input("Magnetic Z", value=1.0) # default it is out of the page
 
     electric = a.checkbox("Electric field")
     if electric:

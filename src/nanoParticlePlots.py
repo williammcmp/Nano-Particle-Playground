@@ -47,17 +47,6 @@ def ExperimentalMain(simulation, sim_info):
         fig = simulation.PlotPaths()
         st.pyplot(fig)
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     col_1, col_2, col_3 = row2.columns([1,1,1])
 
     with col_1:
@@ -94,9 +83,7 @@ def ExperimentalMain(simulation, sim_info):
         st.pyplot(fig)
 
     # with col_3:
-        
-
-
+    # TODO add another figure here
 
 def plotExperimentalData(dataSeries):
     # This dictionary makes it easer to load the data files
