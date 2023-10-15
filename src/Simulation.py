@@ -124,7 +124,7 @@ class Simulation:
         """
         Returns a histogram of particle's displacment from the origin.
         """
-        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
+        # title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         position, _, _, mass, charge = self.__calNumPyArray()
 
@@ -135,7 +135,7 @@ class Simulation:
         # Customize the plot (optional)
         ax.set_xlabel('Distance from origin (m)')
         ax.set_ylabel('Frequency')
-        ax.set_title(title)
+        ax.set_title('Trajectories of the simulated particles')
 
         return fig
 

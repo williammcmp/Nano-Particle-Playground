@@ -228,7 +228,7 @@ row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
     st.markdown(people_info())
     st.markdown("We invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. If the particles are charged, then its expected the magnetic field would have an effect on the particle's displacment.")
-    st.markdown("The source code can be fond on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
+    st.markdown("The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
 
 
 
@@ -318,7 +318,8 @@ else:
 with st.expander("How to Use The Particle Simulation"):
     st.markdown(intro_info(simMode))
 
-# with st.expander("Simulation Computation Info (Stats)"):
-#     st.markdown(sim_info)
-#     st.markdown("Froces:")
-#     st.markdown(simulation.FroceList())
+if simMode != "Silicon Nano-Particles":
+    with st.expander("Simulation Computation Info (Stats)"):
+        st.markdown(sim_info)
+        st.markdown("Froces:")
+        st.markdown(simulation.FroceList())
