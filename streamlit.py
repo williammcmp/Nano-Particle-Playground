@@ -194,8 +194,6 @@ else:
 # ------------
 
 sim_info = f'''
-## General Info:
-
 ```
 - Particles = {len(simulation.Particles):,}
 - Simulated time = {simDuration}s
@@ -240,7 +238,7 @@ with row3_1:
 st.divider()
 
 if simMode == "Silicon Nano-Particles":
-    ExperimentalMain(simulation)
+    ExperimentalMain(simulation, sim_info)
 else:
     position, velocity, force, mass, charge = simulation.StreamletData()
 
@@ -317,37 +315,10 @@ else:
         fig = simulation.PlotPaths()
         st.pyplot(fig)
 
-
-
-
-    data_df = load_experimental_data("NoBField")
-
-    x = data_df["Width"]
-    y = np.sqrt(data_df["X"]**2 + data_df["Y"]**2)
-
-
-    fig, ax = plt.subplots()
-    cmap = plt.get_cmap('viridis')
-    normalize = plt.Normalize(charge.min(), charge.max())
-    colors = cmap(normalize(charge))
-    # sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, cmap=cmap, alpha=0.7)
-    sa = ax.scatter(x,y, s=10)
-
-    # Add a colorbar to indicate charge values
-    cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-    # Customize the plot (optional)
-    ax.set_xlabel('Mass of Particle (kg)')
-    ax.set_ylabel('Displacement from Origin (m)')
-    ax.set_title("Mass Vs Displacement")
-    ax.set_xlim(0,100)
-
-    st.pyplot(fig)
-
 with st.expander("How to Use The Particle Simulation"):
     st.markdown(intro_info(simMode))
 
-with st.expander("Simulation Computation Info (Stats)"):
-    st.markdown(sim_info)
-    st.markdown("Froces:")
-    st.markdown(simulation.FroceList())
+# with st.expander("Simulation Computation Info (Stats)"):
+#     st.markdown(sim_info)
+#     st.markdown("Froces:")
+#     st.markdown(simulation.FroceList())

@@ -49,7 +49,7 @@ class Gravity:
         return self.Acceleration
 
     def Info(self):
-        return f"\t{self.name} = {self.Acceleration}\n"
+        return f"{self.name} = {self.Acceleration}"
     
     def __str__(self) :
         return "Gravity"
@@ -154,7 +154,7 @@ class Lorentz:
         Returns:
         - str: A string containing information about the electric and magnetic fields.
         """
-        return f"\tElectric = {self.eField}\n\tMagnetic = {self.bField}\n"
+        return f"Magnetic = {self.bField}"
 
     def __str__(self):
         return "Lorentz"
