@@ -24,11 +24,10 @@ def ExperimentalMain(simulation):
     with plot_col:
         fig, ax = plotExperimentalData(dataSeries)
 
-        ax.scatter(massToSize(mass), np.linalg.norm(position, axis=1), alpha=0.7)
-        
+        # There is some scaling on on the simulation results there.
+        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7)
 
         st.pyplot(fig)
-    return True
 
 
 def plotExperimentalData(dataSeries):
@@ -46,9 +45,6 @@ def plotExperimentalData(dataSeries):
     data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
                          "size": data_df["Width"]})
 
-    
-        
-
     # Create a figure and axis
     fig, ax = plt.subplots()
     # ax.scatter(data['size'], data['displacement']) # raw data
@@ -62,11 +58,7 @@ def plotExperimentalData(dataSeries):
     ax.set_ylabel('Displacement (nm)')
     ax.set_title('Size Vs Displacement of the Silicon nano-partice')
     # ax.set_xlim(0, 100)
+    ax.set_ylim(0,10000)
     ax.grid(True)
 
     return fig, ax
-
-def massToSize(mass):
-    density = 2330 # desnity of Silicon
-    size = 2 * np.cbrt((mass * 3) / (4 * np.pi * density)) * 1e9
-    return size

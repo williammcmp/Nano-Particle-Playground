@@ -46,14 +46,20 @@ plt.rcParams.update(rc)
 
 def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
-        partilceNumber = 3
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=3, step=500, disabled = True)
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
+
+    if simMode == "Silicon Nano-Particles":
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=100, step=100)
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5, disabled = True)
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
+    
     else:
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=100, step=5)
-        fastMode = False
-     
-    simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-    simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
-  
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=100, step=500)
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
+
     return partilceNumber, simDuration, simTimeStep 
 
 def buildPartilceDistributions(simMode):
@@ -75,23 +81,13 @@ def buildPartilceDistributions(simMode):
 
     elif simMode == "Silicon Nano-Particles":
         a = st.sidebar.expander("Nano-Particle Distribution Settings")
-        positionType = a.selectbox("Starting Position:", ["Origin"], disabled =True)
+        positionType = "origin"
         positionX = 1
         positionY = 1
         positionZ = 0
-        sizeRange = a.slider('Partice Diamater (nm)', 0, 150, (0, 100)) # easier to convert this to mass than input very small numbers
-        AvgEnergy = a.slider("Average Inital Energy (J)", value=3)/1000000000000
-        charged = a.checkbox("Charged Particles (+1 C, 0 C, -1 C)", value=True)
-
-        # Convert size into mass based on Silicon Density
-        massRange = []  
-        for size in sizeRange:
-            volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
-            density = 2330 # desnity of Silicon
-
-            # mass of silicon particle
-            mass =  volume * density # mass = volume of sphear * density of Silicon
-            massRange.append(mass)
+        massRange = [0.1, 10] 
+        AvgEnergy = 85
+        charged = True
 
     else:
         positionType = False
@@ -151,7 +147,6 @@ else:
         electricZ = c.number_input("Electric Z", value=0.0)
 
 # Constraints of the Simulation
-# st.sidebar.divider()
 a = st.sidebar.expander("Simulation Constrains")
 
 groundPlane = a.checkbox("Ground Plane", value=True)
@@ -172,7 +167,6 @@ if rand:
 
 # Generates the particles bases on what mode were are in
 if simMode == "Silicon Nano-Particles":
-    # GenerateNanoParticles(partilceNumber, simulation)
     GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
 elif simMode == "Standard":
     GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
@@ -190,7 +184,7 @@ if groundPlane : simulation.AddConstraints([GroundPlane(particleBounceFactor)])
 
 
 if simMode == "Silicon Nano-Particles":
-    computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
+    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
 else:
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
 
@@ -235,7 +229,7 @@ with row0_2:
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
     st.markdown(people_info())
-    st.markdown("[Project and page description]")
+    st.markdown("We invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. If the particles are charged, then its expected the magnetic field would have an effect on the particle's displacment.")
     st.markdown("The source code can be fond on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
 
 
@@ -323,29 +317,7 @@ else:
         fig = simulation.PlotPaths()
         st.pyplot(fig)
 
-    # Replace 'your_file.csv' with the actual path to your CSV file
 
-
-    # # Read the CSV file into a DataFrame
-    # df = pd.read_excel("data/SiNPData.xlsx", sheet_name="No B Field")
-
-    # # Choose the columns for the scatter plot
-    # x = df['Diamater (nm)']/ 10
-    # y = df['distance from edge (nm)']/10000
-
-
-    # print(df)
-    # print(x)
-    # print(y)
-
-    # plt.scatter(x,y, s=10)
-    # plt.show()
-
-    # volume = (((size * 1e-9)/2) ** 3) * (4 * np.pi / 3) # (4 * pi / 3) * (diamater/2)^3
-    # density = 2330 # desnity of Silicon
-
-    # # mass of silicon particle
-    # mass =  volume * density # mass = volume of sphear * density of Silicon
 
 
     data_df = load_experimental_data("NoBField")

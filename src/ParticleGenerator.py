@@ -86,36 +86,3 @@ def GenerateParticles(n, Simulation, mode = "Origin",
             particles.append(Particle(position, velocity, mass))
 
     Simulation.AddParticles(particles)
-
-
-# Generates particles in the nano-sized regime
-def GenerateNanoParticles(n, Simulation):
-    """
-    Generates and adds Nano-Particles (modeling SiNPs) to a given simulation.
-
-    This function generates a specified number of Nano-Particles and adds them to a provided Simulation instance.
-
-    Parameters:
-    - n (int): The number of Nano-Particles to generate.
-    - Simulation (Simulation): The Simulation instance to which the particles will be added.
-
-    Returns:
-    None
-
-    Example:
-    ```
-    sim = Simulation()
-    GenerateNanoParticles(100, sim)
-    ```
-    """
-    # 1 meter unit = 10^-9 m
-    print(f"\nGenerating {n} Nano-Particles:")
-    particles = []
-    for x in tqdm(range(n), unit=" Particle(s)"):
-        position = np.array([0,0,0]) # all start from origin (nm)
-        velocity = np.array([np.random.normal(loc=0, scale=10),np.random.normal(loc=0, scale=10),random.randint(0,10)]) # (nm/s)
-        mass = np.abs(np.random.normal(loc=97, scale=25)) # (Kg)
-        charge = random.choice([-1,0, 1]) # (c)
-        particles.append(Particle(position, velocity, mass, charge))
-
-    Simulation.AddParticles(particles)
