@@ -74,7 +74,7 @@ class Simulation:
         """
         Returns a 3D axis with the paths for each particle from the simulation.
         """
-        title=f"{len(self.Particles)} Particles over {self.Duration}s"
+        # title=f"{len(self.Particles)} Particles over {self.Duration}s"
 
         fig = plt.figure(figsize=(8,8))
         ax = fig.add_subplot(111, projection='3d')
@@ -86,7 +86,7 @@ class Simulation:
         ax.set_xlabel('X (m)')
         ax.set_ylabel('Y (m)')
         ax.set_zlabel('Z (m)')
-        ax.set_title(title)
+        ax.set_title('Trajectories of simulated particles')
 
 
         return fig
@@ -124,7 +124,7 @@ class Simulation:
         """
         Returns a histogram of particle's displacment from the origin.
         """
-        # title = f"{len(self.Particles):,} Particles over {self.Duration}s"
+        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
 
         position, _, _, mass, charge = self.__calNumPyArray()
 
@@ -135,7 +135,7 @@ class Simulation:
         # Customize the plot (optional)
         ax.set_xlabel('Distance from origin (m)')
         ax.set_ylabel('Frequency')
-        ax.set_title('Trajectories of the simulated particles')
+        ax.set_title(title)
 
         return fig
 
