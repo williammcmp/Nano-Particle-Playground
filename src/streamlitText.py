@@ -64,3 +64,14 @@ def expermentalMainText():
     '''
 
     return mainText
+
+def simText():
+    text = f'''
+    ## Simulation Figures
+
+    The following plots represent the outcomes obtained through a simulation. These visualizations provide valuable insights and data analysis resulting from our simulated experiments and computations.
+
+    Below is a summary of the simulation's parameters and Forces used.
+    '''
+
+    return text

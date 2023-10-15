@@ -11,10 +11,12 @@ from src.DataLoader import load_experimental_data
 from src.streamlitText import *
 
 # Load the experimnetal data and plot the overlay to the simualtion data
-def ExperimentalMain(simulation):
+def ExperimentalMain(simulation, sim_info):
     position, velocity, force, mass, charge = simulation.StreamletData()
-
-    text_col, plot_col = st.columns([1, 2])
+    
+    # First Row of plots
+    row1 = st.container()
+    text_col, plot_col = row1.columns([1, 2])
 
     with text_col:
         st.markdown(expermentalMainText())
@@ -28,6 +30,72 @@ def ExperimentalMain(simulation):
         ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7)
 
         st.pyplot(fig)
+
+    st.divider()
+    row2 = st.container()
+    # Second Row of plot - simulation figures
+    text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
+
+    with text_col:
+        st.markdown(simText())
+        st.markdown(f'''**Simulation Stats:**''')
+        st.markdown(sim_info)
+        st.markdown(list_to_markdown_table(simulation.FroceList()))
+        st.markdown("You have the flexibility to adjust simulation parameters, including the applied forces and other settings, through the side panel")
+
+    with plot_col:
+        fig = simulation.PlotPaths()
+        st.pyplot(fig)
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    col_1, col_2, col_3 = row2.columns([1,1,1])
+
+    with col_1:
+        # Create a colormap for charge values
+        cmap = plt.get_cmap('viridis')
+        normalize = plt.Normalize(charge.min(), charge.max())
+        colors = cmap(normalize(charge))
+
+        # Create a scatter plot with colored points
+        fig, ax = plt.subplots()
+        sc = ax.scatter(position[:, 0] * 1e3, position[:, 1] * 1e3, c=colors, alpha=0.7)
+
+        # Add a colorbar to indicate charge values
+        cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+        # Customize the plot (optional)
+        ax.set_xlabel('X (nm)')
+        ax.set_ylabel('Y (nm)')
+        ax.set_title('Simulated position of Silicion Nano-Particles')
+        ax.grid(True)
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
+    with col_2:
+        fig, ax = plt.subplots()
+        ax.hist(np.linalg.norm(mass*10, axis=1), bins=10, edgecolor='k', alpha=0.7)
+
+        # Customize the plot (optional)
+        ax.set_xlabel('Particle diamater (nm)')
+        ax.set_ylabel('Frequency')
+        ax.set_title("Histogram of Simulated Silicon nano-particle size")
+        
+        st.pyplot(fig)
+
+    # with col_3:
+        
+
 
 
 def plotExperimentalData(dataSeries):
@@ -62,3 +130,16 @@ def plotExperimentalData(dataSeries):
     ax.grid(True)
 
     return fig, ax
+
+def list_to_markdown_table(data):
+    # Initialize the Markdown table
+    fList = f'''
+    **Forces Applied:**
+    '''
+    for row in data:
+        fList += f'''
+        - {row}
+        '''
+    
+
+    return fList

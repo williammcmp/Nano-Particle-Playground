@@ -76,7 +76,7 @@ class Simulation:
         """
         title=f"{len(self.Particles)} Particles over {self.Duration}s"
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(8,8))
         ax = fig.add_subplot(111, projection='3d')
 
 
@@ -342,9 +342,9 @@ class Simulation:
         Returns:
         - str: A string listing information about the applied forces.
         """
-        forceList = ""
+        forceList = []
         for force in self.Forces:
-            forceList += force.Info()
+            forceList.append(force.Info())
         
         return forceList
     
