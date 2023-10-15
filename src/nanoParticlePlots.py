@@ -36,9 +36,9 @@ def ExperimentalMain(simulation):
 
 
         # Customize the plot (optional)
-        ax.set_xlabel('Mass of Particle (kg)')
-        ax.set_ylabel('Displacement from Origin (m)')
-        ax.set_title("Mass Vs Displacement")
+        ax.set_xlabel('Particle Diamater (nm)')
+        ax.set_ylabel('Displacement from Origin (nm)')
+        ax.set_title("Size Vs Displacement")
         ax.set_xlim(0,100)
 
         st.pyplot(fig)
