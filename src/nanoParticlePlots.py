@@ -27,7 +27,9 @@ def ExperimentalMain(simulation, sim_info):
         fig, ax = plotExperimentalData(dataSeries)
 
         # There is some scaling on on the simulation results there.
-        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7)
+        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7, label="Simulation")
+
+        ax.legend()
 
         st.pyplot(fig)
 
@@ -82,8 +84,11 @@ def ExperimentalMain(simulation, sim_info):
         
         st.pyplot(fig)
 
-    # with col_3:
-    # TODO add another figure here
+    with col_3:
+        # Create the dataframe for easer ploting
+        data = pd.DataFrame({"X": position[0],
+                            "Y": position[1],
+                            "charge": charge})
 
 def plotExperimentalData(dataSeries):
     # This dictionary makes it easer to load the data files
@@ -101,13 +106,19 @@ def plotExperimentalData(dataSeries):
                          "size": data_df["Width"]})
 
     # Create a figure and axis
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10,6))
     # ax.scatter(data['size'], data['displacement']) # raw data
     # Creates the error bard from experimental data
     for i in range(1,20):
         filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
         std_error = filted_data.std() # gets the standard error bars
-        ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
+
+        # Allows for label to be added to first plot (There could be a better solution)
+        if i == 1:
+            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental") # plots the avg displcement with error bars
+        else:
+            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
+
     
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
