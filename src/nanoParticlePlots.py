@@ -19,27 +19,43 @@ def ExperimentalMain(simulation):
     with text_col:
         st.markdown(expermentalMainText())
 
-        st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
+        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
 
     with plot_col:
-        data_df = load_experimental_data("NoBField")
-
-        x = data_df["Width"]
-        y = np.sqrt(data_df["X"]**2 + data_df["Y"]**2)
-
-
-        fig, ax = plt.subplots()
-        cmap = plt.get_cmap('viridis')
-        normalize = plt.Normalize(charge.min(), charge.max())
-        colors = cmap(normalize(charge))
-        sa = ax.scatter(x,y, s=10)
-
-
-        # Customize the plot (optional)
-        ax.set_xlabel('Particle Diamater (nm)')
-        ax.set_ylabel('Displacement from Origin (nm)')
-        ax.set_title("Size Vs Displacement")
-        ax.set_xlim(0,100)
+        fig = plotExperimentalData(dataSeries)
 
         st.pyplot(fig)
     return True
+
+
+def plotExperimentalData(dataSeries):
+    # This dictionary makes it easer to load the data files
+    dataType = {
+        "No Magentic Field" : "NoBField",
+        "Magnetic Field out of the Page": "BFieldOut", 
+        "Magnetic Field into the Page": "BFieldIn"
+    }
+    
+    # Loads the data frame of the specific data series selected by the user
+    data_df = load_experimental_data(dataType[dataSeries])
+
+    # Convert the X,Y positions to R or displcement values
+    data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
+                         "size": data_df["Width"]})
+    
+    grouped = data.groupby("size")
+    avg_displacement = grouped['displacement'].mean()
+    std_error = grouped['displacement'].std() / np.sqrt(grouped['displacement'].count())
+
+    fig, ax = plt.subplots()
+
+    # Plot the average sizes with error bars
+    # ax.errorbar(avg_displacement.index, avg_displacement, yerr=std_error, fmt='o', capsize=5)
+    ax.scatter(data['size'], data['displacement'])
+    ax.set_xlabel('Particle size (nm)')
+    ax.set_ylabel('Displacement (nm)')
+    ax.set_title('size vs displacement')
+    ax.set_xlim(0, 150)
+    ax.grid(True)
+
+    return fig
