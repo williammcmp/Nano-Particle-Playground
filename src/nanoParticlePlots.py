@@ -22,7 +22,10 @@ def ExperimentalMain(simulation):
         dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
 
     with plot_col:
-        fig = plotExperimentalData(dataSeries)
+        fig, ax = plotExperimentalData(dataSeries)
+
+        ax.scatter(massToSize(mass), np.linalg.norm(position, axis=1), alpha=0.7)
+        
 
         st.pyplot(fig)
     return True
@@ -42,20 +45,28 @@ def plotExperimentalData(dataSeries):
     # Convert the X,Y positions to R or displcement values
     data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
                          "size": data_df["Width"]})
+
     
-    grouped = data.groupby("size")
-    avg_displacement = grouped['displacement'].mean()
-    std_error = grouped['displacement'].std() / np.sqrt(grouped['displacement'].count())
+        
 
+    # Create a figure and axis
     fig, ax = plt.subplots()
-
-    # Plot the average sizes with error bars
-    # ax.errorbar(avg_displacement.index, avg_displacement, yerr=std_error, fmt='o', capsize=5)
-    ax.scatter(data['size'], data['displacement'])
+    # ax.scatter(data['size'], data['displacement']) # raw data
+    # Creates the error bard from experimental data
+    for i in range(1,20):
+        filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
+        std_error = filted_data.std() # gets the standard error bars
+        ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
+    
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
-    ax.set_title('size vs displacement')
-    ax.set_xlim(0, 150)
+    ax.set_title('Size Vs Displacement of the Silicon nano-partice')
+    # ax.set_xlim(0, 100)
     ax.grid(True)
 
-    return fig
+    return fig, ax
+
+def massToSize(mass):
+    density = 2330 # desnity of Silicon
+    size = 2 * np.cbrt((mass * 3) / (4 * np.pi * density)) * 1e9
+    return size

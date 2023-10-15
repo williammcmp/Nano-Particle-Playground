@@ -79,8 +79,8 @@ def buildPartilceDistributions(simMode):
         positionX = 1
         positionY = 1
         positionZ = 0
-        sizeRange = a.slider('Partice Diamater (nm)', 10, 300, (50, 250)) # easier to convert this to mass than input very small numbers
-        AvgEnergy = a.slider("Average Inital Energy (J)", value=3)/10000000000
+        sizeRange = a.slider('Partice Diamater (nm)', 0, 150, (0, 100)) # easier to convert this to mass than input very small numbers
+        AvgEnergy = a.slider("Average Inital Energy (J)", value=3)/1000000000000
         charged = a.checkbox("Charged Particles (+1 C, 0 C, -1 C)", value=True)
 
         # Convert size into mass based on Silicon Density
