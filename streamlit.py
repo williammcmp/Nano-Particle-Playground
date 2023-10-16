@@ -120,54 +120,63 @@ mode, positionX, positionY, positionZ, massRange, avgEnergy, charged = buildPart
 
 
 # Forces of the Simulation 
-# st.sidebar.divider()
-a = st.sidebar.expander("Simulation Forces")
-gravity = a.checkbox("Gravity", value=True)
+if simMode != "Silicon Nano-Particles":
+    a = st.sidebar.expander("Simulation Forces")
+    gravity = a.checkbox("Gravity", value=True)
 
-# Disabled charged based forces if particles are not charged
-if not charged: 
-    electric = a.checkbox("Electric field", disabled=True, value=False)
-    magnetic = a.checkbox("Magnetic field", disabled=True, value=False)
-else:
-    magnetic = a.checkbox("Magnetic field")
-    if magnetic:
-        c = a.container()
-        c.markdown("Define the Magnetic Field (T):")
-        magneticX = c.number_input("Magnetic X", value=0.0)/1000
-        magneticY = c.number_input("Magnetic Y", value=0.0)
-        magneticZ = c.number_input("Magnetic Z", value=0.018) # default it is out of the page
-
-    electric = a.checkbox("Electric field")
-    if electric:
-        c = a.container()
-        c.markdown("Define the Electric Field (T):")
-        electricX = c.number_input("Electric X", value=0.0)
-        electricY = c.number_input("Electric Y", value=0.0)
-        electricZ = c.number_input("Electric Z", value=0.0)
-
-# Constraints of the Simulation
-a = st.sidebar.expander("Simulation Constrains")
-
-groundPlane = a.checkbox("Ground Plane", value=True)
-if groundPlane:
-    particleBounce = a.checkbox("Particle Bounce")
-    if particleBounce:
-        particleBounceFactor = a.number_input("Bounce factor (0 - no bounce, 1 lots of bounce)")
+    # Disabled charged based forces if particles are not charged
+    if not charged: 
+        electric = a.checkbox("Electric field", disabled=True, value=False)
+        magnetic = a.checkbox("Magnetic field", disabled=True, value=False)
     else:
-        particleBounceFactor = 0
-rand = a.checkbox("Fixed Random Seed", value=True)
-if rand:
-    randSeed = a.number_input("Seed Number", step=1, value=2)
-    random.seed(randSeed)
+        magnetic = a.checkbox("Magnetic field")
+        if magnetic:
+            c = a.container()
+            c.markdown("Define the Magnetic Field (T):")
+            magneticX = c.number_input("Magnetic X", value=0.0)/1000
+            magneticY = c.number_input("Magnetic Y", value=0.0)
+            magneticZ = c.number_input("Magnetic Z", value=0.018) # default it is out of the page
+
+        electric = a.checkbox("Electric field")
+        if electric:
+            c = a.container()
+            c.markdown("Define the Electric Field (T):")
+            electricX = c.number_input("Electric X", value=0.0)
+            electricY = c.number_input("Electric Y", value=0.0)
+            electricZ = c.number_input("Electric Z", value=0.0)
+
+    # Constraints of the Simulation
+    a = st.sidebar.expander("Simulation Constrains")
+
+    groundPlane = a.checkbox("Ground Plane", value=True)
+    if groundPlane:
+        particleBounce = a.checkbox("Particle Bounce")
+        if particleBounce:
+            particleBounceFactor = a.number_input("Bounce factor (0 - no bounce, 1 lots of bounce)")
+        else:
+            particleBounceFactor = 0
+    rand = a.checkbox("Fixed Random Seed", value=True)
+    if rand:
+        randSeed = a.number_input("Seed Number", step=1, value=2)
+        random.seed(randSeed)
+
+else: # condition for the Silicion Nano-Particle mode
+    gravity = True
+    electric = False
+    magnetic = True
+    magneticX = np.array([0, 0, 0])
+    magneticY = np.array([0, 0, 0])
+    magneticZ = np.array([0, 0, 0]) 
+    groundPlane = True
+    particleBounceFactor = 0
+
 
 # ------------
 # Settiing up the Sim
 # ------------
 
 # Generates the particles bases on what mode were are in
-if simMode == "Silicon Nano-Particles":
-    GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
-elif simMode == "Standard":
+if simMode != "Three Particle system (testing)":
     GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
 else:
     GenerateTestParticles(simulation)
@@ -182,26 +191,9 @@ if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electr
 if groundPlane : simulation.AddConstraints([GroundPlane(particleBounceFactor)])
 
 
-if simMode == "Silicon Nano-Particles":
-    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
-else:
-    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
-
-
 # ------------
 # Introduction
 # ------------
-
-sim_info = f'''
-```
-- Particles = {len(simulation.Particles):,}
-- Simulated time = {simDuration}s
-- Time Step intervals = {simTimeStep}s
-- Calacuation mode = {simMode}
-- Compute Time = {computeTime:.4}s
-- Total number of calculations = {numCals:,}
-```
-'''
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
 with row0_1:
@@ -225,9 +217,7 @@ with row0_2:
     )
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
-    st.markdown(people_info())
-    st.markdown("We invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. If the particles are charged, then its expected the magnetic field would have an effect on the particle's displacment.")
-    st.markdown("The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)")
+    st.markdown(sim_intro())
 
 
 
@@ -237,9 +227,97 @@ with row3_1:
 st.divider()
 
 if simMode == "Silicon Nano-Particles":
-    ExperimentalMain(simulation, sim_info)
-else:
+    # ExperimentalMain(simulation, sim_info)
+    
+    # First Row of plots
+    row1 = st.container()
+    text_col, plot_col = row1.columns([1, 2])
+
+    with text_col:
+        st.markdown(expermentalMainText())
+
+        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
+
+        # Map data series option to a B field direction
+        magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
+                             "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
+                             "Magnetic Field into the Page": np.array([0, 0, -0.018])
+                             }
+
+        simulation.ChangeBField(magneticDirection[dataSeries])
+
+    # run the sim
+    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+
+    # This needs to be here due to output of the sim run
+    sim_info = f'''
+    ```
+    - Particles = {len(simulation.Particles):,}
+    - Simulated time = {simDuration}s
+    - Time Step intervals = {simTimeStep}s
+    - Calacuation mode = {simMode}
+    - Compute Time = {computeTime:.4}s
+    - Total number of calculations = {numCals:,}
+    ```
+    '''
+    
+    # These variables makes it easer to make plots in streamlit
     position, velocity, force, mass, charge = simulation.StreamletData()
+
+    with plot_col:
+        fig, ax = plotExperimentalData(dataSeries)
+
+        # There is some scaling on on the simulation results there.
+        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7, label="Simulation")
+
+        ax.legend()
+
+        st.pyplot(fig)
+
+    st.divider()
+    row2 = st.container()
+    # Second Row of plot - simulation figures
+    text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
+
+    with text_col:
+        # TODO make this cleaner
+        st.markdown(simText())
+        st.markdown(f'''**Simulation Stats:**''')
+        st.markdown(sim_info)
+        st.markdown(list_to_markdown_table(simulation.FroceList()))
+        st.markdown("You have the flexibility to adjust simulation parameters, including the applied forces and other settings, through the side panel")
+
+    with plot_col:
+        fig, ax = plotTrajectories(simulation, magneticDirection[dataSeries])
+
+        st.pyplot(fig)
+
+    col_1, col_2 = row2.columns([1,1])
+
+    with col_1:
+        # Plot the position of the simulated particles in a scatter plot
+        fig, ax = plotSimulatedPosition(position, charge)
+        st.pyplot(fig)
+
+    with col_2:
+        fig, ax = plotSimulatedMassHistogram(mass)
+        
+        st.pyplot(fig)
+else: 
+    # Run the SIM for non Nano-partilce modes
+    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+    position, velocity, force, mass, charge = simulation.StreamletData()
+    
+    sim_info = f'''
+    ```
+    - Particles = {len(simulation.Particles):,}
+    - Simulated time = {simDuration}s
+    - Time Step intervals = {simTimeStep}s
+    - Calacuation mode = {simMode}
+    - Compute Time = {computeTime:.4}s
+    - Total number of calculations = {numCals:,}
+    ```
+    '''
 
     st.markdown(f"**Simulation Mode:** `{simMode}`")
 
@@ -311,11 +389,14 @@ else:
         # Display the plot in Streamlit
         st.pyplot(fig)
 
-        fig = simulation.PlotPaths()
+        fig, ax= simulation.PlotPaths()
         st.pyplot(fig)
 
+
+
+
 with st.expander("How to Use The Particle Simulation"):
-    st.markdown(intro_info(simMode))
+    st.markdown(how_to_use_info(simMode))
 
 if simMode != "Silicon Nano-Particles":
     with st.expander("Simulation Computation Info (Stats)"):
