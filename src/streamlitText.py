@@ -2,46 +2,46 @@ import streamlit as st
 
 def how_to_use_info(simMode):
     intro_info = f'''
+    ## How to Use the Simulation
 
-    1. Choose the simulation mode from the sidebar. Current mode `{simMode}`
-    2. Adjust the simulation settings in the sidebar as needed.
-    3. The simulation will update after each setting change.
-    4. Explore the results and visualizations on the main page.
+    1. **Select Simulation Mode:** Choose your desired simulation mode from the sidebar. The current mode is `{simMode}`.
+    2. **Adjust Simulation Settings:** Modify simulation settings in the sidebar as needed.
+    3. **Real-Time Updates:** The simulation will dynamically update after each setting change.
+    4. **Explore Results:** Dive into the results and visualizations displayed on the main page.
 
     ## Simulation Modes
 
-    - **Standard:** Have complete control over the simulation, particles and forces.
-    - **Three Particle system:** This mode demonstrates the behavior of three particles.
-    - **Silicon Nano-Particles:** (WIP) Simulates silicon nanoparticles in a magnetic field.
+    - **Silicon Nano-Particles:** Simulate the behavior of silicon nanoparticles under different magnetic fields to match selected experimental data. In this mode, the primary simulation setting is the number of particles. For larger particle counts (>2,000), compute time may increase.
+    - **Three Particle System:** This simplified mode illustrates the behavior of three particles. It's ideal for observing how individual particles behave under various forces.
+    - **Standard:** Gain complete control over the simulation, particles, and forces.
 
     ## Particle Initial Distribution
 
-    Not avaliable in Simulation mode `Three Particle system (testing)`.
+    This section is available only in "Standard" Simulation mode.
 
-    - **Starting Position:** Choose whether particles start at the origin or have random positions.
-        - When using random positions you can specify the average initial positions (X, Y, Z) following a normal distribution.
-    - **Mass Range:** Specifiy the mass range of the particles. (This is a uniform distribtion)
-    - **Average Inital Kenetic Energy:** Taken from a normal distribution at the averge you state. 
-        - Inital kenitic energy is used as it's a better defining parameter that an inital average inital velocity.
+    - **Starting Position:** Choose whether particles begin at the origin or have random positions. When using random positions, you can specify the average initial positions (X, Y, Z) following a normal distribution.
+    - **Mass Range:** Define the mass range of the particles (uniform distribution).
+    - **Average Initial Kinetic Energy:** Set the average initial kinetic energy from a normal distribution. Initial kinetic energy is used as a more defining parameter than an initial average velocity.
     - **Charged Particles:** Toggle charged particles (positive, negative, or neutral).
 
     ## Simulation Forces
 
-    - **Gravity:** Standard Gravity, defined as -9.8m/s^2 along the z-axis
-    - **Magentic field:** Linear Magnetic field to act on charged particles that are moving (requires `charged particles`). It's axial strength can be defined.
-    - **Electic field:** Linear Electric field to act on charged particles (requires `charged particles`). It's axial strength can be defined.
+    - **Gravity:** Apply standard gravity, defined as -9.8 m/s² along the z-axis.
+    - **Magnetic Field:** Introduce a linear magnetic field to act on charged particles that are in motion (requires `charged particles`). You can define its axial strength.
+    - **Electric Field:** Implement a linear electric field to act on charged particles (requires `charged particles`). You can specify its axial strength.
 
     ## Simulation Constraints
 
-    - **Ground Plane:** Adds a ground plane at the z = 0. 
-        - By default, when a paritcle collides with the ground the particle will come to rest (sticky ground)
-    - **Particle Bounce:** Allows the particle to bounce (requires a `Ground Plane`) 
-        - Removes the sticky ground effect.
-    - **Bounce Factor:** Defines how bouncey the Ground Plane is. 
-        - < 1 inelastic collision (energy loss per collision)
-        - = 1 elastic collision (no energy gained or loss per collision)
-        - \> 1 driven system (energy gained per collision)
+    - **Ground Plane:** Add a ground plane at z = 0. By default, when a particle collides with the ground, it comes to rest (sticky ground).
+    - **Particle Bounce:** Enable particle bouncing (requires a `Ground Plane`). This removes the sticky ground effect.
+    - **Bounce Factor:** Define the bounce factor to control the bounciness of the ground plane. A factor of:
+        - < 1 signifies an inelastic collision (energy loss per collision).
+        - = 1 represents an elastic collision (no energy gained or lost per collision).
+        - \> 1 indicates a driven system (energy gained per collision).
 
+    ## Running the Simulation on Your Own Machine
+
+    For those seeking enhanced performance and a personalized experience, you can set up the simulation locally. Clone the code from the [Nano Particle Playground GitHub repository](https://github.com/williammcmp/Nano-Particle-Playground), where you'll find comprehensive instructions to guide you through the setup and execution process. This empowers you to customize the simulation to suit your specific preferences.
     '''
     return intro_info
 
@@ -51,7 +51,7 @@ def sim_intro():
 
     **Superviors:** James Chon, Saulius Juodkazis
 
-    We invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. 
+    In an effort to characterise Silicon Nano-Particles, we invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. 
     If the particles are charged, then its expected the magnetic field would have an effect on the particle's displacment.
 
     The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
@@ -64,9 +64,11 @@ def expermentalMainText():
     mainText = f'''
     ## Simulation and Experimnetal Results 
 
-    Experminental data was collected using images captured on a Scanning Electron Microscope ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
+    Experminental data was collected using images captured on a Scanning Electron Microscope 
+    ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
 
-    Explore the options below to visualize how the magnetic field affects the behavior of Silicon nanoparticles. The simulation will automatically match the selected experimental data with the appropriate magnetic field.
+    Explore the options below to visualize how the magnetic field affects the behavior of Silicon nanoparticles. 
+    The simulation will automatically match the selected series of experimental data with the appropriate magnetic field.
     '''
 
     return mainText
