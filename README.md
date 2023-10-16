@@ -5,6 +5,9 @@ This project represents a simple particle simulation framework in Python, design
 <p align="center">
   <img src="img/streamlit__demo.png"  style="max-height:400px;"/> 
 </p>
+<p align="center">
+  <img src="img/3d_plot.png.png"  style="max-height:400px;"/> 
+</p>
 
 
 ## Contents
