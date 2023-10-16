@@ -79,7 +79,7 @@ def ExperimentalMain(simulation, sim_info):
         
         ax.set_xlabel('X (nm)')
         ax.set_ylabel('Y (nm)')
-        ax.set_title('Simulated position of Silicion Nano-Particles')
+        ax.set_title('Simulated final position of Silicion Nano-Particles')
         ax.grid(True)
         ax.legend()
 

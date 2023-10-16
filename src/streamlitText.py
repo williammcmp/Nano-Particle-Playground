@@ -66,7 +66,7 @@ def expermentalMainText():
 
     Experminental data was collected using images captured on a Scanning Electron Microscope ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
 
-    Invesigate the options below to see how the magnetic field effects the Silicon nanoparticles.
+    Explore the options below to visualize how the magnetic field affects the behavior of Silicon nanoparticles. The simulation will automatically match the selected experimental data with the appropriate magnetic field.
     '''
 
     return mainText
