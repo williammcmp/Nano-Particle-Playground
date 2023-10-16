@@ -89,7 +89,7 @@ class Simulation:
         ax.set_title('Trajectories of simulated particles')
 
 
-        return fig
+        return fig, ax
 
     def Plot( self):
         """
@@ -353,6 +353,14 @@ class Simulation:
         position, velocity, force, mass, charge = self.__calNumPyArray()
                    
         return position, velocity, force, mass, charge
+    
+    def ChangeBField(self, direction):
+        for f in self.Forces:
+            if str(f) == "Lorentz":
+                f.bField = direction
+                break
+
+        
             
 
     # converts Particle objs to array for after computing
