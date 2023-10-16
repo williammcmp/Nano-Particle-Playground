@@ -23,6 +23,14 @@ def ExperimentalMain(simulation, sim_info):
 
         dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
 
+        # Map data series option to a B field direction
+        magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
+                             "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
+                             "Magnetic Field into the Page": np.array([0, 0, -0.018])
+                             }
+
+        simulation.ChangeBField(magneticDirection[dataSeries])
+
     with plot_col:
         fig, ax = plotExperimentalData(dataSeries)
 
@@ -121,12 +129,95 @@ def plotExperimentalData(dataSeries):
     
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
-    ax.set_title('Size Vs Displacement of the Silicon nano-partice')
+    ax.set_title(f'Silicon Nano-Particles Size Vs Displacement - {dataSeries}')
     # ax.set_xlim(0, 100)
     ax.set_ylim(0,10000)
     ax.grid(True)
 
     return fig, ax
+
+def plotSimulatedPosition(position, charge):
+    # Reshape the position array to make it one-dimensional
+
+    # Create the dataframe for easer ploting
+    data = np.hstack((position, charge))
+
+    fig, ax = plt.subplots(figsize=(10,6))
+
+    for charge_val in [-1, 0, 1]:
+        # Extract x and y positions of particles with charge value 0
+        x_positions = data[data[:, 3] == charge_val][:, 0]
+        y_positions = data[data[:, 3] == charge_val][:, 1]
+
+        # Create a scatter plot
+        ax.scatter(x_positions * 1e3, y_positions * 1e3, label=f"Charge {charge_val}", alpha=0.7)
+    
+    # Ploting the particles highlighed with different charges
+    
+    ax.set_xlabel('X (nm)')
+    ax.set_ylabel('Y (nm)')
+    ax.set_title('Simulated position of Silicion Nano-Particles')
+    ax.grid(True)
+    ax.legend()
+
+    return fig, ax
+
+def plotSimulatedMassHistogram(mass):
+    fig, ax = plt.subplots(figsize=(10,6))
+    ax.hist(np.linalg.norm(mass*10, axis=1), bins=10, edgecolor='k', alpha=0.7)
+
+    ax.set_xlabel('Particle diamater (nm)')
+    ax.set_ylabel('Frequency')
+    ax.set_title("Histogram of Simulated Silicon nano-particle size")
+    return fig, ax
+
+
+def plotTrajectories(simulation, direction):
+
+   
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for particle in simulation.Particles:
+        ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2]) # each particles path
+
+    # Need to set the B-filed to grow that the trajectories of SiNPS
+    ax = plt.gca()  # Get the current axes
+
+    # Get the axis limits
+    x_limits = ax.get_xlim()
+    y_limits = ax.get_ylim()
+    z_limits = ax.get_zlim()
+
+    print("X-axis limits:", x_limits)
+    print("Y-axis limits:", y_limits)
+    print("Z-axis limits:", z_limits)
+    
+    x = np.linspace(x_limits[0], x_limits[1], 10)
+    y = np.linspace(y_limits[0], y_limits[1], 10)
+    z = np.array([0, z_limits[1], 1])
+
+    # Create a meshgrid for 3D space
+    X, Y, Z = np.meshgrid(x, y, z)
+
+    # Magnetic field components [Bx, By, Bz] at each point in the grid
+    Bx = direction[0]
+    By = direction[1]
+    Bz = direction[2]
+
+    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.3, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    
+    ax.legend()
+    ax.set_xlabel('X (μm)')
+    ax.set_ylabel('Y (μm)')
+    ax.set_zlabel('Z (μm)')
+    ax.set_title('Trajectories of simulated particles')
+
+    return fig, ax
+
+
+
+    
 
 def list_to_markdown_table(data):
     # Initialize the Markdown table
