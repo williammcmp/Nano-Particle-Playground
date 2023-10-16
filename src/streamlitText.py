@@ -1,6 +1,6 @@
 import streamlit as st
 
-def intro_info(simMode):
+def how_to_use_info(simMode):
     intro_info = f'''
 
     1. Choose the simulation mode from the sidebar. Current mode `{simMode}`
@@ -45,13 +45,19 @@ def intro_info(simMode):
     '''
     return intro_info
 
-def people_info():
-    people_info = f'''
+def sim_intro():
+    intro = f'''
     **Students:** Christ Nohan, William McMahon-Puce
 
     **Superviors:** James Chon, Saulius Juodkazis
+
+    We invesigated how applying a magnetic field during the ablation process affects the particle's displacement from the ablation creator. 
+    If the particles are charged, then its expected the magnetic field would have an effect on the particle's displacment.
+
+    The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
     '''
-    return people_info
+
+    return intro
 
 
 def expermentalMainText():
@@ -73,5 +79,4 @@ def simText():
 
     Below is a summary of the simulation's parameters and Forces used.
     '''
-
     return text
