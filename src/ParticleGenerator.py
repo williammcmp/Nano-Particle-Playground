@@ -80,7 +80,7 @@ def GenerateParticles(n, Simulation, mode = "Origin",
         velocity[2] = np.abs(velocity[2])
 
         if charged:
-            charge = random.choice([-1,0, 1])
+            charge = random.choice([-2, -1, 1, 2]) * mass # implemetns the charge/mass factor for NPs
             particles.append(Particle(position, velocity, mass, charge))
         else: 
             particles.append(Particle(position, velocity, mass))
