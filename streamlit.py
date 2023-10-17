@@ -267,7 +267,7 @@ if simMode == "Silicon Nano-Particles":
         fig, ax = plotExperimentalData(dataSeries)
 
         # There is some scaling on on the simulation results there.
-        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.7, label="Simulation")
+        ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
 
         ax.legend()
 
@@ -291,7 +291,7 @@ if simMode == "Silicon Nano-Particles":
 
         st.pyplot(fig)
 
-    col_1, col_2 = row2.columns([1,1])
+    col_1, col_2, col_3 = row2.columns([1,1,1])
 
     with col_1:
         # Plot the position of the simulated particles in a scatter plot
@@ -301,6 +301,11 @@ if simMode == "Silicon Nano-Particles":
     with col_2:
         fig, ax = plotSimulatedMassHistogram(mass)
         
+        st.pyplot(fig)
+
+    with col_3:
+        fig, ax = plotMassDisplacement(position, charge)
+
         st.pyplot(fig)
 else: 
     # Run the SIM for non Nano-partilce modes

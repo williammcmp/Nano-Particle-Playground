@@ -114,7 +114,7 @@ def plotExperimentalData(dataSeries):
 
     # Create a figure and axis
     fig, ax = plt.subplots(figsize=(10,6))
-    # ax.scatter(data['size'], data['displacement']) # raw data
+    ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
     # Creates the error bard from experimental data
     for i in range(1,20):
         filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
@@ -122,7 +122,7 @@ def plotExperimentalData(dataSeries):
 
         # Allows for label to be added to first plot (There could be a better solution)
         if i == 1:
-            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental") # plots the avg displcement with error bars
+            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental - Averages") # plots the avg displcement with error bars
         else:
             ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
 
@@ -130,35 +130,26 @@ def plotExperimentalData(dataSeries):
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
     ax.set_title(f'Silicon Nano-Particles Size Vs Displacement - {dataSeries}')
-    # ax.set_xlim(0, 100)
-    ax.set_ylim(0,10000)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0,14000)
     ax.grid(True)
 
     return fig, ax
 
 def plotSimulatedPosition(position, charge):
-    # Reshape the position array to make it one-dimensional
 
-    # Create the dataframe for easer ploting
-    data = np.hstack((position, charge))
-
+    # Create a scatter plot with colored points
     fig, ax = plt.subplots(figsize=(10,6))
+    sc = ax.scatter(position[:, 0], position[:, 1], c=charge, alpha=0.7)
 
-    for charge_val in [-1, 0, 1]:
-        # Extract x and y positions of particles with charge value 0
-        x_positions = data[data[:, 3] == charge_val][:, 0]
-        y_positions = data[data[:, 3] == charge_val][:, 1]
+    # Add a colorbar to indicate charge values
+    cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-        # Create a scatter plot
-        ax.scatter(x_positions * 1e3, y_positions * 1e3, label=f"Charge {charge_val}", alpha=0.7)
-    
-    # Ploting the particles highlighed with different charges
-    
+    # Customize the plot (optional)
     ax.set_xlabel('X (nm)')
     ax.set_ylabel('Y (nm)')
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
-    ax.legend()
 
     return fig, ax
 
@@ -168,7 +159,8 @@ def plotSimulatedMassHistogram(mass):
 
     ax.set_xlabel('Particle diamater (nm)')
     ax.set_ylabel('Frequency')
-    ax.set_title("Histogram of Simulated Silicon nano-particle size")
+    ax.set_title("Simulated Silicon nano-particle size")
+    ax.legend()
     return fig, ax
 
 
@@ -207,12 +199,44 @@ def plotTrajectories(simulation, direction):
     ax.set_xlabel('X (μm)')
     ax.set_ylabel('Y (μm)')
     ax.set_zlabel('Z (μm)')
-    ax.set_title('Trajectories of simulated particles')
+    ax.set_title('Trajectories of simulated Silicon Nano-Particles')
 
     return fig, ax
 
 
+def plotMassDisplacement(position, charge):
 
+    # Seperates the position into different charged
+    # This is a slower process than np method but 
+    #    is the easiest to get working - had
+    #   indexing issues with np methods
+    positiveC = np.array([[0, 0, 0]])
+    negativeC = np.array([[0, 0, 0]])
+
+    data = np.hstack((position, charge))
+
+    for row in data:
+        if row[3] < 0:
+            negativeC = np.vstack((row[0:3], negativeC))
+        else:
+            positiveC = np.vstack((row[0:3], positiveC))
+
+    # Create a histogram of particle distances from the origin
+    fig, ax = plt.subplots(figsize=(10,6))
+
+    
+    ax.hist(np.linalg.norm(position, axis=1), edgecolor='k', label="All particles", alpha=0.7) # histogram of all particles
+    ax.hist(np.linalg.norm(negativeC, axis=1), edgecolor='k', color='b', alpha=0.5, label="Negative Charge") # histrogram of negative chages
+    ax.hist(np.linalg.norm(positiveC, axis=1), edgecolor='k', color='r', alpha=0.5, label="Positive Charge") # Histrogram of positive charges
+
+    # Customize the plot (optional)
+    ax.set_xlabel('Distance from origin (μm)')
+    ax.set_ylabel('Frequency')
+    ax.set_title("Simulated displacement of Silicon Nano-particles")
+    # ax.set_xlim(0,20)
+    ax.legend() 
+
+    return fig, ax
     
 
 def list_to_markdown_table(data):
