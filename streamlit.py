@@ -247,7 +247,7 @@ if simMode == "Silicon Nano-Particles":
         simulation.ChangeBField(magneticDirection[dataSeries])
 
     # run the sim
-    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+    computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
 
     # This needs to be here due to output of the sim run
     sim_info = f'''
@@ -257,7 +257,6 @@ if simMode == "Silicon Nano-Particles":
     - Time Step intervals = {simTimeStep}s
     - Calacuation mode = {simMode}
     - Compute Time = {computeTime:.4}s
-    - Total number of calculations = {numCals:,}
     ```
     '''
     
@@ -285,7 +284,7 @@ if simMode == "Silicon Nano-Particles":
         st.markdown(f'''**Simulation Stats:**''')
         st.markdown(sim_info)
         st.markdown(list_to_markdown_table(simulation.FroceList()))
-        st.markdown("You have the flexibility to adjust simulation parameters, including the applied forces and other settings, through the side panel")
+        st.markdown("You can adjust the number of particles via the **side panel**")
 
     with plot_col:
         fig, ax = plotTrajectories(simulation, magneticDirection[dataSeries])

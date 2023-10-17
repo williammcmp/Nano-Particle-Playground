@@ -188,10 +188,6 @@ def plotTrajectories(simulation, direction):
     x_limits = ax.get_xlim()
     y_limits = ax.get_ylim()
     z_limits = ax.get_zlim()
-
-    print("X-axis limits:", x_limits)
-    print("Y-axis limits:", y_limits)
-    print("Z-axis limits:", z_limits)
     
     x = np.linspace(x_limits[0], x_limits[1], 10)
     y = np.linspace(y_limits[0], y_limits[1], 10)

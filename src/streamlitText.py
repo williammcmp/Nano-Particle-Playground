@@ -11,7 +11,7 @@ def how_to_use_info(simMode):
 
     ## Simulation Modes
 
-    - **Silicon Nano-Particles:** Simulate the behavior of silicon nanoparticles under different magnetic fields to match selected experimental data. In this mode, the primary simulation setting is the number of particles. For larger particle counts (>2,000), compute time may increase.
+    - **Silicon Nano-Particles:** Simulate the behavior of silicon nanoparticles under different magnetic fields to match selected experimental data and accounts for Brownian motion. In this mode, the primary simulation setting is the number of particles. For larger particle counts (>2,000), compute time may increase.
     - **Three Particle System:** This simplified mode illustrates the behavior of three particles. It's ideal for observing how individual particles behave under various forces.
     - **Standard:** Gain complete control over the simulation, particles, and forces.
 
@@ -62,7 +62,7 @@ def sim_intro():
 
 def expermentalMainText():
     mainText = f'''
-    ## Simulation and Experimnetal Results 
+    ## Simulation and Experimental Results 
 
     Experminental data was collected using images captured on a Scanning Electron Microscope 
     ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
@@ -77,7 +77,10 @@ def simText():
     text = f'''
     ## Simulation Figures
 
-    The following plots represent the outcomes obtained through a simulation. These visualizations provide valuable insights and data analysis resulting from our simulated experiments and computations.
+    The following plots represent the outcomes obtained through a simulation. 
+    These visualizations provide valuable insights and data analysis resulting from our simulated experiments and computations.
+
+    Due to the scale of the particles simulated, Brownian motion must be accounted for.
 
     Below is a summary of the simulation's parameters and Forces used.
     '''

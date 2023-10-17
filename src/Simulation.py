@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import random
 from tqdm import tqdm
 
 from src.Forces import *
@@ -195,7 +196,7 @@ class Simulation:
     
     def NanoRun(self, duration=10, timeStep=0.1, saveHistory=True):
         
-        print("\nInitialising nano-Particle Simulations.\nSetting up enviroment\n")
+        print("\nInitialising Particle Simulations.\nSetting up enviroment\n")
 
         self.Duration += duration # adding the sim time to track over multiple simulations
 
@@ -214,7 +215,7 @@ class Simulation:
                 self.NanoUpdate(timeStep)
 
         computeTime = time.time() - startTime
-        numCals = int(duration / timeStep) * len(self.Particles)
+        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + len(self.Constraints) + 1)
 
         print("\n Simulation:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
@@ -274,14 +275,14 @@ class Simulation:
 
             acceleration = particle.SumForce * ( 1 / particle.Mass )
             particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
-            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
+            particle.Position = particle.Position  + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( self.Particles )
     
     def NanoUpdate( self, dt):    
         """
-        Update the simulation for a given time step 'dt'.
+        Update the simulation for a given time step 'dt'. Same a Update, but with Brownian motion
 
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
@@ -290,14 +291,20 @@ class Simulation:
             particle.SumForce = np.array([0,0,0])      
 
         for force in self.Forces:             #-- Accumulate Forces
-            force.NanoApply( self.Particles )
+            force.Apply( self.Particles )
             
         for particle in self.Particles:       #-- Cal the position and velocities for each particle
             if( particle.Mass == 0 ): continue
 
             acceleration = particle.SumForce * ( 1 / particle.Mass )
             particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
-            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
+            
+            # Brownian motion process
+            browian = (np.sqrt(dt) * np.random.normal(0, 1, 3)) * 0.5
+
+            if particle.Velocity.all() != 0:
+                particle.Position = particle.Position + browian + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
+            
             
         for constraint in self.Constraints:   #-- Apply Penalty Constraints
             constraint.Apply( self.Particles )
