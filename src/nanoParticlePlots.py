@@ -109,7 +109,10 @@ def plotTrajectories(simulation, direction):
 
     ax.quiver(X, Y, Z, Bx, By, Bz, length=0.3, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
     
-    ax.legend()
+    # sets the legend's lables to be bright
+    legend = ax.legend()
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)     
     ax.set_xlabel('X (μm)')
     ax.set_ylabel('Y (μm)')
     ax.set_zlabel('Z (μm)')

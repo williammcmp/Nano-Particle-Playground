@@ -269,7 +269,10 @@ if simMode == "Silicon Nano-Particles":
         # There is some scaling on on the simulation results there.
         ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
 
-        ax.legend()
+        # sets the legend's lables to be bright
+        legend = ax.legend()
+        for lh in legend.legendHandles:
+            lh.set_alpha(1)
 
         st.pyplot(fig)
 
