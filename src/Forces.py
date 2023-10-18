@@ -207,3 +207,48 @@ class GroundPlane:
     
     def __str__( self ):
         return "Ground Plane"
+    
+
+class Wall:
+    """
+    Represents the a wall in the simulation.
+
+    Methods:
+    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+    """
+
+    def __init__( self, loss = 1.0 ):
+        """
+        Initializes a new GroundPlane instance.
+
+        Parameters:
+        - particles (list): A list of Particle objects affected by the ground.
+        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
+        """
+
+        self.Loss = loss
+        
+    # try to apply the ground plane in the nano-update method(?)
+    def Apply( self, particles):
+        """
+        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+        """
+        # Method not working for nano particles
+        for particle in particles:
+
+            if( particle.Position[0] < 0 ):
+                particle.Position[0] = 0.000001 # reset the particle's position to above the ground plane
+                # TODO add method to make the ground more sticky
+                particle.Velocity = particle.Velocity * np.array([-1 * self.Loss, self.Loss, self.Loss])
+
+
+    def Info( self ):
+        """
+        Returns information about the ground plane
+        Returns:
+        - str: A string containing information about the ground plane
+        """
+        return f"Ground Plane energy loss factor = {np.array([-1 * self.Loss, self.Loss, -1*self.Loss])}"
+    
+    def __str__( self ):
+        return "Wall"

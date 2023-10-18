@@ -48,7 +48,7 @@ def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=10000, value=3, step=500, disabled = True)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
 
     elif simMode == "Silicon Nano-Particles":
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=10000, value=100, step=100)
@@ -58,18 +58,22 @@ def buildSideBar(simMode):
     else:
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=10000, value=100, step=500)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=10.0, step=0.5) / 100 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
 
     return partilceNumber, simDuration, simTimeStep 
 
 def buildPartilceDistributions(simMode):
     if simMode == "Standard":
         a = st.sidebar.expander("Particle Distribution Settings")
-        positionType = a.selectbox("Starting Position:", ["Origin", "Random"])
-        if positionType == "Random":
+        positionType = a.selectbox("Starting Position:", ["Origin", "Random", "off the wall"])
+        if positionType == "Random ":
             positionX = a.number_input("Average inital X pos:")
             positionY = a.number_input("Average inital Y pos:")
-            positionZ = a.number_input("Average inital Z pos:", min_value=0, value=1)
+            positionZ = a.number_input("Average inital Z pos:", min_value=0.0, value=1.0)
+        elif positionType == "off the wall":
+            positionX = a.number_input("Inital X pos:")
+            positionY = a.number_input("Inital Y pos:")
+            positionZ = a.number_input("Inital Z pos:", min_value=0.0, value=1.0)
         else:
             positionX = 1
             positionY = 1
@@ -136,6 +140,10 @@ if simMode != "Silicon Nano-Particles":
             magneticX = c.number_input("Magnetic X", value=0.0)/1000
             magneticY = c.number_input("Magnetic Y", value=0.0)
             magneticZ = c.number_input("Magnetic Z", value=0.018) # default it is out of the page
+        else:
+            magneticX = np.array([0, 0, 0])
+            magneticY = np.array([0, 0, 0])
+            magneticZ = np.array([0, 0, 0])             
 
         electric = a.checkbox("Electric field")
         if electric:
@@ -160,6 +168,8 @@ if simMode != "Silicon Nano-Particles":
         randSeed = a.number_input("Seed Number", step=1, value=2)
         random.seed(randSeed)
 
+    wall = a.checkbox("Wall plane", value = False)
+
 else: # condition for the Silicion Nano-Particle mode
     gravity = True
     electric = False
@@ -169,6 +179,7 @@ else: # condition for the Silicion Nano-Particle mode
     magneticZ = np.array([0, 0, 0]) 
     groundPlane = True
     particleBounceFactor = 0
+    wall = False
 
 
 # ------------
@@ -189,7 +200,7 @@ if gravity :  simulation.AddForce([Gravity()])
 if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magneticZ]))])
 if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
 if groundPlane : simulation.AddConstraints([GroundPlane(particleBounceFactor)])
-
+if wall : simulation.AddConstraints([Wall()])
 
 # ------------
 # Introduction
@@ -327,77 +338,91 @@ else:
     '''
 
     st.markdown(f"**Simulation Mode:** `{simMode}`")
-
-    scatter = st.container()
-
-    spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
-
-    with graphs1:
-        st.markdown("Inital positon")
-        st.pyplot(initalPos)
-
-    with graphs2:
-        st.markdown("Final position")
-        st.pyplot(simulation.Plot())
-
-
-    other = st.container()
-    # other.divider()
-
-    spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
-
-    with graphs1:
-        st.pyplot(simulation.Histogram())
-
-        fig, ax = plt.subplots()
-        ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
-
-        # Customize the plot (optional)
-        ax.set_xlabel('Masses (kg)')
-        ax.set_ylabel('Frequency')
-        ax.set_title("Mass of particles")
+    # First Row of plots
+    row1 = st.container()
+    plot_col1, plot_col2 = row1.columns([1, 1])
+    
+    with plot_col1:
+        fig, ax = plotSimulatedPosition(position, charge)
 
         st.pyplot(fig)
 
-        fig, ax = plt.subplots()
-        cmap = plt.get_cmap('viridis')
-        normalize = plt.Normalize(charge.min(), charge.max())
-        colors = cmap(normalize(charge))
-        sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
-
-        # Add a colorbar to indicate charge values
-        cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-        # Customize the plot (optional)
-        ax.set_xlabel('Mass of Particle (kg)')
-        ax.set_ylabel('Displacement from Origin (m)')
-        ax.set_title("Mass Vs Displacement")
+    with plot_col2:
+        fig, ax = plotTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
         st.pyplot(fig)
 
-    with graphs2:
-        # Create a colormap for charge values
-        cmap = plt.get_cmap('viridis')
-        normalize = plt.Normalize(charge.min(), charge.max())
-        colors = cmap(normalize(charge))
 
-        # Create a scatter plot with colored points
-        fig, ax = plt.subplots()
-        sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
+    # scatter = st.container()
 
-        # Add a colorbar to indicate charge values
-        cbar = plt.colorbar(sc, ax=ax, label='Charge')
+    # spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
 
-        # Customize the plot (optional)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_title('Particle Scatter Plot')
+    # with graphs1:
+    #     st.markdown("Inital positon")
+    #     st.pyplot(initalPos)
 
-        # Display the plot in Streamlit
-        st.pyplot(fig)
+    # with graphs2:
+    #     st.markdown("Final position")
+    #     st.pyplot(simulation.Plot())
 
-        fig, ax= simulation.PlotPaths()
-        st.pyplot(fig)
+
+    # other = st.container()
+    # # other.divider()
+
+    # spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
+
+    # with graphs1:
+    #     st.pyplot(simulation.Histogram())
+
+    #     fig, ax = plt.subplots()
+    #     ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
+
+    #     # Customize the plot (optional)
+    #     ax.set_xlabel('Masses (kg)')
+    #     ax.set_ylabel('Frequency')
+    #     ax.set_title("Mass of particles")
+
+    #     st.pyplot(fig)
+
+    #     fig, ax = plt.subplots()
+    #     cmap = plt.get_cmap('viridis')
+    #     normalize = plt.Normalize(charge.min(), charge.max())
+    #     colors = cmap(normalize(charge))
+    #     sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
+
+    #     # Add a colorbar to indicate charge values
+    #     cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+    #     # Customize the plot (optional)
+    #     ax.set_xlabel('Mass of Particle (kg)')
+    #     ax.set_ylabel('Displacement from Origin (m)')
+    #     ax.set_title("Mass Vs Displacement")
+
+    #     st.pyplot(fig)
+
+    # with graphs2:
+    #     # Create a colormap for charge values
+    #     cmap = plt.get_cmap('viridis')
+    #     normalize = plt.Normalize(charge.min(), charge.max())
+    #     colors = cmap(normalize(charge))
+
+    #     # Create a scatter plot with colored points
+    #     fig, ax = plt.subplots()
+    #     sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
+
+    #     # Add a colorbar to indicate charge values
+    #     cbar = plt.colorbar(sc, ax=ax, label='Charge')
+
+    #     # Customize the plot (optional)
+    #     ax.set_xlabel('X')
+    #     ax.set_ylabel('Y')
+    #     ax.set_title('Particle Scatter Plot')
+
+    #     # Display the plot in Streamlit
+    #     st.pyplot(fig)
+
+    #     fig, ax= simulation.PlotPaths()
+    #     st.pyplot(fig)
 
 
 

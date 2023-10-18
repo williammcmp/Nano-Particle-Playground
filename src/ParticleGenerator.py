@@ -69,6 +69,8 @@ def GenerateParticles(n, Simulation, mode = "Origin",
     for x in tqdm(range(n), unit=" Particle(s)"):
         if mode == "Origin":
             position = np.array([0,0,0])
+        elif mode == "off the wall":
+            position = np.array([positionX, positionY, positionZ])
         else:
             x_pos = np.random.normal(positionX)
             y_pos = np.random.normal(positionY)
