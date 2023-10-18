@@ -81,7 +81,7 @@ def buildPartilceDistributions(simMode):
 
         massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
         AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
-        charged = a.checkbox("Charged Particles (+, 0, -)", value=True)
+        charged = a.checkbox("Charged Particles (+, -) - using a charge/mass scale", value=True)
 
     elif simMode == "Silicon Nano-Particles":
         positionType = "origin"
