@@ -9,6 +9,27 @@ from src.Forces import *
 from src.ParticleGenerator import *
 from src.DataLoader import load_experimental_data
 from src.streamlitText import *
+
+
+def plotExperimentalSummary(fig, ax):
+    # This dictionary makes it easer to load the data files
+    dataType = {
+        "No Magentic Field" : "NoBField",
+        "Magnetic Field out of the Page": "BFieldOut", 
+        "Magnetic Field into the Page": "BFieldIn", 
+        "Magnetic Field Across the Page": "BFieldAcross"
+    }
+
+    dataSeries = ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page"]
+
+    for series in dataSeries:
+        data = load_experimental_data(dataType[series])
+
+        ax.scatter(data['X'].mean() * 1e-3, data['Y'].mean() * 1e-3, label=f"Avg pos - {series}", marker='1', s = 350)
+
+    ax.legend()
+
+    return fig, ax
         
 
 def plotExperimentalData(dataSeries):
@@ -29,7 +50,7 @@ def plotExperimentalData(dataSeries):
 
     # Create a figure and axis
     fig, ax = plt.subplots(figsize=(10,6))
-    ax.scatter(data['size'], data['displacement'], c='darksalmon', alpha=0.05, label="Experimental - Raw") # raw data
+    ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
     # Creates the error bard from experimental data
     for i in range(1,20):
         filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
@@ -55,27 +76,27 @@ def plotSimulatedPosition(position, charge):
 
     # Create a scatter plot with colored points
     fig, ax = plt.subplots(figsize=(10,6))
-    sc = ax.scatter(position[:, 0], position[:, 1], c=charge, alpha=0.7)
+    sc = ax.scatter(position[:, 0], position[:, 1], c=charge, alpha=0.5)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
     # Customize the plot (optional)
-    ax.set_xlabel('X (nm)')
-    ax.set_ylabel('Y (nm)')
+    ax.set_xlabel('X (μm)')
+    ax.set_ylabel('Y (μm)')
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
 
     return fig, ax
 
 def plotSimulatedMassHistogram(mass):
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = plt.subplots(figsize=(10,7))
     ax.hist(np.linalg.norm(mass*10, axis=1), bins=10, edgecolor='k', alpha=0.7)
 
     ax.set_xlabel('Particle diamater (nm)')
     ax.set_ylabel('Frequency')
     ax.set_title("Simulated Silicon nano-particle size")
-    ax.legend()
+
     return fig, ax
 
 
@@ -108,7 +129,9 @@ def plotTrajectories(simulation, direction):
     By = direction[1]
     Bz = direction[2]
 
-    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.3, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
+
+    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.05 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
     
     # sets the legend's lables to be bright
     legend = ax.legend()
@@ -140,7 +163,7 @@ def plotMassDisplacement(position, charge):
             positiveC = np.vstack((row[0:3], positiveC))
 
     # Create a histogram of particle distances from the origin
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = plt.subplots(figsize=(10,7))
 
     
     ax.hist(np.linalg.norm(position, axis=1), edgecolor='k', label="All particles", alpha=0.7) # histogram of all particles

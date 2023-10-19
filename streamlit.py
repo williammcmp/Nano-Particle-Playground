@@ -259,6 +259,9 @@ if simMode == "Silicon Nano-Particles":
 
         simulation.ChangeBField(magneticDirection[dataSeries])
 
+        # fig, ax = plotExperimentalSummary()
+        # st.pyplot(fig)
+
     # run the sim
     computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
 
@@ -272,6 +275,7 @@ if simMode == "Silicon Nano-Particles":
     - Compute Time = {computeTime:.4}s
     ```
     '''
+
     
     # These variables makes it easer to make plots in streamlit
     position, velocity, force, mass, charge = simulation.StreamletData()
@@ -288,7 +292,7 @@ if simMode == "Silicon Nano-Particles":
         # Calculate the corresponding function values
         y = 1 / (r**3)
 
-        ax.plot(r * 10, y * 1e4 + 2000, alpha = 0.7, label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        ax.plot(r * 10, y * 1e4 + 2000, label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
 
         # sets the legend's lables to be bright
         legend = ax.legend()
@@ -319,6 +323,7 @@ if simMode == "Silicon Nano-Particles":
     with col_1:
         # Plot the position of the simulated particles in a scatter plot
         fig, ax = plotSimulatedPosition(position, charge)
+        fig, ax = plotExperimentalSummary(fig, ax)
         st.pyplot(fig)
 
     with col_2:
