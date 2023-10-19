@@ -23,3 +23,4 @@ tests/__pycache__/test_DataLoader.cpython-310-pytest-7.4.2.pyc
 src/__pycache__/streamlitText.cpython-310.pyc
 src/__pycache__/nanoParticlePlots.cpython-310.pyc
 img/Annotation 2023-10-15 230448.png
+__pycache__/streamlit.cpython-310.pyc

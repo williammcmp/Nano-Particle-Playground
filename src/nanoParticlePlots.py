@@ -28,7 +28,7 @@ def plotExperimentalData(dataSeries):
 
     # Create a figure and axis
     fig, ax = plt.subplots(figsize=(10,6))
-    ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
+    ax.scatter(data['size'], data['displacement'], c='darksalmon', alpha=0.05, label="Experimental - Raw") # raw data
     # Creates the error bard from experimental data
     for i in range(1,20):
         filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
