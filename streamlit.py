@@ -254,7 +254,7 @@ if simMode == "Silicon Nano-Particles":
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
                              "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
                              "Magnetic Field into the Page": np.array([0, 0, -0.018]),
-                             "Magnetic Field Across the Page": np.array([0, -0.1, 0])
+                             "Magnetic Field Across the Page": np.array([0, -0.018, 0])
                              }
 
         simulation.ChangeBField(magneticDirection[dataSeries])
@@ -360,79 +360,6 @@ else:
         fig, ax = plotTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
         st.pyplot(fig)
-
-
-    # scatter = st.container()
-
-    # spacer_1, graphs1, spacer_2, graphs2, spacer_3 = scatter.columns([0.1, 3, 0.1, 3, 0.1])
-
-    # with graphs1:
-    #     st.markdown("Inital positon")
-    #     st.pyplot(initalPos)
-
-    # with graphs2:
-    #     st.markdown("Final position")
-    #     st.pyplot(simulation.Plot())
-
-
-    # other = st.container()
-    # # other.divider()
-
-    # spacer_1, graphs1, spacer_2, graphs2, spacer_3 = other.columns([0.1, 3, 0.1, 3, 0.1])
-
-    # with graphs1:
-    #     st.pyplot(simulation.Histogram())
-
-    #     fig, ax = plt.subplots()
-    #     ax.hist(np.linalg.norm(mass, axis=1), bins=10, edgecolor='k', alpha=0.7, color="#1f7c61")
-
-    #     # Customize the plot (optional)
-    #     ax.set_xlabel('Masses (kg)')
-    #     ax.set_ylabel('Frequency')
-    #     ax.set_title("Mass of particles")
-
-    #     st.pyplot(fig)
-
-    #     fig, ax = plt.subplots()
-    #     cmap = plt.get_cmap('viridis')
-    #     normalize = plt.Normalize(charge.min(), charge.max())
-    #     colors = cmap(normalize(charge))
-    #     sc = ax.scatter(mass, np.linalg.norm(position, axis=1),  c=colors, alpha=0.7)
-
-    #     # Add a colorbar to indicate charge values
-    #     cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-    #     # Customize the plot (optional)
-    #     ax.set_xlabel('Mass of Particle (kg)')
-    #     ax.set_ylabel('Displacement from Origin (m)')
-    #     ax.set_title("Mass Vs Displacement")
-
-    #     st.pyplot(fig)
-
-    # with graphs2:
-    #     # Create a colormap for charge values
-    #     cmap = plt.get_cmap('viridis')
-    #     normalize = plt.Normalize(charge.min(), charge.max())
-    #     colors = cmap(normalize(charge))
-
-    #     # Create a scatter plot with colored points
-    #     fig, ax = plt.subplots()
-    #     sc = ax.scatter(position[:, 0], position[:, 1], c=colors, alpha=0.7)
-
-    #     # Add a colorbar to indicate charge values
-    #     cbar = plt.colorbar(sc, ax=ax, label='Charge')
-
-    #     # Customize the plot (optional)
-    #     ax.set_xlabel('X')
-    #     ax.set_ylabel('Y')
-    #     ax.set_title('Particle Scatter Plot')
-
-    #     # Display the plot in Streamlit
-    #     st.pyplot(fig)
-
-    #     fig, ax= simulation.PlotPaths()
-    #     st.pyplot(fig)
-
 
 
 
