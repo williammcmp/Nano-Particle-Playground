@@ -52,8 +52,8 @@ def buildSideBar(simMode):
 
     elif simMode == "Silicon Nano-Particles":
         # The max number of particles has been reduced in order to stop people form fucking crashing the server
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=100)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5, disabled = True)
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=500, value=100, step=75)
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=4, disabled = True)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
     
     else:
@@ -331,7 +331,7 @@ if simMode == "Silicon Nano-Particles":
         st.pyplot(fig)
 else: 
     # Run the SIM for non Nano-partilce modes
-    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+    computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     
     sim_info = f'''
