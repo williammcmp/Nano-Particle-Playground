@@ -141,7 +141,6 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
 
     # Positive X-axis
     if experimental_csv.find("/R") != -1: # Right IRL, but move above the creator in the SEM
-        print(f"/R in {experimental_csv}")
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -161,7 +160,6 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
 
     # Negative x-axis 
     elif experimental_csv.find("/L")  != -1: # Left of the crator
-        print(f"/L in {experimental_csv}")
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
         
@@ -182,7 +180,6 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
 
     # Positive Y-axis
     elif experimental_csv.find("/B")  != -1: # Above the creator
-        print(f"/B in {experimental_csv}")
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -201,7 +198,6 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
 
     # Negative Y-axis 
     elif experimental_csv.find("/T")  != -1: # Bellow the crator
-        print(f"/T in {experimental_csv}")
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
         
