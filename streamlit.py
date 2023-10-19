@@ -248,12 +248,13 @@ if simMode == "Silicon Nano-Particles":
     with text_col:
         st.markdown(expermentalMainText())
 
-        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page"])
+        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page"])
 
         # Map data series option to a B field direction
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
                              "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
-                             "Magnetic Field into the Page": np.array([0, 0, -0.018])
+                             "Magnetic Field into the Page": np.array([0, 0, -0.018]),
+                             "Magnetic Field Across the Page": np.array([0, -0.1, 0])
                              }
 
         simulation.ChangeBField(magneticDirection[dataSeries])

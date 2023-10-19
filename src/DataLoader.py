@@ -134,6 +134,98 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
     return data_df
 
 
+
+def Experimental_special_adjustment(experimental_csv, experimental_data, data_df):
+
+    # Checks the position relative to the ablation creator the data is from
+
+    # Positive X-axis
+    if experimental_csv.find("/R") != -1: # Right IRL, but move above the creator in the SEM
+        print(f"/R in {experimental_csv}")
+        
+        # Create a new DataFrame for the data
+        data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
+        
+        # Modify the 'X' values
+        data["X"] *= 0
+        
+        # Increasing the distance from the creator for further images
+        max_value = data_df["Y"].max() # max value of the whole data set
+
+
+        # Increasing by the pervious image's max positional value
+        data['Y'] = data['Y'] + max_value
+
+        # Append the data to the combined data frame
+        data_df = pd.concat([data_df, data], ignore_index=True)
+
+    # Negative x-axis 
+    elif experimental_csv.find("/L")  != -1: # Left of the crator
+        print(f"/L in {experimental_csv}")
+        # Create a new DataFrame for the data
+        data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
+        
+        # Set Values to zero. 
+        data["X"] *= 0
+        
+        # Increasing the distance from the creator for further images
+        max_value = data["Y"].max() # max value of the current image
+        min_value = data_df["Y"].min() # min value of the whole dataset
+
+
+        # Increasing by the pervious image's max positional value
+        data['Y'] = min_value - (max_value - data['Y'])
+
+
+        # Append the data to the combined data frame
+        data_df = pd.concat([data_df, data], ignore_index=True)
+
+    # Positive Y-axis
+    elif experimental_csv.find("/B")  != -1: # Above the creator
+        print(f"/B in {experimental_csv}")
+        
+        # Create a new DataFrame for the data
+        data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
+        
+        # Modify the 'Y' values
+        data["Y"] *= 0
+        
+        # Increasing the distance from the creator for further images
+        max_value = data_df["X"].max() # max value of the whole data set
+
+        # Increasing by the pervious image's max positional value
+        data['X'] = data['X'] + max_value
+
+        # Append the data to the combined data frame
+        data_df = pd.concat([data_df, data], ignore_index=True)
+
+    # Negative Y-axis 
+    elif experimental_csv.find("/T")  != -1: # Bellow the crator
+        print(f"/T in {experimental_csv}")
+        # Create a new DataFrame for the data
+        data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
+        
+        # Set Values to zero. 
+        data["Y"] *= 0
+        
+        # Increasing the distance from the creator for further images
+        max_value = data["X"].max() # max value of the current image
+        min_value = data_df["X"].min() # min value of the whole dataset
+
+
+        # Increasing by the pervious image's max positional value
+        data['X'] = min_value - (max_value - data['X'])
+
+        # Append the data to the combined data frame
+        data_df = pd.concat([data_df, data], ignore_index=True)
+
+    else:
+        print(f"this file failed to be adjusted {experimental_csv}")
+
+    return data_df
+
+
+
 def load_experimental_data(experiment_type):
     """
     Load experimental data for a specific experiment mode.
@@ -152,8 +244,25 @@ def load_experimental_data(experiment_type):
         "Width": [0]
     })
 
-    # Gets the file names for the folder
-    experimental_csv_list = get_file_names("data/" + experiment_type)
+    # Need to account for the multiple folder in the BFiledAcross dataseries
+    if experiment_type == "BFieldAcross":
+
+        # Gets the file names for the folder
+        upper = get_file_names("data/" + experiment_type + "/UpperSpot") # file names in the UpperSpot folder
+        lower = get_file_names("data/" + experiment_type + "/LowerSpot") # file names in the LowerSpot folder
+        
+        experimental_csv_list = []
+
+        # Pre-fixing the UpperSpot folder location to the csv list object
+        for i in range(len(upper)):
+            experimental_csv_list.append("/UpperSpot/" + upper[i])
+        
+        # Pre-fixing the LowerSpot folder location to the csv list object
+        for i in range(len(lower)):
+            experimental_csv_list.append("/LowerSpot/" + lower[i])
+    else:
+        # Gets the file names for the folder
+        experimental_csv_list = get_file_names("data/" + experiment_type)
 
     # Loads the data from each file in the folder
     for experimental_csv in experimental_csv_list:
@@ -162,7 +271,11 @@ def load_experimental_data(experiment_type):
         experimental_data = load_data_from_csv("data/" + experiment_type + "/" + experimental_csv)
 
         # Based on where the data was recorded relative to the creator, values need to be adjusted
-        data_df = experimental_adjustment(experimental_csv, experimental_data, data_df)
+        if experiment_type == "BFieldAcross":
+            # The Bfield across the page has a strange oreintation, and needs to be correct due B field direction
+            data_df = Experimental_special_adjustment(experimental_csv, experimental_data, data_df)
+        else:
+            data_df = experimental_adjustment(experimental_csv, experimental_data, data_df)
 
     # Remove the zeros used to initialize the DataFrame
     data_df = data_df.iloc[1:]

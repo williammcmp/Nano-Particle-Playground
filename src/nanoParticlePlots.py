@@ -16,7 +16,8 @@ def plotExperimentalData(dataSeries):
     dataType = {
         "No Magentic Field" : "NoBField",
         "Magnetic Field out of the Page": "BFieldOut", 
-        "Magnetic Field into the Page": "BFieldIn"
+        "Magnetic Field into the Page": "BFieldIn", 
+        "Magnetic Field Across the Page": "BFieldAcross"
     }
     
     # Loads the data frame of the specific data series selected by the user
