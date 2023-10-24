@@ -52,7 +52,7 @@ def buildSideBar(simMode):
 
     elif simMode == "Silicon Nano-Particles":
         # The max number of particles has been reduced in order to stop people form fucking crashing the server
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=500, value=100, step=75)
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=75)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=4, disabled = True)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
     
@@ -248,13 +248,14 @@ if simMode == "Silicon Nano-Particles":
     with text_col:
         st.markdown(expermentalMainText())
 
-        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page"])
+        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"])
 
         # Map data series option to a B field direction
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
                              "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
                              "Magnetic Field into the Page": np.array([0, 0, -0.018]),
-                             "Magnetic Field Across the Page": np.array([0, -0.018, 0])
+                             "Magnetic Field Across the Page -Y": np.array([0, -0.018, 0]),
+                             "Magnetic Field Across the Page +Y": np.array([0, 0.018, 0])
                              }
 
         simulation.ChangeBField(magneticDirection[dataSeries])
@@ -292,13 +293,58 @@ if simMode == "Silicon Nano-Particles":
         # Calculate the corresponding function values
         y = 1 / (r**3)
 
-        ax.plot(r * 10, y * 1e4 + 2000, label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        ax.plot(r * 10, y * 1e4 + 2000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
 
         # sets the legend's lables to be bright
         legend = ax.legend()
         for lh in legend.legendHandles:
             lh.set_alpha(1)
         st.pyplot(fig)
+
+    col_1, col_2, col_3 = row1.columns([1,1,1])
+
+    # Show average displacement for the collected data series
+    with col_1:
+        fig, ax = plt.subplots(figsize=(10,7))
+        fig, ax = plotExperimentalSummary(fig, ax)
+
+        ax.scatter(0, 0, marker="o", s=2000, color='r', alpha=0.5) # origin of the plot
+        ax.annotate("Ablation site", (0, 0), textcoords="offset points", xytext=(-60,10), ha='center', fontsize=12, color='red')
+        ax.set_xlabel('X (μm)')
+        ax.set_ylabel('Y (μm)')
+        ax.set_title('Average SiNP displacement from ablation creator')
+        ax.grid(True)
+        ax.legend()
+
+        st.pyplot(fig)
+
+
+
+    # show the particle distributions for the collected data series
+    with col_2:
+        fig, ax = plt.subplots(figsize=(10,7))
+        fig, ax = plotExperimentalDistribution(dataSeries, fig, ax)
+
+        ax.set_xlabel('particle diamater (nm)')
+        ax.set_ylabel('Frequencey')
+        ax.set_title(f'Size distributions of measured SiNPs from {dataSeries}')
+        ax.legend()
+
+        st.pyplot(fig)
+
+    
+    # show the particle distributions for the collected data series
+    with col_3:
+        fig, ax = plt.subplots(figsize=(10,7))
+        fig, ax = plotExperimentalDistributions(fig, ax)
+
+        ax.set_xlabel('particle diamater (nm)')
+        ax.set_ylabel('Frequencey')
+        ax.set_title('Size distributions of measured SiNPs for all data series')
+        ax.legend()
+
+        st.pyplot(fig)
+    
 
     st.divider()
     row2 = st.container()
@@ -337,6 +383,7 @@ if simMode == "Silicon Nano-Particles":
         st.pyplot(fig)
 else: 
     # Run the SIM for non Nano-partilce modes
+
     computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     

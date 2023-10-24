@@ -140,7 +140,7 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
     # Checks the position relative to the ablation creator the data is from
 
     # Positive X-axis
-    if experimental_csv.find("/R") != -1: # Right IRL, but move above the creator in the SEM
+    if experimental_csv.find("R") != -1: # Right IRL, but move above the creator in the SEM
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -159,7 +159,7 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
         data_df = pd.concat([data_df, data], ignore_index=True)
 
     # Negative x-axis 
-    elif experimental_csv.find("/L")  != -1: # Left of the crator
+    elif experimental_csv.find("L")  != -1: # Left of the crator
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
         
@@ -179,7 +179,7 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
         data_df = pd.concat([data_df, data], ignore_index=True)
 
     # Positive Y-axis
-    elif experimental_csv.find("/B")  != -1: # Above the creator
+    elif experimental_csv.find("B")  != -1: # Above the creator
         
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
@@ -197,7 +197,7 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
         data_df = pd.concat([data_df, data], ignore_index=True)
 
     # Negative Y-axis 
-    elif experimental_csv.find("/T")  != -1: # Bellow the crator
+    elif experimental_csv.find("T")  != -1: # Bellow the crator
         # Create a new DataFrame for the data
         data = pd.DataFrame(data=experimental_data, columns=["X", "Y", "Width"])
         
@@ -240,25 +240,8 @@ def load_experimental_data(experiment_type):
         "Width": [0]
     })
 
-    # Need to account for the multiple folder in the BFiledAcross dataseries
-    if experiment_type == "BFieldAcross":
-
-        # Gets the file names for the folder
-        upper = get_file_names("data/" + experiment_type + "/UpperSpot") # file names in the UpperSpot folder
-        lower = get_file_names("data/" + experiment_type + "/LowerSpot") # file names in the LowerSpot folder
-        
-        experimental_csv_list = []
-
-        # Pre-fixing the UpperSpot folder location to the csv list object
-        for i in range(len(upper)):
-            experimental_csv_list.append("/UpperSpot/" + upper[i])
-        
-        # Pre-fixing the LowerSpot folder location to the csv list object
-        for i in range(len(lower)):
-            experimental_csv_list.append("/LowerSpot/" + lower[i])
-    else:
-        # Gets the file names for the folder
-        experimental_csv_list = get_file_names("data/" + experiment_type)
+    # Gets the file names for the folder
+    experimental_csv_list = get_file_names("data/" + experiment_type)
 
     # Loads the data from each file in the folder
     for experimental_csv in experimental_csv_list:
@@ -267,7 +250,7 @@ def load_experimental_data(experiment_type):
         experimental_data = load_data_from_csv("data/" + experiment_type + "/" + experimental_csv)
 
         # Based on where the data was recorded relative to the creator, values need to be adjusted
-        if experiment_type == "BFieldAcross":
+        if experiment_type.find("Across") != -1:
             # The Bfield across the page has a strange oreintation, and needs to be correct due B field direction
             data_df = Experimental_special_adjustment(experimental_csv, experimental_data, data_df)
         else:

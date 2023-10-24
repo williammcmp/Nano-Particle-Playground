@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 import numpy as np
 import pandas as pd
 
@@ -17,19 +18,84 @@ def plotExperimentalSummary(fig, ax):
         "No Magentic Field" : "NoBField",
         "Magnetic Field out of the Page": "BFieldOut", 
         "Magnetic Field into the Page": "BFieldIn", 
-        "Magnetic Field Across the Page": "BFieldAcross"
+        "Magnetic Field Across the Page -Y": "BFieldAcrossDown",
+        "Magnetic Field Across the Page +Y": "BFieldAcrossUp"
     }
 
-    dataSeries = ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page"]
+    dataSeries = ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"]
 
     for series in dataSeries:
         data = load_experimental_data(dataType[series])
 
-        ax.scatter(data['X'].mean() * 1e-3, data['Y'].mean() * 1e-3, label=f"Avg pos - {series}", marker='1', s = 350)
+        x_mean = data["X"].mean()
+        y_mean = data["Y"].mean()
+
+        if x_mean < 0:
+            x_mean -= 3000
+        else:
+            x_mean += 3000
+
+
+        # Data is with respect to edge of the crator
+        if y_mean < 0:
+            y_mean -= 3000
+        else:
+            y_mean += 3000
+
+        ax.scatter(x_mean * 1e-3, y_mean * 1e-3, label=f"{series}", marker='1', s = 350)
+    
+    ax.legend()
+
+    return fig, ax
+
+def plotExperimentalDistributions(fig, ax):
+    # This dictionary makes it easer to load the data files
+    dataType = {
+        "No Magentic Field" : "NoBField",
+        "Magnetic Field out of the Page": "BFieldOut", 
+        "Magnetic Field into the Page": "BFieldIn", 
+        "Magnetic Field Across the Page -Y": "BFieldAcrossDown",
+        "Magnetic Field Across the Page +Y": "BFieldAcrossUp"
+    }
+
+    dataSeries = ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"]
+
+    bin_width = 10  # Adjust the bin width as needed
+    bins = np.arange(0, 100, bin_width)
+    for series in dataSeries:
+
+        data = load_experimental_data(dataType[series])
+        
+        ax.hist(data["Width"], bins=bins, edgecolor='k', alpha=0.7, label=series)
+
 
     ax.legend()
 
     return fig, ax
+
+def plotExperimentalDistribution(dataSeries, fig, ax):
+    # This dictionary makes it easer to load the data files
+    dataType = {
+        "No Magentic Field" : "NoBField",
+        "Magnetic Field out of the Page": "BFieldOut", 
+        "Magnetic Field into the Page": "BFieldIn", 
+        "Magnetic Field Across the Page -Y": "BFieldAcrossDown",
+        "Magnetic Field Across the Page +Y": "BFieldAcrossUp"
+    }
+
+    bin_width = 10  # Adjust the bin width as needed
+    bins = np.arange(0, 100, bin_width)
+
+
+    data = load_experimental_data(dataType[dataSeries])
+    
+    ax.hist(data["Width"], bins=bins, edgecolor='k', alpha=0.7, label=dataSeries)
+
+    ax.legend()
+
+    return fig, ax
+
+    
         
 
 def plotExperimentalData(dataSeries):
@@ -38,7 +104,8 @@ def plotExperimentalData(dataSeries):
         "No Magentic Field" : "NoBField",
         "Magnetic Field out of the Page": "BFieldOut", 
         "Magnetic Field into the Page": "BFieldIn", 
-        "Magnetic Field Across the Page": "BFieldAcross"
+        "Magnetic Field Across the Page -Y": "BFieldAcrossDown",
+        "Magnetic Field Across the Page +Y": "BFieldAcrossUp"
     }
     
     # Loads the data frame of the specific data series selected by the user
@@ -117,8 +184,8 @@ def plotTrajectories(simulation, direction):
     y_limits = ax.get_ylim()
     z_limits = ax.get_zlim()
     
-    x = np.linspace(x_limits[0], x_limits[1], 10)
-    y = np.linspace(y_limits[0], y_limits[1], 10)
+    x = np.linspace(x_limits[0], x_limits[1], 5)
+    y = np.linspace(y_limits[0], y_limits[1], 5)
     z = np.array([0, z_limits[1], 1])
 
     # Create a meshgrid for 3D space
@@ -131,7 +198,7 @@ def plotTrajectories(simulation, direction):
 
     vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
 
-    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.05 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.1 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
     
     # sets the legend's lables to be bright
     legend = ax.legend()
@@ -165,10 +232,12 @@ def plotMassDisplacement(position, charge):
     # Create a histogram of particle distances from the origin
     fig, ax = plt.subplots(figsize=(10,7))
 
-    
-    ax.hist(np.linalg.norm(position, axis=1), edgecolor='k', label="All particles", alpha=0.7) # histogram of all particles
-    ax.hist(np.linalg.norm(negativeC, axis=1), edgecolor='k', color='b', alpha=0.5, label="Negative Charge") # histrogram of negative chages
-    ax.hist(np.linalg.norm(positiveC, axis=1), edgecolor='k', color='r', alpha=0.5, label="Positive Charge") # Histrogram of positive charges
+    bin_width = 3  # Adjust the bin width as needed
+    bins = np.arange(0, 40, bin_width)
+
+    ax.hist(np.linalg.norm(position, axis=1), edgecolor='k', label="All particles", bins=bins, alpha=0.7) # histogram of all particles
+    ax.hist(np.linalg.norm(negativeC, axis=1), edgecolor='k', color='b', alpha=0.5, bins=bins, label="Negative Charge") # histrogram of negative chages
+    ax.hist(np.linalg.norm(positiveC, axis=1), edgecolor='k', color='r', alpha=0.5, bins=bins, label="Positive Charge") # Histrogram of positive charges
 
     # Customize the plot (optional)
     ax.set_xlabel('Distance from origin (μm)')
