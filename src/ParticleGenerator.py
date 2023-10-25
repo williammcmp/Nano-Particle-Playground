@@ -29,16 +29,19 @@ def GenerateTestParticles(Simulation):
     """
     print("\nLoading Test Particles:")
     # Create a particle and add it to the simulation
-    p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
-    p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
-    p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
+    p1 = Particle([0, 0, 0], [0, 1, 3], 9, -10)
+    p2 = Particle([0, 0, 0], [0, 1, 3], 9, 10)
+    p3 = Particle([0, 0, 0], [0, 1, 3], 9, 0)
+    # p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
+    # p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
+    # p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
     Simulation.AddParticles([p1,p2,p3])
 
 # Creates a large amount of particles
 def GenerateParticles(n, Simulation, mode = "Origin",
                       positionX = 0, positionY = 0, 
                       positionZ = 0, massRange = [1, 5],
-                      avgEnergy = 3, charged = True):
+                      avgEnergy = 3, charged = True,  chargedNev = True, chargedPos = True):
     """
     Create a specified number of particles and add them to the simulation.
 
@@ -80,9 +83,12 @@ def GenerateParticles(n, Simulation, mode = "Origin",
         velAvg = np.sqrt(((2/3)*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
         velocity = np.random.uniform(-velAvg, velAvg, 3)
         velocity[2] = np.abs(velocity[2])
+        
 
         if charged:
-            charge = random.uniform(1.0, 2.0) * mass * random.choice([-1,1]) # implemetns the charge/mass factor for NPs
+            charge = random.uniform(1.0, 2.0) * mass * random.choice([-1 * chargedNev,1 * chargedPos]) # implemetns the charge/mass factor for NPs
+            # charge = random.uniform(1.0, 2.0) * mass # implemetns the charge/mass factor for NPs
+            
 
             particles.append(Particle(position, velocity, mass, charge))
         else: 
