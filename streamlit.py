@@ -82,7 +82,9 @@ def buildPartilceDistributions(simMode):
 
         massRange = a.slider('Range of Mass Particles (kg)', 0.0, 20.0, (1.0, 5.0))
         AvgEnergy = a.slider("Average Inital Energy (J)", value=3)
-        charged = a.checkbox("Charged Particles (+, -) - using a charge/mass scale", value=True)
+        charged = True
+        chargedNev = a.checkbox("Enable Negative chages", value=True)
+        chargedPos = a.checkbox("Enable Positive chages", value=True)
 
     elif simMode == "Silicon Nano-Particles":
         positionType = "origin"
@@ -92,6 +94,8 @@ def buildPartilceDistributions(simMode):
         massRange = [0.1, 10] 
         AvgEnergy = 85
         charged = True
+        chargedNev = True
+        chargedPos = True
 
     else:
         positionType = False
@@ -101,9 +105,11 @@ def buildPartilceDistributions(simMode):
         massRange = False
         AvgEnergy = False
         charged = True
+        chargedNev = True
+        chargedPos = True
 
     # Return the values as a tuple
-    return positionType, positionX, positionY, positionZ, massRange, AvgEnergy, charged
+    return positionType, positionX, positionY, positionZ, massRange, AvgEnergy, charged, chargedNev, chargedPos
 
 
 # ------------
@@ -119,7 +125,7 @@ partilceNumber, simDuration, simTimeStep = buildSideBar(simMode)
 
 
 st.sidebar.divider()
-mode, positionX, positionY, positionZ, massRange, avgEnergy, charged = buildPartilceDistributions(simMode)
+mode, positionX, positionY, positionZ, massRange, avgEnergy, charged, chargedNev, chargedPos= buildPartilceDistributions(simMode)
 
 
 
@@ -189,7 +195,7 @@ else: # condition for the Silicion Nano-Particle mode
 
 # Generates the particles bases on what mode were are in
 if simMode != "Three Particle system (testing)":
-    GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged)
+    GenerateParticles(partilceNumber, simulation, mode, positionX, positionY, positionZ, massRange, avgEnergy, charged,  chargedNev, chargedPos)
 else:
     GenerateTestParticles(simulation)
 
@@ -252,10 +258,10 @@ if simMode == "Silicon Nano-Particles":
 
         # Map data series option to a B field direction
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
-                             "Magnetic Field out of the Page": np.array([0, 0, 0.018]),
-                             "Magnetic Field into the Page": np.array([0, 0, -0.018]),
-                             "Magnetic Field Across the Page -Y": np.array([0, -0.018, 0]),
-                             "Magnetic Field Across the Page +Y": np.array([0, 0.018, 0])
+                             "Magnetic Field out of the Page": np.array([0, 0, 0.18]),
+                             "Magnetic Field into the Page": np.array([0, 0, -0.18]),
+                             "Magnetic Field Across the Page -Y": np.array([0, -0.18, 0]),
+                             "Magnetic Field Across the Page +Y": np.array([0, 0.18, 0])
                              }
 
         simulation.ChangeBField(magneticDirection[dataSeries])
@@ -384,7 +390,7 @@ if simMode == "Silicon Nano-Particles":
 else: 
     # Run the SIM for non Nano-partilce modes
 
-    computeTime, numCals = simulation.NanoRun(simDuration, simTimeStep)
+    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     
     sim_info = f'''
@@ -412,6 +418,10 @@ else:
         fig, ax = plotTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
         st.pyplot(fig)
+
+    fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
+
+    st.pyplot(fig)
 
 
 
