@@ -249,6 +249,66 @@ def plotMassDisplacement(position, charge):
     return fig, ax
     
 
+def plotForceTrajectories(simulation, direction):
+    # Create a histogram of particle distances from the origin
+    fig, ax = plt.subplots(figsize=(10,7))
+
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111, projection='3d')
+
+
+    x_limits = ax.get_xlim()
+    y_limits = ax.get_ylim()
+    z_limits = ax.get_zlim()
+    
+    x = np.linspace(x_limits[0], x_limits[1], 5)
+    y = np.linspace(y_limits[0], y_limits[1], 5)
+    z = np.array([0, z_limits[1], 1])
+
+    # Create a meshgrid for 3D space
+    X, Y, Z = np.meshgrid(x, y, z)
+
+    # Magnetic field components [Bx, By, Bz] at each point in the grid
+    Bx = direction[0]
+    By = direction[1]
+    Bz = direction[2]
+
+    vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
+
+    # ax.quiver(X, Y, Z, Bx, By, Bz, length=0.01 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    colors = {1: "r", 2: "g", 3:"b"}
+    count = 1
+    for particle in simulation.Particles:
+            
+        ax.plot(particle.History[:,0], particle.History[:,1], particle.History[:,2], c=colors[count], linestyle="--") # plots the path for each particle
+        for i in np.arange(0,len(particle.History), 40):
+            ax.scatter(particle.History[i,0], particle.History[i,1], particle.History[i,2], c=colors[count], s=10) # key potints for the particles trajectory
+            
+            x_pos = particle.History[i,0]
+            y_pos = particle.History[i,1]
+            z_pos = particle.History[i,2]
+            
+            F_mag = particle.Charge * (np.cross(particle.HistoryVel[i,:], direction))
+            print(F_mag)
+
+            # B field force vector
+            ax.quiver(x_pos, y_pos, z_pos, F_mag[0], F_mag[1], F_mag[2], length=np.linalg.norm(F_mag)/500, normalize=True)
+
+            # Gravity
+            ax.quiver(x_pos, y_pos, z_pos, 0, 0, -9.8, length=np.linalg.norm(np.array([0,0,-9.8]))/500, normalize=True, color='g')
+        
+        count += 1
+        if count > 3:
+            break
+
+    ax.set_xlabel('X (μm)')
+    ax.set_ylabel('Y (μm)')
+    ax.set_zlabel('Z (μm)')
+
+    return fig, ax
+
+
+
 def list_to_markdown_table(data):
     # Initialize the Markdown table
     fList = f'''
