@@ -11,16 +11,20 @@ sim = Simulation()
 # GenerateTestParticles(sim)
 
 # Creates the particles
-np.random.seed(0)
-GenerateParticles(10000,sim)
+# np.random.seed(0)
+# GenerateParticles(10000,sim)
 
 # Add gravity force to the simulation
 sim.AddForce([Gravity()])
-# sim.AddForce([Lorentz(np.array([0,0,10.0]))])
+sim.AddForce([Lorentz(np.array([0,0,1.0]))])
+sim.AddConstraints([GroundPlane(0)])
 
 # Runns the simulation 
-sim.FastRun(5, 0.01)
+sim.Run(5, 0.01)
 
 # plot the simulation results
-sim.Plot()
-# sim.PlotPaths()
+
+fix, ax = sim.PlotPaths("Charged Particles in a Magentic Field")
+
+plt.show()
+
