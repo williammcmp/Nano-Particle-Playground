@@ -20,7 +20,7 @@ simulation = Simulation() # initalise the simulation object
 # Display properties
 # ------------
 # Set page layout to wide
-st.set_page_config(layout="wide", page_title="Nano Particle Simulation")
+st.set_page_config(layout="wide", page_title="Nano Particle Simulation", initial_sidebar_state="collapsed")
 
 
 # makes the plots in line with the style of the application dark mode
@@ -237,6 +237,8 @@ row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
     with st.expander("About the Nano Particle Simulation"):
         st.markdown(sim_intro())
+        st.image("img/SEM_image.png", use_column_width=True, caption="SEM of SiNPs. Positonal and size data was colleted from these images to from the experiemntal data in the model")
+
 
 
 
@@ -255,7 +257,7 @@ if simMode == "Silicon Nano-Particles":
     with text_col:
         st.markdown(expermentalMainText())
 
-        dataSeries = st.selectbox("Selected the displayed experimental setup", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"])
+        dataSeries = st.selectbox("Select the direction of the magnetic field", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"])
 
         # Map data series option to a B field direction
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
@@ -373,7 +375,6 @@ if simMode == "Silicon Nano-Particles":
         st.markdown(f'''**Simulation Stats:**''')
         st.markdown(sim_info)
         st.markdown(list_to_markdown_table(simulation.FroceList()))
-        st.markdown("You can adjust the number of particles via the **side panel**")
 
     with plot_col:
         fig, ax = plotTrajectories(simulation, magneticDirection[dataSeries])

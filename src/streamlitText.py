@@ -52,17 +52,19 @@ def sim_intro():
     The aim is to design filtration processes using an external magnetic field to influence SiNP size distributions, 
     given the expected charges on the particles due to the PLA process and their interactions with the magnetic field.
 
-    The entire simulation framework was developed by the students, and the source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
+    Experminental data was collected using images captured on a Scanning Electron Microscope 
+    ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
+
+    The entire simulation framework was developed by the students. The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
 
     ---
 
     **Acknowledgements**
-
     - **Students:** Christ Nohan, William McMahon-Puce
-
     - **Superviors:** James Chon, Saulius Juodkazis
-
     - **special mention:** Daniel Smith - Assistance in facilitating lab access and the meticulous collection of data
+
+    ---
     '''
 
     return intro
@@ -72,10 +74,8 @@ def expermentalMainText():
     mainText = f'''
     ## Simulation and Experimental Results 
 
-    Experminental data was collected using images captured on a Scanning Electron Microscope 
-    ([SEM](https://en.wikipedia.org/wiki/Scanning_electron_microscope)) and analysised using [imageJ](https://imagej.nih.gov/ij/), an image analysis tool.
-
-    Explore the options below to visualize how the magnetic field affects the behavior of Silicon nanoparticles. 
+    Explore the impact of an external magnetic field on Silicon nanoparticle displacement from the ablation site. 
+    
     The simulation will automatically match the selected series of experimental data with the appropriate magnetic field.
     '''
 
@@ -85,11 +85,8 @@ def simText():
     text = f'''
     ## Simulation Figures
 
-    The following plots represent the outcomes obtained through a simulation. 
-    These visualizations provide valuable insights and data analysis resulting from our simulated experiments and computations.
-
-    Due to the scale of the particles simulated, Brownian motion must be accounted for.
-
-    Below is a summary of the simulation's parameters and Forces used.
+    The plots below showcase the results of our simulations, offering valuable insights and data analysis. 
+    Accounting for Brownian motion is essential due to the particles' scale. 
+    The summary includes simulation parameters and used forces.
     '''
     return text
