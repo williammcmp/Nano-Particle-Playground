@@ -3,10 +3,7 @@
 This project represents a simple particle simulation framework in Python, designed to simulate the behavior of particles under various forces. It uses a basic simulation loop to update the positions and velocities of particles over time.
 
 <p align="center">
-  <img src="img/streamlit__demo.png"  style="max-height:400px;"/> 
-</p>
-<p align="center">
-  <img src="img/3d_plot.png"  style="max-height:400px;"/> 
+  <img src="img/promo_shot.png"  style="max-height:400px;"/> 
 </p>
 
 
@@ -167,7 +164,7 @@ sim.Run(duration, timeStep, saveHistory)
 ### Plotting the results
 
 <p align="center">
-  <img src="img/3d_plot__example.png" style="max-height:400px;"/> 
+  <img src="img/plots.png" style="max-height:400px;"/> 
 </p>
 
 There are several methods that will visually display that results of the simulaiton. These plot methods can be called at any time, even if future `sim.Run()` events are to occur.
