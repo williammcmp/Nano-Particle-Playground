@@ -52,7 +52,7 @@ def buildSideBar(simMode):
 
     elif simMode == "Silicon Nano-Particles":
         # The max number of particles has been reduced in order to stop people form fucking crashing the server
-        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=75)
+        partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=75, disabled = True)
         simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=4, disabled = True)
         simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
     
@@ -255,7 +255,7 @@ if simMode == "Silicon Nano-Particles":
     with text_col:
         st.markdown(expermentalMainText())
 
-        dataSeries = st.selectbox("Showing experimental data with", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"])
+        dataSeries = st.selectbox("Selected the displayed experimental setup", ["No Magentic Field", "Magnetic Field out of the Page", "Magnetic Field into the Page", "Magnetic Field Across the Page -Y", "Magnetic Field Across the Page +Y"])
 
         # Map data series option to a B field direction
         magneticDirection = {"No Magentic Field": np.array([0, 0, 0]),
@@ -310,8 +310,22 @@ if simMode == "Silicon Nano-Particles":
 
     col_1, col_2, col_3 = row1.columns([1,1,1])
 
-    # Show average displacement for the collected data series
+    # Show the image of the magnetic field orentation
     with col_1:
+        dataType = {
+            "No Magentic Field" : "NoBField",
+            "Magnetic Field out of the Page": "BFieldOut", 
+            "Magnetic Field into the Page": "BFieldIn", 
+            "Magnetic Field Across the Page -Y": "BFieldAcrossDown",
+            "Magnetic Field Across the Page +Y": "BFieldAcrossUp"
+        }
+        if dataSeries != "No Magentic Field":
+                
+            st.image("img/magnetic_field_directions/" + dataType[dataSeries] + ".png", caption="Direction of the magnetic Field")
+
+
+    # Show average displacement for the collected data series
+    with col_2:
         fig, ax = plt.subplots(figsize=(10,7))
         fig, ax = plotExperimentalSummary(fig, ax)
 
@@ -325,10 +339,9 @@ if simMode == "Silicon Nano-Particles":
 
         st.pyplot(fig)
 
-
-
+    
     # show the particle distributions for the collected data series
-    with col_2:
+    with col_3:
         fig, ax = plt.subplots(figsize=(10,7))
         fig, ax = plotExperimentalDistribution(dataSeries, fig, ax)
 
@@ -338,19 +351,15 @@ if simMode == "Silicon Nano-Particles":
         ax.legend()
 
         st.pyplot(fig)
+        # fig, ax = plt.subplots(figsize=(10,7))
+        # fig, ax = plotExperimentalDistributions(fig, ax)
 
-    
-    # show the particle distributions for the collected data series
-    with col_3:
-        fig, ax = plt.subplots(figsize=(10,7))
-        fig, ax = plotExperimentalDistributions(fig, ax)
+        # ax.set_xlabel('particle diamater (nm)')
+        # ax.set_ylabel('Frequencey')
+        # ax.set_title('Size distributions of measured SiNPs for all data series')
+        # ax.legend()
 
-        ax.set_xlabel('particle diamater (nm)')
-        ax.set_ylabel('Frequencey')
-        ax.set_title('Size distributions of measured SiNPs for all data series')
-        ax.legend()
-
-        st.pyplot(fig)
+        # st.pyplot(fig)
     
 
     st.divider()
