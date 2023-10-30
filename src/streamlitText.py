@@ -47,16 +47,22 @@ def how_to_use_info(simMode):
 
 def sim_intro():
     intro = f'''
-    **Students:** Christ Nohan, William McMahon-Puce
-
-    **Superviors:** James Chon, Saulius Juodkazis
-
     In an effort to characterize Silicon Nano-Particles (SiNPs) created via Pulsed Laser Ablation (PLA),
     we explore the dynamics of PLA in a magnetic field to study its effects on particle displacement. 
     The aim is to design filtration processes using an external magnetic field to influence SiNP size distributions, 
     given the expected charges on the particles due to the PLA process and their interactions with the magnetic field.
 
-    The source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
+    The entire simulation framework was developed by the students, and the source code can be found on the [Nano Particle Playground GitHub repo](https://github.com/williammcmp/Nano-Particle-Playground)
+
+    ---
+
+    **Acknowledgements**
+
+    - **Students:** Christ Nohan, William McMahon-Puce
+
+    - **Superviors:** James Chon, Saulius Juodkazis
+
+    - **special mention:** Daniel Smith - Assistance in facilitating lab access and the meticulous collection of data
     '''
 
     return intro
