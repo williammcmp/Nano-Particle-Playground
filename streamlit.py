@@ -20,7 +20,7 @@ simulation = Simulation() # initalise the simulation object
 # Display properties
 # ------------
 # Set page layout to wide
-st.set_page_config(layout="wide", page_title="Particle Playground")
+st.set_page_config(layout="wide", page_title="Nano Particle Simulation")
 
 
 # makes the plots in line with the style of the application dark mode
@@ -215,7 +215,7 @@ if wall : simulation.AddConstraints([Wall()])
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
 with row0_1:
-    st.title('Characterisation of laser-ablated silicon nanoparticles')
+    st.title('Characterisation of Laser-Ablated Ailicon NanoParticles')
 with row0_2:
     image_container = st.container()
 
@@ -235,7 +235,8 @@ with row0_2:
     )
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3, .1))
 with row3_1:
-    st.markdown(sim_intro())
+    with st.expander("About the Nano Particle Simulation"):
+        st.markdown(sim_intro())
 
 
 
