@@ -1,8 +1,77 @@
 # src/Force.py
 import numpy as np
+from abc import ABC, abstractclassmethod
+
+
+class Force(ABC):
+    """
+    Abstract base class for representing forces in a particle simulation.
+
+    Attributes:
+    - Name (str): The name of the force.
+    - Magnitude (float): The magnitude of the force.
+    - Direction (numpy.ndarray): The direction vector of the force.
+
+    Methods:
+    - Apply(particles): Abstract method to apply the force to a list of particles.
+    - Field(): Calculates the force field.
+    - Info(): Returns a string representation of force information.
+    - __str__(): Returns the name of the force.
+    """
+
+    def __init__(self, name, magnitude, direction):
+        """
+        Initializes a new Force instance.
+
+        Parameters:
+        - name (str): The name of the force.
+        - magnitude (float): The magnitude of the force.
+        - direction (numpy.ndarray): The direction vector of the force.
+        """
+        self.Name = name
+        self.Magnitude = magnitude
+        self.Direction = direction
+
+    @abstractclassmethod
+    def Apply(self, particles):
+        """
+        Abstract method to apply the force to a list of particles.
+
+        Parameters:
+        - particles (list): A list of Particle objects to which the force is applied.
+        """
+        pass
+
+    def Field(self):
+        """
+        Calculates the force field.
+
+        Returns:
+        - numpy.ndarray: The force field vector.
+        """
+        return self.Magnitude * self.Direction
+
+    def Info(self):
+        """
+        Returns a string representation of force information.
+
+        Returns:
+        - str: String representation of force information.
+        """
+        return f'{self.Name} = {self.Field}'
+
+    def __str__(self):
+        """
+        Returns the name of the force.
+
+        Returns:
+        - str: The name of the force.
+        """
+        return self.Name
+
 
 # force due to gravity
-class Gravity:
+class Gravity(Force):
     """
     Represents the force of gravity in the simulation.
 
@@ -11,21 +80,20 @@ class Gravity:
 
     Methods:
     - Apply(particles): Applies the gravitational force to a list of particles.
-
     """
 
-    def __init__( self, acceleration = 9.8 ):
+    def __init__(self, magnitude=9.8):
         """
         Initializes a new Gravity instance.
 
         Parameters:
-        - acceleration (float, optional): The acceleration due to gravity in meters per second squared. Default is 9.8 m/s^2.
+        - magnitude (float, optional): The acceleration due to gravity in meters per second squared. Default is 9.8 m/s^2.
         """
-        self.name = "Gravity"
-        self.Acceleration = np.array([0.0,0.0,-acceleration ])
+        name = "Gravity"
+        direction = np.array([0.0, 0.0, -1])
+        super().__init__(name, magnitude, direction)
 
-    # Applies the gravity acceleration into each particle
-    def Apply( self, particles):
+    def Apply(self, particles):
         """
         Applies the gravitational force to a list of particles.
 
@@ -33,50 +101,39 @@ class Gravity:
         - particles (list): A list of Particle objects to which gravity is applied.
         """
         for particle in particles:
-            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass) 
+            particle.SumForce = particle.SumForce + (self.Field() * particle.Mass)
     
-    def NanoApply( self, particles):
-        """
-        Applies the gravitational force to a list of nano-particles.
+    # def NanoApply( self, particles):
+    #     """
+    #     Applies the gravitational force to a list of nano-particles.
 
-        Parameters:
-        - particles (list): A list of Particle objects to which gravity is applied.
-        """
-        for particle in particles:
-            particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass * 1e9)
+    #     Parameters:
+    #     - particles (list): A list of Particle objects to which gravity is applied.
+    #     """
+    #     for particle in particles:
+    #         particle.SumForce = particle.SumForce + (self.Acceleration * particle.Mass * 1e9)
     
-    def Field( self ):
-        return self.Acceleration
-
-    def Info(self):
-        return f"{self.name} = {self.Acceleration}"
-    
-    def __str__(self) :
-        return "Gravity"
 
 # Viscous Drag Force
-class Damping:
+class Damping(Force):
     """
-    Represents a viscous drag force in the simulation.
-
-    Attributes:
-    - Scaling (float): The scaling factor for the drag force.
+    Represents the viscous drag force in the simulation.
 
     Methods:
     - Apply(particles): Applies the viscous drag force to a list of particles.
-
     """
-    def __init__( self, scaling = 1.0 ):
+
+    def __init__(self, magnitude=1.0, direction=np.array([0.0, 0.0, -1])):
         """
         Initializes a new Damping instance.
 
         Parameters:
-        - scaling (float, optional): The scaling factor for the drag force. Default is 1.0.
+        - magnitude (float, optional): The scaling factor for the drag force. Default is 1.0.
         """
-        self.Scaling  = scaling
+        name = "Damping"
+        super().__init__(name, magnitude, direction)
 
-
-    def Apply( self, particles ):
+    def Apply(self, particles):
         """
         Applies the viscous drag force to a list of particles.
 
@@ -84,171 +141,86 @@ class Damping:
         - particles (list): A list of Particle objects to which the drag force is applied.
         """
         for particle in particles:
-            particle.SumForce = particle.SumForce + (particle.Velocity * -self.Scaling)
+            particle.SumForce = particle.SumForce + (particle.Velocity * -self.Field())
 
-    def Field (self ):
-        return np.array([self.Scaling, self.Scaling, self.Scaling])
-    
-    def __str__(self):
-        return "Damping"
 
-class Lorentz:
+
+class Magnetic(Force):
     """
-    Represents a Lorentz force acting on particles in a simulation.
-
-    Attributes:
-    - eField (numpy.ndarray): An array representing the electric field in the Lorentz force.
-    - bField (numpy.ndarray): An array representing the magnetic field in the Lorentz force.
-    - name (str): A name for the Lorentz force.
+    Represents the magnetic force in the simulation.
 
     Methods:
-    - Apply(particles): Applies the Lorentz force to a list of particles.
-    - Info(): Returns information about the electric and magnetic fields in the Lorentz force.
-
+    - Apply(particles): Applies the magnetic force to a list of particles.
     """
-    def __init__( self, bField=np.array([0.0,0.0,0.0]), eField=np.array([0.0,0.0,0.0])):
-        """
-        Initializes a new Lorentz force instance.
 
-        Parameters:
-        - bField (numpy.ndarray): An array representing the magnetic field in the Lorentz force.
-        - eField (numpy.ndarray): An array representing the electric field in the Lorentz force.
-        """
-        self.eField = eField
-        self.bField = bField
-        self.name = "Lorentz"
+    def __init__(self, magnitude=1.0, direction=np.array([1, 0.0, 0.0])):
+        name = "Magnetic"
+        super().__init__(name, magnitude, direction)
 
-    def Apply( self, particles):
-        """
-        Applies the Lorentz force to a list of particles.
-
-        Parameters:
-        - particles (list): A list of Particle objects to which the force is applied.
-        """
-
+    def Apply(self, particles):
         for particle in particles:
-            LorentzForce = particle.Charge * self.eField + particle.Charge *(np.cross(particle.Velocity, self.bField))
-            particle.SumForce = particle.SumForce + (LorentzForce)
-    
-
-    def NanoApply( self, particles):
-        """
-        Applies the Lorentz force to a list of nano-particles.
-
-        Parameters:
-        - particles (list): A list of Particle objects to which the force is applied.
-        """
-        # TODO fix this for nano-scale
-        for particle in particles:
-            LorentzForce = particle.Charge * self.eField + particle.Charge*1e-19 *(np.cross(particle.Velocity, self.bField * (1e-9 ** 2)))
-            particle.SumForce = particle.SumForce + (LorentzForce)
-
-    def Field (self ):
-        return [self.bField, self.eField]
+            particle.SumForce = particle.SumForce + (particle.Charge * (np.cross(particle.Velocity, self.Field())))
 
 
-    def Info( self ):
-        """
-        Returns information about the electric and magnetic fields in the Lorentz force.
-
-        Returns:
-        - str: A string containing information about the electric and magnetic fields.
-        """
-        return f"Magnetic = {self.bField}"
-
-    def __str__(self):
-        return "Lorentz"
-
-# The ground of the simulation (Contraint)
-class GroundPlane:
+class Electric(Force):
     """
-    Represents the ground of the simulation.
-
-    Attributes:
-    - Particles (list): A list of Particle objects affected by the ground.
-    - Loss (float): A coefficient representing energy loss upon bouncing.
+    Represents the electric force in the simulation.
 
     Methods:
-    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+    - Apply(particles): Applies the electric force to a list of particles.
     """
 
-    def __init__( self, loss = 1.0 ):
-        """
-        Initializes a new GroundPlane instance.
+    def __init__(self, magnitude=1.0, direction=np.array([1, 0.0, 0.0])):
+        name = "Electric"
+        super().__init__(name, magnitude, direction)
 
-        Parameters:
-        - particles (list): A list of Particle objects affected by the ground.
-        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
-        """
-
-        self.Loss = loss
-        
-    # try to apply the ground plane in the nano-update method(?)
-    def Apply( self, particles):
-        """
-        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
-        """
-        # Method not working for nano particles
+    def Apply(self, particles):
         for particle in particles:
-
-            if( particle.Position[2] < 0 ):
-                particle.Position[2] = 0.000001 # reset the particle's position to above the ground plane
-                # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([self.Loss, self.Loss, -1*self.Loss])
-
-
-    def Info( self ):
-        """
-        Returns information about the ground plane
-        Returns:
-        - str: A string containing information about the ground plane
-        """
-        return f"Ground Plane energy loss factor = {np.array([self.Loss, self.Loss, -1*self.Loss])}"
+            particle.SumForce = particle.SumForce + (particle.Charge * self.Field())
     
-    def __str__( self ):
-        return "Ground Plane"
-    
-
-class Wall:
+class Barrier(Force):
     """
-    Represents the a wall in the simulation.
+    Barrier represents a wall or ground plane in the simulation that will reflect the particles upon contact.
 
-    Methods:
-    - Apply(): Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+    @ivar Plane: The normal vector of the barrier plane.
+    @type Plane: numpy.ndarray
+    @ivar Offset: The offset from the origin that the barrier plane exists.
+    @type Offset: numpy.ndarray
+
+    @param damping: The damping factor for the barrier.
+    @type damping: float
+    @param plane: The normal vector of the barrier plane.
+    @type plane: numpy.ndarray
+    @param offset: The offset from the origin that the barrier plane exists.
+    @type offset: numpy.ndarray
     """
 
-    def __init__( self, loss = 1.0 ):
+    def __init__(self, damping=1.0, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0])):
         """
-        Initializes a new GroundPlane instance.
+        Initialize the Barrier object.
 
-        Parameters:
-        - particles (list): A list of Particle objects affected by the ground.
-        - loss (float, optional): A coefficient representing energy loss upon bouncing. Default is 1.0.
+        @param damping: The damping factor for the barrier.
+        @type damping: float
+        @param plane: The normal vector of the barrier plane.
+        @type plane: numpy.ndarray
+        @param offset: The offset from the origin that the barrier plane exists.
+        @type offset: numpy.ndarray
         """
+        name = "Barrier"
+        super().__init__(name, damping, plane)
+        self.Plane = plane
+        self.Offset = offset
 
-        self.Loss = loss
-        
-    # try to apply the ground plane in the nano-update method(?)
-    def Apply( self, particles):
+    def Apply(self, particles):
         """
-        Applies the ground constraint to particles by reversing their position and velocity if they penetrate the ground.
+        Applies the barrier to particles by reversing their position and velocity if they penetrate the directional plane.
+
+        @param particles: List of particles to apply the barrier to.
+        @type particles: list
         """
-        # Method not working for nano particles
         for particle in particles:
-
-            if( particle.Position[0] < 0 ):
-                particle.Position[0] = 0.000001 # reset the particle's position to above the ground plane
-                # TODO add method to make the ground more sticky
-                particle.Velocity = particle.Velocity * np.array([-1 * self.Loss, self.Loss, self.Loss])
-
-
-    def Info( self ):
-        """
-        Returns information about the ground plane
-        Returns:
-        - str: A string containing information about the ground plane
-        """
-        return f"Ground Plane energy loss factor = {np.array([-1 * self.Loss, self.Loss, -1*self.Loss])}"
-    
-    def __str__( self ):
-        return "Wall"
+            # d = normal . (particle - offset)
+            distance = np.dot(self.Plane, particle.position - self.Offset)  # gets the distance of the particle from the normal of the plane
+            if distance <= 0:
+                # TODO: check that the particles don't get stuck behind the barrier -> the velocities keep flipping as we are negative to the plane's normal
+                particle.Velocity = particle.Velocity * (self.Field() * -1)  # self.Field gives the bounce off the plane, already at the barrier to bounce off
