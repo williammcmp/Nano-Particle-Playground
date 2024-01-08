@@ -19,7 +19,7 @@ class Force(ABC):
     - __str__(): Returns the name of the force.
     """
 
-    def __init__(self, name, magnitude, direction):
+    def __init__(self, name, magnitude, direction, units = "N"):
         """
         Initializes a new Force instance.
 
@@ -31,6 +31,7 @@ class Force(ABC):
         self.Name = name
         self.Magnitude = magnitude
         self.Direction = direction
+        self.Units = units
 
     @abstractclassmethod
     def Apply(self, particles):
@@ -91,7 +92,8 @@ class Gravity(Force):
         """
         name = "Gravity"
         direction = np.array([0.0, 0.0, -1])
-        super().__init__(name, magnitude, direction)
+        units = "m/s^2"
+        super().__init__(name, magnitude, direction, units)
 
     def Apply(self, particles):
         """
@@ -141,7 +143,7 @@ class Damping(Force):
         - particles (list): A list of Particle objects to which the drag force is applied.
         """
         for particle in particles:
-            particle.SumForce = particle.SumForce + (particle.Velocity * -self.Field())
+            particle.SumForce = particle.SumForce - self.Field()
 
 
 
@@ -195,7 +197,7 @@ class Barrier(Force):
     @type offset: numpy.ndarray
     """
 
-    def __init__(self, damping=1.0, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0])):
+    def __init__(self, damping=1.0, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0]), units="m"):
         """
         Initialize the Barrier object.
 
@@ -207,7 +209,7 @@ class Barrier(Force):
         @type offset: numpy.ndarray
         """
         name = "Barrier"
-        super().__init__(name, damping, plane)
+        super().__init__(name, damping, plane, units)
         self.Plane = plane
         self.Offset = offset
 
@@ -220,7 +222,11 @@ class Barrier(Force):
         """
         for particle in particles:
             # d = normal . (particle - offset)
-            distance = np.dot(self.Plane, particle.position - self.Offset)  # gets the distance of the particle from the normal of the plane
+            distance = np.dot(self.Plane, particle.Position - self.Offset)  # gets the distance of the particle from the normal of the plane
             if distance <= 0:
                 # TODO: check that the particles don't get stuck behind the barrier -> the velocities keep flipping as we are negative to the plane's normal
-                particle.Velocity = particle.Velocity * (self.Field() * -1)  # self.Field gives the bounce off the plane, already at the barrier to bounce off
+
+                n = self.Plane / np.linalg.norm(self.Plane) #normalises the reflection plane normal
+
+                reflection = particle.Velocity - 2 * (np.dot (particle.Velocity, n) * n)  # the reflected velocity vector off the planes normal
+                particle.Velocity = reflection * self.Magnitude # Magitude of the bounceness of the plane
