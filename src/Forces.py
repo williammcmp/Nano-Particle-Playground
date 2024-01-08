@@ -117,6 +117,7 @@ class Gravity(Force):
     
 
 # Viscous Drag Force
+# TODO: make this drag force more physically realistic 
 class Damping(Force):
     """
     Represents the viscous drag force in the simulation.

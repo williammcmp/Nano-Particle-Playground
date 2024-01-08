@@ -5,6 +5,8 @@ import numpy as np
 from src.Forces import Force, Gravity, Damping, Magnetic, Electric, Barrier
 from src.Particle import Particle
 
+# TODO: implement stronger test fixtures for the Barrier. Its not tested the the correct refection logic is applied 
+
 @pytest.fixture
 def sample_particles():
     # Create a sample list of particles for testing
