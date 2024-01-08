@@ -10,11 +10,12 @@ class Force(ABC):
     Attributes:
     - Name (str): The name of the force.
     - Magnitude (float): The magnitude of the force.
-    - Direction (numpy.ndarray): The direction vector of the force.
+    - Direction (numpy.ndarray): The normalised direction vector of the force.
 
     Methods:
     - Apply(particles): Abstract method to apply the force to a list of particles.
     - Field(): Calculates the force field.
+    - UpdateField(field): Updates the normalised direction vector and magitude of the force.
     - Info(): Returns a string representation of force information.
     - __str__(): Returns the name of the force.
     """
@@ -26,11 +27,11 @@ class Force(ABC):
         Parameters:
         - name (str): The name of the force.
         - magnitude (float): The magnitude of the force.
-        - direction (numpy.ndarray): The direction vector of the force.
+        - direction (numpy.ndarray): The normalised direction vector of the force. 
         """
         self.Name = name
         self.Magnitude = magnitude
-        self.Direction = direction
+        self.Direction = direction / np.linalg.norm(direction)
         self.Units = units
 
     @abstractclassmethod
@@ -43,6 +44,7 @@ class Force(ABC):
         """
         pass
 
+
     def Field(self):
         """
         Calculates the force field.
@@ -51,6 +53,20 @@ class Force(ABC):
         - numpy.ndarray: The force field vector.
         """
         return self.Magnitude * self.Direction
+
+    def UpdateField (self, field):
+        """
+        Updates the force field by saving its magnitude and normalized direction.
+
+        Parameters:
+        - field (numpy.ndarray): The force field to be updated.
+
+        Returns:
+        None
+        """
+
+        self.Magnitude = np.linalg.norm(field)
+        self.Direction = field / np.linalg.norm(field) # the direction must be normalsed 
 
     def Info(self):
         """
