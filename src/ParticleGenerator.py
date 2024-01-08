@@ -71,7 +71,7 @@ def GenerateParticles(n, Simulation, mode = "Origin",
     particles = []
     for x in tqdm(range(n), unit=" Particle(s)"):
         if mode == "Origin":
-            position = np.array([0,0,0])
+            position = np.array([0,0,0.01]) # a small inital offest from the ground plane -> avoids intial bouncing 
         elif mode == "off the wall":
             position = np.array([positionX, positionY, positionZ])
         else:

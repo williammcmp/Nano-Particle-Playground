@@ -198,7 +198,7 @@ class Barrier(Force):
     @type offset: numpy.ndarray
     """
 
-    def __init__(self, damping=1.0, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0]), units="m"):
+    def __init__(self, damping=0.8, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0]), units="m"):
         """
         Initialize the Barrier object.
 
@@ -216,7 +216,7 @@ class Barrier(Force):
 
     def Apply(self, particles):
         """
-        Applies the barrier to particles by reversing their position and velocity if they penetrate the directional plane.
+        Applies the barrier to particles by reversing velocity if they penetrate the directional plane. Their postion is also set to be on the correct side of the barrier
 
         @param particles: List of particles to apply the barrier to.
         @type particles: list
@@ -224,10 +224,12 @@ class Barrier(Force):
         for particle in particles:
             # d = normal . (particle - offset)
             distance = np.dot(self.Plane, particle.Position - self.Offset)  # gets the distance of the particle from the normal of the plane
-            if distance <= 0:
-                # TODO: check that the particles don't get stuck behind the barrier -> the velocities keep flipping as we are negative to the plane's normal
+
+            if distance < 0:
+                # TODO: the offset logic is not 100% working and can result in unexpected results
 
                 n = self.Plane / np.linalg.norm(self.Plane) #normalises the reflection plane normal
+                particle.Position = particle.Position - (n * distance)
 
                 reflection = particle.Velocity - 2 * (np.dot (particle.Velocity, n) * n)  # the reflected velocity vector off the planes normal
                 particle.Velocity = reflection * self.Magnitude # Magitude of the bounceness of the plane
