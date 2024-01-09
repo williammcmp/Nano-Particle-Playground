@@ -29,12 +29,12 @@ def GenerateTestParticles(Simulation):
     """
     print("\nLoading Test Particles:")
     # Create a particle and add it to the simulation
-    p1 = Particle([0, 0, 0], [0, 1, 3], 9, -10)
-    p2 = Particle([0, 0, 0], [0, 1, 3], 9, 10)
-    p3 = Particle([0, 0, 0], [0, 1, 3], 9, 0)
-    # p1 = Particle([0, 0, 0], [0, 1, 3], 1, -1)
-    # p2 = Particle([0, 0, 0], [0, 1, 3], 1, 1)
-    # p3 = Particle([0, 0, 0], [0, 1, 3], 1, 0)
+    # p1 = Particle([0, 0, 0], [0, 1, 3], 9, -10)
+    # p2 = Particle([0, 0, 0], [0, 1, 3], 9, 10)
+    # p3 = Particle([0, 0, 0], [0, 1, 3], 9, 0)
+    p1 = Particle([0, 0, 0.01], [1, 0, 3], 1, -1)
+    p2 = Particle([0, 0, 0.01], [1, 0, 3], 1, 1)
+    p3 = Particle([0, 0, 0.01], [1, 0, 3], 1, 0)
     Simulation.AddParticles([p1,p2,p3])
 
 # Creates a large amount of particles
