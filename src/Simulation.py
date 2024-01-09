@@ -109,8 +109,6 @@ class Simulation:
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
         print(f"\tTotal number of calculations = {numCals}")
 
-        print(f"\nForces:")
-        # print(self.ForceList())
 
         return computeTime, numCals
 
@@ -169,7 +167,7 @@ class Simulation:
         for particle in self.Particles:
             particle.SumForce = np.array([0, 0, 0])
 
-        for force in self.Forces:  # -- Accumulate Forces and apply barrier constraints -> cuts down on number of loops completed intergating the barrier into the forces
+        for force in self.Forces:  # -- Accumulate Forces and apply barrier constraints
             force.Apply(self.Particles)
 
         for particle in self.Particles:  # -- Calculate the position and velocities for each particle
@@ -179,9 +177,10 @@ class Simulation:
             acceleration = particle.SumForce * (1 / particle.Mass)  # a = F / m
             particle.Velocity = particle.Velocity + (acceleration * dt)  # v = u + at
 
-            if particle.Velocity.all() != 0:  # no position update need for particles that are stationary
-                particle.Position = particle.Position + (
-                            particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
+            if np.linalg.norm(particle.Velocity) > 0.001:  # no position update need for particles that are effetivlly stationary
+                print("update position")
+                particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
+
 
 
     def NanoUpdate(self, dt):
