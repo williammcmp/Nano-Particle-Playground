@@ -109,6 +109,8 @@ class Simulation:
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
         print(f"\tTotal number of calculations = {numCals}")
 
+        print(f"{self.Forces}")
+
 
         return computeTime, numCals
 
@@ -152,8 +154,7 @@ class Simulation:
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
         print(f"\tTotal number of calculations = {numCals}")
 
-        print(f"\nForces:")
-        # print(self.ForceList())
+        print(f"{self.Forces}")
 
         return computeTime, numCals
 
@@ -178,7 +179,6 @@ class Simulation:
             particle.Velocity = particle.Velocity + (acceleration * dt)  # v = u + at
 
             if np.linalg.norm(particle.Velocity) > 0.001:  # no position update need for particles that are effetivlly stationary
-                print("update position")
                 particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
 
 
