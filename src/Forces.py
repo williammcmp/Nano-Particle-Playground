@@ -199,7 +199,7 @@ class Electric(Force):
     
 class Barrier(Force):
     """
-    Barrier represents a wall or ground plane in the simulation that will reflect the particles upon contact.
+    Barrier represents a wall or ground plane in the simulation that will reflect the particles upon contact. By default, the Barrier object is setup as a ground plane
 
     @ivar Plane: The normal vector of the barrier plane.
     @type Plane: numpy.ndarray
