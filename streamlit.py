@@ -133,7 +133,7 @@ mode, positionX, positionY, positionZ, massRange, avgEnergy, charged, chargedNev
 if simMode != "Silicon Nano-Particles":
     a = st.sidebar.expander("Simulation Forces")
     if a.checkbox("Gravity", value=True):
-        simulation.AddForce([Gravity(Damping=0)]) # Adds the ground plane to force list
+        simulation.AddForce([Gravity()]) # Adds the ground plane to force list
 
     # option for the user to define the magnetic field
     if a.checkbox("Magnetic field"):
@@ -361,7 +361,7 @@ if simMode == "Silicon Nano-Particles":
         # st.markdown(list_to_markdown_table(simulation.FroceList()))
 
     with plot_col:
-        fig, ax = plotTrajectories(simulation, magneticDirection[dataSeries])
+        fig, ax = plotTrajectories(simulation)
 
         st.pyplot(fig)
 
@@ -384,11 +384,6 @@ if simMode == "Silicon Nano-Particles":
         st.pyplot(fig)
 else: 
     # Run the SIM for non Nano-partilce modes
-    simulation.AddForce([Barrier()])
-
-    # print(simulation.GetForce("Magnetic")[0].Field())
-    # simulation.AddForce([Barrier(plane = np.array([1.0, 0, 0]))])
-
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     
@@ -414,7 +409,8 @@ else:
         st.pyplot(fig)
 
     with plot_col2:
-        fig, ax = plotTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
+        
+        fig, ax = plotTrajectories(simulation)
 
         st.pyplot(fig)
 
@@ -431,4 +427,4 @@ if simMode != "Silicon Nano-Particles":
     with st.expander("Simulation Computation Info (Stats)"):
         st.markdown(sim_info)
         st.markdown("Froces:")
-        # st.markdown(simulation.FroceList())
+        st.markdown(simulation.Forces)
