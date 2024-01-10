@@ -64,9 +64,14 @@ class Force(ABC):
         Returns:
         None
         """
-
         self.Magnitude = np.linalg.norm(field)
-        self.Direction = field / np.linalg.norm(field) # the direction must be normalsed 
+
+        # cant normalise a zero vector
+        if np.all(field) != 0:
+            self.Direction = field / np.linalg.norm(field) # the direction must be normalsed 
+        else:
+            self.Direction = field
+
 
     def Info(self):
         """
@@ -75,7 +80,7 @@ class Force(ABC):
         Returns:
         - str: String representation of force information.
         """
-        return f'{self.Name} = {self.Field}'
+        return f'{self.Name} = {self.Field()}'
 
     def __str__(self):
         """
