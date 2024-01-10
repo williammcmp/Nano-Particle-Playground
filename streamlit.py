@@ -142,23 +142,25 @@ if simMode != "Silicon Nano-Particles":
         magneticX = c.number_input("Magnetic X", value=0.0)
         magneticY = c.number_input("Magnetic Y", value=0.0)
         magneticZ = c.number_input("Magnetic Z", value=0.0)
+        print(np.array([magneticX, magneticY, magneticZ]))
 
         magForce = Magnetic() # creating the Magnetic obj
         # updateing the field -> obj will save the direction and magitude seperatlly
-        magForce.UpdateField([np.array([magneticX, magneticY, magneticZ])]) 
+        magForce.UpdateField(np.array([magneticX, magneticY, magneticZ])) 
+        print(magForce.Field())
         simulation.AddForce([magForce]) # Adds mag force to force list 
 
     # option for the user to define the electric field
     if a.checkbox("Electric field"):
         c = a.container()
-        c.markdown("Define the Electric Field (T):")
+        c.markdown("Define the Electric Field (V/m):")
         electricX = c.number_input("Electric X", value=0.0)
         electricY = c.number_input("Electric Y", value=0.0)
         electricZ = c.number_input("Electric Z", value=0.0)
 
         eleForce = Electric()
         # updateing the field -> obj will save the direction and magitude seperatlly
-        eleForce.UpdateField([np.array([electricX, electricY, electricZ])]) 
+        eleForce.UpdateField(np.array([electricX, electricY, electricZ])) 
         simulation.AddForce([eleForce])
 
 
@@ -175,7 +177,7 @@ if simMode != "Silicon Nano-Particles":
             simulation.AddForce([Barrier()])
 
 
-    if not a.checkbox("Wall plane"): #TODO: add more logic for addational barrier types (diagnal and user custom)
+    if a.checkbox("Wall plane"): #TODO: add more logic for addational barrier types (diagnal and user custom)
         simulation.AddForce([Barrier(damping=0.5, plane=np.array([1.0, 0.0, 0.0]) )])
 
 else: # condition for the Silicion Nano-Particle mode
@@ -427,4 +429,5 @@ if simMode != "Silicon Nano-Particles":
     with st.expander("Simulation Computation Info (Stats)"):
         st.markdown(sim_info)
         st.markdown("Froces:")
-        st.markdown(simulation.Forces)
+        for force in simulation.Forces:
+            st.markdown(force.Info())
