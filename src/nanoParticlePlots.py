@@ -167,7 +167,7 @@ def plotSimulatedMassHistogram(mass):
     return fig, ax
 
 
-def plotTrajectories(simulation, direction):
+def plotTrajectories(simulation):
 
    
     fig = plt.figure(figsize=(8,8))
@@ -192,9 +192,16 @@ def plotTrajectories(simulation, direction):
     X, Y, Z = np.meshgrid(x, y, z)
 
     # Magnetic field components [Bx, By, Bz] at each point in the grid
-    Bx = direction[0]
-    By = direction[1]
-    Bz = direction[2]
+    Bx = 0
+    By = 0
+    Bz = 0
+
+    # Update the direction if the magnetic force is used
+    if simulation.HasForce("Magnetic"):
+        direction = simulation.GetForce("Magnetic")[0].Field()
+        Bx = direction[0]
+        By = direction[1]
+        Bz = direction[2]
 
     vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
 
