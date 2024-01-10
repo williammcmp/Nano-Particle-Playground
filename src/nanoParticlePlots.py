@@ -197,15 +197,16 @@ def plotTrajectories(simulation):
     Bz = 0
 
     # Update the direction if the magnetic force is used
-    if simulation.HasForce("Magnetic"):
-        direction = simulation.GetForce("Magnetic")[0].Field()
-        Bx = direction[0]
-        By = direction[1]
-        Bz = direction[2]
+    # if simulation.HasForce("Magnetic"):
+    #     direction = simulation.GetForce("Magnetic")[0].Field()
+    #     print(direction)
+    #     Bx = direction[0]
+    #     By = direction[1]
+    #     Bz = direction[2]
 
-    vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
+    # vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
 
-    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.1 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    # ax.quiver(X, Y, Z, Bx, By, Bz, length=0.1 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
     
     # sets the legend's lables to be bright
     legend = ax.legend()
