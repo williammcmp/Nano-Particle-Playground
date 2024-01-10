@@ -55,6 +55,44 @@ class Simulation:
         """
         for force in Forces:
             self.Forces.append(force)
+            
+    def HasForce(self, forceName):
+        """
+        Checks if a force with the given name exists in the simulation.
+
+        Parameters:
+        - forceName (str): The name of the force to check.
+
+        Returns:
+        - bool: True if the force exists, False otherwise.
+        """
+        for force in self.Forces:
+            if forceName == force.Name:
+                return True
+
+        return False
+
+    def GetForce(self, forceName):
+        """
+        Returns a list of forces with the given name.
+
+        Parameters:
+        - forceName (str): The name of the force to retrieve.
+
+        Returns:
+        - list: A list of Force objects with the specified name.
+        """
+        forceList = []
+
+        for force in self.Forces:
+            if forceName == force.Name:
+                forceList.append(force)
+
+        return forceList
+
+    def RemoveForce( self, force ):
+        if self.HasForce(force.Name):
+            self.Forces.remove(force)
 
     def Save(self):
         """
@@ -210,42 +248,6 @@ class Simulation:
             if particle.Velocity.all() != 0:  # no position update needed for particles that are stationary
                 particle.Position = particle.Position + (
                             particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
-
-
-
-    def HasForce(self, forceName):
-        """
-        Checks if a force with the given name exists in the simulation.
-
-        Parameters:
-        - forceName (str): The name of the force to check.
-
-        Returns:
-        - bool: True if the force exists, False otherwise.
-        """
-        for force in self.Forces:
-            if forceName == force.Name:
-                return True
-
-        return False
-
-    def GetForce(self, forceName):
-        """
-        Returns a list of forces with the given name.
-
-        Parameters:
-        - forceName (str): The name of the force to retrieve.
-
-        Returns:
-        - list: A list of Force objects with the specified name.
-        """
-        forceList = []
-
-        for force in self.Forces:
-            if forceName == force.Name:
-                forceList.append(force)
-
-        return forceList
     
     def StreamletData( self ):
         
