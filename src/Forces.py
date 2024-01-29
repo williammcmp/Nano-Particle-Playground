@@ -219,7 +219,7 @@ class Barrier(Force):
     @type offset: numpy.ndarray
     """
 
-    def __init__(self, damping=0.8, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0]), units="m"):
+    def __init__(self, damping=0, plane=np.array([0.0, 0.0, 1.0]), offset=np.array([0.0, 0.0, 0.0]), units="m"):
         """
         Initialize the Barrier object.
 
