@@ -2,7 +2,9 @@
 from src.Particle import Particle
 from tqdm import tqdm
 import numpy as np
+import scipy as sp
 import random
+import json
 
 # Generates there standard test particles
 def GenerateTestParticles(Simulation):
@@ -65,33 +67,103 @@ def GenerateParticles(n, Simulation, mode = "Origin",
     None
     """
 
+    if mode == "load":
+        particles = LoadParticleSettings()
+    else:
+        print(f"\nGenerating {n} Particles:")
+        particles = []
+        for x in tqdm(range(n), unit=" Particle(s)"):
+            if mode == "Origin":
+                position = np.array([0,0,0.01]) # a small inital offest from the ground plane -> avoids intial bouncing 
+            elif mode == "off the wall":
+                position = np.array([positionX, positionY, positionZ])
+            else:
+                x_pos = np.random.normal(positionX)
+                y_pos = np.random.normal(positionY)
+                position = np.array([x_pos, y_pos, 0.001]) # all particles will start at z = 0
+
+            mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
+            velAvg = np.sqrt(((2/3)*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
+            velocity = np.random.uniform(-velAvg, velAvg, 3)
+            velocity[2] = np.abs(velocity[2])
 
 
-    print(f"\nGenerating {n} Particles:")
-    particles = []
-    for x in tqdm(range(n), unit=" Particle(s)"):
-        if mode == "Origin":
-            position = np.array([0,0,0.01]) # a small inital offest from the ground plane -> avoids intial bouncing 
-        elif mode == "off the wall":
-            position = np.array([positionX, positionY, positionZ])
-        else:
-            x_pos = np.random.normal(positionX)
-            y_pos = np.random.normal(positionY)
-            z_pos = np.abs(np.random.normal(positionZ))
-            position = np.array([x_pos, y_pos, z_pos])
-        mass = random.uniform(massRange[0],massRange[1]) # fixed to have smaller masses
-        velAvg = np.sqrt(((2/3)*avgEnergy)/mass) # 1/3 needed to allow for energy across all axies
-        velocity = np.random.uniform(-velAvg, velAvg, 3)
-        velocity[2] = np.abs(velocity[2])
-        
-
-        if charged:
-            charge = random.uniform(1.0, 2.0) * mass * random.choice([-1 * chargedNev,1 * chargedPos]) # implemetns the charge/mass factor for NPs
-            # charge = random.uniform(1.0, 2.0) * mass # implemetns the charge/mass factor for NPs
             
 
-            particles.append(Particle(position, velocity, mass, charge))
-        else: 
-            particles.append(Particle(position, velocity, mass))
+            if charged:
+                charge = random.uniform(1.0, 2.0) * mass * random.choice([-1 * chargedNev,1 * chargedPos]) # implemetns the charge/mass factor for NPs
+                # charge = random.uniform(1.0, 2.0) * mass # implemetns the charge/mass factor for NPs
+                
+
+                particles.append(Particle(position, velocity, mass, charge))
+            else: 
+                particles.append(Particle(position, velocity, mass))
 
     Simulation.AddParticles(particles)
+
+
+def pGen (n, mass, energy, reduceZ, randomness):
+    print(n)
+    p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
+    p_mass = np.random.uniform(mass[0] , mass[1], n)
+
+    p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
+    
+    zeros = np.zeros((p_positions.shape[0], 1)) + 0.0001
+    p_positions = np.hstack((p_positions, zeros))
+    
+    particles = []
+
+    for row in range(n):
+        charge = random.uniform(1.0, 2.0) * random.choice([-3,3])
+        particles.append(Particle(p_positions[row], p_velocity[row], p_mass[row], charge))
+
+    return particles
+    
+
+def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
+
+    velMag = np.sqrt(2 * (energy * 100) / mass) # 1/3 needed to allow for energy across all axies
+    
+    
+    if reduceZ:
+        z = np.sqrt(9 - (position[:,0]**2 + position[:,1]**2)) # Reduces the velocity in the Z mag when further away from the origin (pre normalised z is always 1)
+    else:
+        z = np.ones((position.shape[0], 1)) # The virtical compoent of the vecotr before normalisation is always 1
+
+    zMag = z.reshape(-1, 1) # Allows z postional values to be hstacked on the position array
+
+    velDir = np.hstack((position, zMag)) 
+    velNorm = velDir / np.linalg.norm(velDir, axis=1, keepdims=True) # ensure normalization along the correct axis
+    Velocity = velMag.reshape(-1, 1) * velNorm
+
+    if randomness:
+        a = np.random.randn(position.shape[0],3) # Random offset in the particles inital velocity
+        Velocity = Velocity + a # apply the random offset to the particles inital velocity
+        Velocity[:, 2] = np.abs(Velocity[:, 2]) # makes Vz positive
+
+    return Velocity
+        
+
+def load_from_json(filename='output.json'):
+    try:
+        with open(filename, 'r') as json_file:
+            data = json.load(json_file)
+        return data
+    except FileNotFoundError:
+        print(f"Error: {filename} not found.")
+        return None
+
+def LoadParticleSettings():
+    loaded_data = load_from_json()
+
+    if loaded_data is not None:
+        print("Loaded data:")
+        print(loaded_data)
+        particles = pGen(loaded_data['particleNumber'], loaded_data['particleMass'], loaded_data['particleEnergy'], loaded_data['useNonConstantZ'], loaded_data['randomness'])
+    
+    return particles
+
+
+    
+    
