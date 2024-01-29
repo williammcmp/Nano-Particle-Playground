@@ -66,7 +66,7 @@ def buildSideBar(simMode):
 def buildPartilceDistributions(simMode):
     if simMode == "Standard":
         a = st.sidebar.expander("Particle Distribution Settings")
-        positionType = a.selectbox("Starting Position:", ["Origin", "Random", "off the wall"])
+        positionType = a.selectbox("Starting Position:", ["Origin", "Random", "off the wall", "load"])
         if positionType == "Random ":
             positionX = a.number_input("Average inital X pos:")
             positionY = a.number_input("Average inital Y pos:")
@@ -177,7 +177,7 @@ if simMode != "Silicon Nano-Particles":
             simulation.AddForce([Barrier()])
 
 
-    if a.checkbox("Wall plane"): #TODO: add more logic for addational barrier types (diagnal and user custom)
+    if a.checkbox("Wall plane", value=False): #TODO: add more logic for addational barrier types (diagnal and user custom)
         simulation.AddForce([Barrier(damping=0.5, plane=np.array([1.0, 0.0, 0.0]) )])
 
 else: # condition for the Silicion Nano-Particle mode
