@@ -14,31 +14,11 @@ from src.Particle import Particle
 from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
-from src.DataLoader import load_experimental_data
+from src.DataLoader import *
 from src.streamlitText import *
 from src.nanoParticlePlots import *
 
-# Function to write data to a JSON file
-def write_to_json(data, filename='output.json'):
-    with open(filename, 'w') as json_file:
-        json.dump(data, json_file)
 
-def pGen (n, mass, energy, reduceZ, randomness):
-    p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
-    p_mass = np.random.uniform(mass[0] , mass[1], n)
-
-    p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
-    
-    zeros = np.zeros((p_positions.shape[0], 1)) + 0.0001
-    p_positions = np.hstack((p_positions, zeros))
-    
-    dic = {
-        "pos" : p_positions,
-        "mass" : p_mass, 
-        "vel": p_velocity
-    }
-    
-    return dic
 
 def scale_convert(range, scaleFactor = 1e-9):
     """
@@ -149,7 +129,7 @@ with plot_col1:
     # Set plot labels and legend
     plt.legend()
     plt.grid()
-    plt.xlabel('Values')
+    plt.xlabel('Positon (m)')
     plt.ylabel('Density')
     plt.title('Normalized Axial Distribution of Particles')
 
@@ -176,7 +156,7 @@ with plot_col2:
 
     plt.xlabel('X-axis')
     plt.ylabel('Y-axis')
-    plt.title('Inital position')
+    plt.title('Inital particle position')
     
     st.pyplot(fig)
 
@@ -206,24 +186,39 @@ with col_plot1:
 with col_plot2:
     x = x_data
     y = y_data
-    velocities = p['vel']  # Replace with your actual velocities
+    velocities = p['vel'] # Replace with your actual velocities
+    print(velocities)
 
     # Calculate the magnitude of velocities
     speeds = np.linalg.norm(velocities, axis=1)
+    momentum = speeds * p['mass']
+    print(np.min(speeds))
+    print(np.max(speeds))
+    
 
     # Create a figure and axis
     fig, ax = plt.subplots()
 
     # Create a 2D histogram (heatmap) of velocities using ax.hist2d
-    h = ax.hist2d(x, y, bins=50, cmap='viridis', cmin=1, weights=speeds)
+    h = ax.hist2d(x, y, bins=50, weights=momentum)
 
     # Add colorbar for reference
     cbar = fig.colorbar(h[3], ax=ax)
-    cbar.set_label('Inital velocity')
+    cbar.set_label('momentum')
 
     # Set axis labels and title
-    ax.set_xlabel('X-axis')
-    ax.set_ylabel('Y-axis')
-    ax.set_title('Inital velocity (magnitude)')
+    ax.set_xlabel('X-axis (m)')
+    ax.set_ylabel('Y-axis (m)')
+    ax.set_title('Inital momentum (magnitude) (m/s)')
 
     st.pyplot(fig)
+    fig, ax = plt.subplots()
+
+    ax.hist(speeds, bins=30, density=True, alpha=0.7)
+
+    plt.xlabel('Particle Count')
+    plt.ylabel('Speed (m/s)')
+    plt.title('Distribution of inital particle speed')
+    st.pyplot(fig)
+
+

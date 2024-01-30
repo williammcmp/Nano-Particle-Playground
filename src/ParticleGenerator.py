@@ -6,6 +6,8 @@ import scipy as sp
 import random
 import json
 
+from src.DataLoader import *
+
 # Generates there standard test particles
 def GenerateTestParticles(Simulation):
     """
@@ -102,8 +104,10 @@ def GenerateParticles(n, Simulation, mode = "Origin",
     Simulation.AddParticles(particles)
 
 
+
+
+
 def pGen (n, size, energy, reduceZ, randomness):
-    print(n)
     mass = [ParticleShericalMass(size[0]), ParticleShericalMass(size[1])]
     p_mass = np.random.uniform(mass[0] , mass[1], n)
     p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
@@ -113,11 +117,24 @@ def pGen (n, size, energy, reduceZ, randomness):
     zeros = np.zeros((p_positions.shape[0], 1)) + 0.0001
     p_positions = np.hstack((p_positions, zeros))
     
-    particles = []
+    dic = {
+        "pos" : p_positions,
+        "mass" : p_mass, 
+        "vel": p_velocity
+    }
+    return dic 
 
+# Looads the from the pGen
+def pLoad(dic):
+    position = dic['pos']
+    mass = dic['mass']
+    velocity = dic['vel']
+
+    n = len(position)
+    particles = []
     for row in range(n):
         charge = random.uniform(1.0, 2.0) * random.choice([-3,3])
-        particles.append(Particle(p_positions[row], p_velocity[row], p_mass[row], charge))
+        particles.append(Particle(position[row], velocity[row], mass[row], charge))
 
     return particles
     
@@ -146,22 +163,13 @@ def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
     return Velocity
         
 
-def load_from_json(filename='output.json'):
-    try:
-        with open(filename, 'r') as json_file:
-            data = json.load(json_file)
-        return data
-    except FileNotFoundError:
-        print(f"Error: {filename} not found.")
-        return None
-
 def LoadParticleSettings():
     loaded_data = load_from_json()
 
     if loaded_data is not None:
         print("Loaded data:")
         print(loaded_data)
-        particles = pGen(loaded_data['particleNumber'], loaded_data['particleMass'], loaded_data['particleEnergy'], loaded_data['useNonConstantZ'], loaded_data['randomness'])
+        particles = pLoad(loaded_data['particleNumber'], loaded_data['particleMass'], loaded_data['particleEnergy'], loaded_data['useNonConstantZ'], loaded_data['randomness'])
     
     return particles
 
