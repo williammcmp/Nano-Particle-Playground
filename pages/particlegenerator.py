@@ -39,6 +39,27 @@ def pGen (n, mass, energy, reduceZ, randomness):
     }
     
     return dic
+
+def scale_convert(range, scaleFactor = 1e-9):
+    """
+    Convert the lower and upper values of a range from meters to nanometers.
+
+    Parameters:
+        rnage (tuple): A tuple containing the lower and upper values of the range in meters.
+        scaleFactor (float, optional): A scaling factor the range tuple will be multplied by. Default is 10^-9, the scale factor of m -> nm
+
+    Returns:
+        tuple: A tuple containing the lower and upper values of the range in nanometers.
+
+    Example:
+    ```
+    nm_scale = scale_convert([10, 100])
+    ```
+    """
+    lowerRange = range[0] * scaleFactor
+    upperRange = range[1] * scaleFactor
+
+    return lowerRange, upperRange
     
 
 def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
@@ -93,8 +114,8 @@ slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     particleNumber = st.slider("Number of particles", 10, 10000, 1000)
-    particleEnergy = st.slider("Inital energy of particles", 1, 100, 10)
-    particleMass = st.slider('Mass range of particles',0.0, 100.0, (25.0, 75.0))
+    particleEnergy = st.slider("Inital energy of particles (J)", 1, 100, 10)
+    particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
     randomness = st.checkbox("Randomness 🤷", value=False)
 
@@ -102,14 +123,14 @@ with slider_col:
         config_data = {
                 "particleNumber": particleNumber,
                 "particleEnergy": particleEnergy,
-                "particleMass": particleMass,
+                "particleSize": scale_convert(particleSize),
                 "useNonConstantZ": useNonConstantZ,
                 "randomness": randomness
             }
         write_to_json(config_data)
         st.success("Configuration saved to output.json")
 
-p = pGen(particleNumber, particleMass, particleEnergy, useNonConstantZ, randomness)
+p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
 
 
 with plot_col1:

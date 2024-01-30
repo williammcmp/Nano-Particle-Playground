@@ -102,10 +102,11 @@ def GenerateParticles(n, Simulation, mode = "Origin",
     Simulation.AddParticles(particles)
 
 
-def pGen (n, mass, energy, reduceZ, randomness):
+def pGen (n, size, energy, reduceZ, randomness):
     print(n)
-    p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
+    mass = [ParticleShericalMass(size[0]), ParticleShericalMass(size[1])]
     p_mass = np.random.uniform(mass[0] , mass[1], n)
+    p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
 
     p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
     
@@ -163,6 +164,29 @@ def LoadParticleSettings():
         particles = pGen(loaded_data['particleNumber'], loaded_data['particleMass'], loaded_data['particleEnergy'], loaded_data['useNonConstantZ'], loaded_data['randomness'])
     
     return particles
+
+# Calcuates the mass of a spherical particle, default uses Silicon density. Retuens in standard Units
+def ParticleShericalMass(diamater, density = 2330): 
+    """
+    Calculate the mass of a spherical particle.
+
+    This function computes the mass of a spherical particle based on its diameter and density, where the default density is set to that of Silicon.
+
+    Parameters:
+    - diameter (float): The diameter of the spherical particle.
+    - density (float, optional): The density of the material composing the particle. Default is 2330 kg/m^3, the density of Silicon.
+
+    Returns:
+    - float: The mass of the spherical particle in standard units (kilograms).
+
+    Example:
+    ```
+    particle_mass = ParticleSphericalMass(0.1)  # Calculates the mass of a particle with a diameter of 0.1 meters
+    ```
+    """
+    mass = (3/4) * np.pi * ((diamater / 2) ** 2) * density
+
+    return mass
 
 
     
