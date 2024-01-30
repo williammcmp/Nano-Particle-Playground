@@ -114,7 +114,7 @@ def pGen (n, size, energy, reduceZ, randomness):
 
     p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
     
-    zeros = np.zeros((p_positions.shape[0], 1)) + 0.0001
+    zeros = np.zeros((p_positions.shape[0], 1)) + 0.0000000001
     p_positions = np.hstack((p_positions, zeros))
     
     dic = {
@@ -125,14 +125,17 @@ def pGen (n, size, energy, reduceZ, randomness):
     return dic 
 
 # Looads the from the pGen
-def pLoad(dic):
-    position = dic['pos']
-    mass = dic['mass']
-    velocity = dic['vel']
+def pLoad(settings):
 
-    n = len(position)
+    generatedSettings = pGen(settings['particleNumber'], settings['particleSize'], settings['particleEnergy'], settings['useNonConstantZ'], settings['randomness'])
+
+    position = generatedSettings['pos']
+    mass = generatedSettings['mass']
+    velocity = generatedSettings['vel']
+
+    particleCount = settings['particleNumber']
     particles = []
-    for row in range(n):
+    for row in range(particleCount):
         charge = random.uniform(1.0, 2.0) * random.choice([-3,3])
         particles.append(Particle(position[row], velocity[row], mass[row], charge))
 
@@ -169,7 +172,7 @@ def LoadParticleSettings():
     if loaded_data is not None:
         print("Loaded data:")
         print(loaded_data)
-        particles = pLoad(loaded_data['particleNumber'], loaded_data['particleMass'], loaded_data['particleEnergy'], loaded_data['useNonConstantZ'], loaded_data['randomness'])
+        particles = pLoad(loaded_data)
     
     return particles
 

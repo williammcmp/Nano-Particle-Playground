@@ -418,7 +418,7 @@ else:
 
     # fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
-    st.pyplot(fig)
+    # st.pyplot(fig)
 
 
 

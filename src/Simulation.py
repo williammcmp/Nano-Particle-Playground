@@ -216,8 +216,8 @@ class Simulation:
             acceleration = particle.SumForce * (1 / particle.Mass)  # a = F / m
             particle.Velocity = particle.Velocity + (acceleration * dt)  # v = u + at
 
-            if np.linalg.norm(particle.Velocity) > 0.001:  # no position update need for particles that are effetivlly stationary
-                particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
+            # if np.linalg.norm(particle.Velocity) > 0.000000001:  # no position update need for particles that are effetivlly stationary
+            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
 
 
 

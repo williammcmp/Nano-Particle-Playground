@@ -149,8 +149,8 @@ def plotSimulatedPosition(position, charge):
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
     # Customize the plot (optional)
-    ax.set_xlabel('X (μm)')
-    ax.set_ylabel('Y (μm)')
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
 
@@ -212,10 +212,25 @@ def plotTrajectories(simulation):
     legend = ax.legend()
     for lh in legend.legendHandles:
         lh.set_alpha(1)     
-    ax.set_xlabel('X (μm)')
-    ax.set_ylabel('Y (μm)')
-    ax.set_zlabel('Z (μm)')
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
+    ax.set_zlabel('Z (m)')
     ax.set_title('Trajectories of simulated Silicon Nano-Particles')
+    # ax.set_xlim([-3 * 1e-6, 3 * 1e-6])
+    # ax.set_ylim([-3 * 1e-6, 3 * 1e-6])
+    # ax.set_zlim([0,0.005])
+
+    radius = 2 * 1e-6
+    center = (0, 0, 0)
+    num_points = 100
+
+    # Parametric equations for a circle in 3D space
+    theta = np.linspace(0, 2*np.pi, num_points)
+    x = center[0] + radius * np.cos(theta)
+    y = center[1] + radius * np.sin(theta)
+    z = center[2] + np.zeros_like(theta)  # All z-coordinates are zeros (lies in XY plane)
+
+    ax.plot(x, y, z, color='r')
 
     return fig, ax
 
