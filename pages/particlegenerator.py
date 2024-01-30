@@ -42,28 +42,6 @@ def scale_convert(range, scaleFactor = 1e-9):
     return lowerRange, upperRange
     
 
-def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
-
-    velMag = np.sqrt(2 * (energy) / mass) # 1/3 needed to allow for energy across all axies
-    
-    
-    if reduceZ:
-        z = np.sqrt(9 - (position[:,0]**2 + position[:,1]**2)) # Reduces the velocity in the Z mag when further away from the origin (pre normalised z is always 1)
-    else:
-        z = np.ones((position.shape[0], 1)) # The virtical compoent of the vecotr before normalisation is always 1
-
-    zMag = z.reshape(-1, 1) # Allows z postional values to be hstacked on the position array
-
-    velDir = np.hstack((position, zMag)) 
-    velNorm = velDir / np.linalg.norm(velDir, axis=1, keepdims=True) # ensure normalization along the correct axis
-    Velocity = velMag.reshape(-1, 1) * velNorm
-
-    if randomness:
-        a = np.random.randn(position.shape[0],3) # Random offset in the particles inital velocity
-        Velocity = Velocity + a # apply the random offset to the particles inital velocity
-        Velocity[:, 2] = np.abs(Velocity[:, 2]) # makes Vz positive
-
-    return Velocity
 
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
@@ -116,21 +94,21 @@ p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomne
 with plot_col1:
     fig, ax = plt.subplots()
     # Plot the norm alized histogram
-    ax.hist(p['pos'][:,0], bins=30, density=True, color='green', alpha=0.7, label="X-distribution")
-    ax.hist(p['pos'][:,1], bins=30, density=True, color='blue', alpha=0.7, label="Y-distribution")
+    ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
+    ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
 
     mu = 0
     variance = 1
     sigma = math.sqrt(variance)
-    x = np.linspace(mu - 3*sigma, mu + 3*sigma, 100)
-    ax.plot(x, stats.norm.pdf(x, mu, sigma), color="red", alpha=0.5)
+    x = np.linspace(mu - 3*sigma, mu + 3*sigma, 100) * 1e-6
+    # ax.plot(x, stats.norm.pdf(x, mu, sigma), color="red", alpha=0.5)
 
 
     # Set plot labels and legend
     plt.legend()
     plt.grid()
     plt.xlabel('Positon (m)')
-    plt.ylabel('Density')
+    plt.ylabel('Particle Count')
     plt.title('Normalized Axial Distribution of Particles')
 
     # Show the plot using Streamlit
@@ -173,11 +151,28 @@ with col_text:
 with col_plot1: 
     fig = plt.figure()  # Adjust the figsize as needed
     ax = fig.add_subplot(111, projection='3d')
-    ax.quiver(p['pos'][:,0], p['pos'][:,1], p['pos'][:,2], p['vel'][:,0], p['vel'][:,1], p['vel'][:,2], length=0.5, normalize=True, color='blue', arrow_length_ratio=0.2, alpha=0.1)
+    ax.quiver(p['pos'][:,0], p['pos'][:,1], p['pos'][:,2]*0, p['vel'][:,0], p['vel'][:,1], p['vel'][:,2], length=0.000005, normalize=True, color='blue', arrow_length_ratio=0.0002, alpha=0.1)
 
-    ax.set_xlim([-3, 3])
-    ax.set_ylim([-3, 3])
-    ax.set_zlim([0,1])
+
+
+    radius = 2 * 1e-6
+    center = (0, 0, 0)
+    num_points = 100
+
+    # Parametric equations for a circle in 3D space
+    theta = np.linspace(0, 2*np.pi, num_points)
+    x = center[0] + radius * np.cos(theta)
+    y = center[1] + radius * np.sin(theta)
+    z = center[2] + np.zeros_like(theta)  # All z-coordinates are zeros (lies in XY plane)
+
+    ax.plot(x, y, z, color='r')
+
+    ax.set_xlim([-3 * 1e-6, 3 * 1e-6])
+    ax.set_ylim([-3 * 1e-6, 3 * 1e-6])
+    ax.set_zlim([0,0.000005])
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
+    ax.set_zlabel('Z (m)')
     plt.title("Inital particle directions")
 
     st.pyplot(fig)
@@ -220,5 +215,7 @@ with col_plot2:
     plt.ylabel('Speed (m/s)')
     plt.title('Distribution of inital particle speed')
     st.pyplot(fig)
+
+
 
 

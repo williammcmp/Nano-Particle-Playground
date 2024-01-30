@@ -110,7 +110,7 @@ def GenerateParticles(n, Simulation, mode = "Origin",
 def pGen (n, size, energy, reduceZ, randomness):
     mass = [ParticleShericalMass(size[0]), ParticleShericalMass(size[1])]
     p_mass = np.random.uniform(mass[0] , mass[1], n)
-    p_positions = np.random.randn(n,2) # 1/3 is there to move the squish the distro between [-1,1]
+    p_positions = np.random.randn(n,2) * 1e-6 # scale down the positions to be at the micron scale
 
     p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
     
@@ -151,13 +151,13 @@ def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
 
     zMag = z.reshape(-1, 1) # Allows z postional values to be hstacked on the position array
 
-    velDir = np.hstack((position, zMag)) 
+    velDir = np.hstack((position * 1e5, zMag)) # 1e4 is to scale up the position from the origin
     velNorm = velDir / np.linalg.norm(velDir, axis=1, keepdims=True) # ensure normalization along the correct axis
     Velocity = velMag.reshape(-1, 1) * velNorm
 
     if randomness:
         a = np.random.randn(position.shape[0],3) # Random offset in the particles inital velocity
-        Velocity = Velocity + a # apply the random offset to the particles inital velocity
+        Velocity = Velocity + a * 1e-3 # apply the random offset to the particles inital velocity. 1e-3 is to scale down the random offset -> designed to run at the nm scales
         Velocity[:, 2] = np.abs(Velocity[:, 2]) # makes Vz positive
 
     return Velocity
