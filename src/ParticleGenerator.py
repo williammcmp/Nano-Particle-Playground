@@ -110,7 +110,7 @@ def GenerateParticles(n, Simulation, mode = "Origin",
 def pGen (n, size, energy, reduceZ, randomness):
     mass = [ParticleShericalMass(size[0]), ParticleShericalMass(size[1])]
     p_mass = np.random.uniform(mass[0] , mass[1], n)
-    p_positions = np.random.randn(n,2) * 1e-6 # scale down the positions to be at the micron scale
+    p_positions = np.random.randn(n,2) * 1e-9 # scale down the positions to be at the micron scale
 
     p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
     
@@ -129,9 +129,14 @@ def pLoad(settings):
 
     generatedSettings = pGen(settings['particleNumber'], settings['particleSize'], settings['particleEnergy'], settings['useNonConstantZ'], settings['randomness'])
 
-    position = generatedSettings['pos']
+    position = generatedSettings['pos'] 
     mass = generatedSettings['mass']
     velocity = generatedSettings['vel']
+    print(position)
+    print(velocity)
+
+
+    print(velocity)
 
     particleCount = settings['particleNumber']
     particles = []
