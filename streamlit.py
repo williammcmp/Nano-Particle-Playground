@@ -172,9 +172,9 @@ if simMode != "Silicon Nano-Particles":
         particleBounce = a.checkbox("Bouncey ground")
         if particleBounce:
             particleBounceFactor = a.number_input("Bounce factor (0 - no bounce, 1 lots of bounce)")
-            simulation.AddForce([Barrier(damping=particleBounceFactor)])
+            simulation.AddForce([GroundPlane(damping=particleBounceFactor)])
         else:
-            simulation.AddForce([Barrier()])
+            simulation.AddForce([GroundPlane()])
 
 
     if a.checkbox("Wall plane", value=False): #TODO: add more logic for addational barrier types (diagnal and user custom)
@@ -415,6 +415,16 @@ else:
         fig, ax = plotTrajectories(simulation)
 
         st.pyplot(fig)
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    for particle in simulation.Particles:
+        ax.plot(range(len(particle.History[:, 1])), particle.History[:, 2]) #plot the x axis of the particle over each time  step
+
+    ax.set_xlabel('Time Step (n) ')
+    ax.set_ylabel('position (z)')
+    # ax.set_xlim(0, 10)
+
+    st.pyplot(fig)
 
     # fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
