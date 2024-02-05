@@ -1,5 +1,6 @@
 # src/Simulation.py
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import time
 import random
@@ -93,6 +94,16 @@ class Simulation:
     def RemoveForce( self, force ):
         if self.HasForce(force.Name):
             self.Forces.remove(force)
+
+    def ForceTable(self):
+        forces = {}
+        for force in self.Forces:
+            forces.update(force.Dict())
+
+        forcetable = pd.DataFrame.from_dict(forces, orient='index')
+
+        forcetable.columns = ['Direction', 'Magitude', 'Field', 'units']
+        return forcetable
 
     def Save(self):
         """

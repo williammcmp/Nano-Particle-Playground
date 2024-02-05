@@ -82,7 +82,7 @@ class Force(ABC):
         Returns:
         - str: String representation of force information.
         """
-        return f'{self.Name} = {self.Field()}'
+        return f'{self.Name} = {self.Field()} ({self.Units})'
 
     def __str__(self):
         """
@@ -92,6 +92,10 @@ class Force(ABC):
         - str: The name of the force.
         """
         return self.Name
+    
+    def Dict( self ):
+        dict = {f'{self.Name}': [self.Direction, self.Magnitude, self.Field(), self.Units]}
+        return dict
 
 
 # force due to gravity

@@ -389,16 +389,19 @@ else:
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     
-    sim_info = f'''
-    ```
-    - Particles = {len(simulation.Particles):,}
-    - Simulated time = {simDuration}s
-    - Time Step intervals = {simTimeStep}s
-    - Calacuation mode = {simMode}
-    - Compute Time = {computeTime:.4}s
-    - Total number of calculations = {numCals:,}
-    ```
-    '''
+    sim_info = {'Simulation Stats': [len(simulation.Particles), simDuration, simTimeStep, simMode, computeTime, numCals]}
+    sim_df = pd.DataFrame.from_dict(sim_info, orient="index")
+    sim_df.columns = ["Particles", "Simulated time (s)", "Time step interval (s)", "Simulation Mode", "Compute Time (s)", "Number of Calculations"]
+    # sim_info = f'''
+    # ```
+    # - Particles = {len(simulation.Particles):,}
+    # - Simulated time = {simDuration}s
+    # - Time Step intervals = {simTimeStep}s
+    # - Calacuation mode = {simMode}
+    # - Compute Time = {computeTime:.4}s
+    # - Total number of calculations = {numCals:,}
+    # ```
+    # '''
 
     st.markdown(f"**Simulation Mode:** `{simMode}`")
     # First Row of plots
@@ -436,8 +439,7 @@ with st.expander("How to Use The Particle Simulation"):
     st.markdown(how_to_use_info(simMode))
 
 if simMode != "Silicon Nano-Particles":
-    with st.expander("Simulation Computation Info (Stats)"):
-        st.markdown(sim_info)
-        st.markdown("Froces:")
-        for force in simulation.Forces:
-            st.markdown(force.Info())
+    with st.expander("Simulation Stats"):
+        st.table(sim_df)
+        # st.markdown("Froces:")
+        st.table(simulation.ForceTable())
