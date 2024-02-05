@@ -2,6 +2,8 @@
 import numpy as np
 from abc import ABC, abstractclassmethod
 
+from numpy.core.multiarray import array as array
+
 
 class Force(ABC):
     """
@@ -254,3 +256,17 @@ class Barrier(Force):
 
                 reflection = particle.Velocity - 2 * (np.dot (particle.Velocity, n) * n)  # the reflected velocity vector off the planes normal
                 particle.Velocity = reflection * self.Magnitude # Magitude of the bounceness of the plane
+    
+class GroundPlane(Force):
+    def __init__(self, damping=0.0):
+        name = 'GroundPlane'
+        super().__init__(name, damping, np.array([0, 0, 1]), "m")
+
+    def Apply(self, particles):
+
+        for particle in particles:
+
+            if( particle.Position[2] < 0 ):
+                particle.Position[2] = 0 # reset the particle's position to above the ground plane
+
+                particle.Velocity = particle.Velocity * np.array([self.Magnitude, self.Magnitude, -1*self.Magnitude])
