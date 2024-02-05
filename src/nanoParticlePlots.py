@@ -148,11 +148,16 @@ def plotSimulatedPosition(position, charge):
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-    # Customize the plot (optional)
+    circle = plt.Circle((0, 0), 1e-6, color='r', fill=False)
+    ax.add_artist(circle)
+
     ax.set_xlabel('X (m)')
     ax.set_ylabel('Y (m)')
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
+
+    ax.set_xlim(-1e-5, 1e-5)
+    ax.set_ylim(-1e-5, 1e-5)
 
     return fig, ax
 
