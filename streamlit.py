@@ -47,19 +47,19 @@ plt.rcParams.update(rc)
 def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=1000, value=3, step=500, disabled = True)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (ms)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 1000 # convert to seconds
 
     elif simMode == "Silicon Nano-Particles":
         # The max number of particles has been reduced in order to stop people form fucking crashing the server
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=75, disabled = True)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=4, disabled = True)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 1000 # convert to seconds
     
     else:
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=10000, value=100, step=500)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 1000 # convert to seconds
 
     return partilceNumber, simDuration, simTimeStep 
 
