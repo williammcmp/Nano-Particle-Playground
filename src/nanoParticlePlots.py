@@ -221,8 +221,8 @@ def plotTrajectories(simulation):
     ax.set_ylabel('Y (m)')
     ax.set_zlabel('Z (m)')
     ax.set_title('Trajectories of simulated Silicon Nano-Particles')
-    # ax.set_xlim([-3 * 1e-6, 3 * 1e-6])
-    # ax.set_ylim([-3 * 1e-6, 3 * 1e-6])
+    ax.set_xlim([-1e-5, 1e-5])
+    ax.set_ylim([-1e-5, 1e-5])
     # ax.set_zlim([0,0.005])
 
     radius = 2 * 1e-6
