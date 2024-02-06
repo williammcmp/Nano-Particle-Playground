@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from src.Particle import Particle
 from src.Simulation import Simulation
@@ -160,6 +161,37 @@ def plotSimulatedPosition(position, charge):
     ax.set_ylim(-1e-5, 1e-5)
 
     return fig, ax
+
+def plotRadiaPosition(position):
+    radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2) * 1e6
+    radius_filted = radius[radius > 2]
+
+    fig, ax = plt.subplots(figsize=(10,6))
+
+    radius_data = {'All Particles': radius,
+                   'Outside ablation site': radius_filted}
+
+    sns.displot(radius_data, kind='kde', bw_adjust=0.5)
+
+    # sns.displot(radius, kind='kde', bw_adjust=0.5, label="all particles")
+    # sns.displot(radius_filted, kind='kde', bw_adjust=0.5, label="outside ablation site")
+    plt.axvline(x=2, color='r', linestyle='--')
+
+    # # Shade the area to the left of the vertical line
+    plt.axvspan(-5, 2, alpha=0.2, color='red')
+
+    # # Add text to the shaded area
+    plt.text(2.5 , 0.10, 'Ablation Site', color='red', fontsize=12)
+
+    plt.xlim(-0.5, 25)
+    plt.ylim(bottom=-0.001)
+    plt.ylabel("Density (particle/µm^2)")
+    plt.xlabel("Radial position (µm)")
+    plt.legend()
+    plt.grid()
+
+    st.pyplot()
+
 
 def plotSimulatedMassHistogram(mass):
     fig, ax = plt.subplots(figsize=(10,7))
