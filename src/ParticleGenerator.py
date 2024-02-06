@@ -132,11 +132,6 @@ def pLoad(settings):
     position = generatedSettings['pos'] 
     mass = generatedSettings['mass']
     velocity = generatedSettings['vel']
-    print(position)
-    print(velocity)
-
-
-    print(velocity)
 
     particleCount = settings['particleNumber']
     particles = []
@@ -176,7 +171,7 @@ def LoadParticleSettings():
 
     if loaded_data is not None:
         print("Loaded data:")
-        print(loaded_data)
+        # print(loaded_data)
         particles = pLoad(loaded_data)
     
     return particles

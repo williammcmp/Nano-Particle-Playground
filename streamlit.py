@@ -412,6 +412,14 @@ else:
         fig, ax = plotSimulatedPosition(position, charge)
 
         st.pyplot(fig)
+        radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)
+        inside = np.count_nonzero(radius < 1e-6)
+        outside = np.count_nonzero(radius > 1e-6)
+        stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df.columns = ['inside', 'outside']
+        st.table(df)
+        st.caption("Proption of particles inside and outside the ablation site")
 
     with plot_col2:
         
@@ -428,6 +436,8 @@ else:
     # ax.set_xlim(0, 10)
 
     st.pyplot(fig)
+
+
 
     # fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
 
