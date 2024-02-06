@@ -72,20 +72,20 @@ slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     particleNumber = st.slider("Number of particles", 10, 10000, 1000)
-    particleEnergy = st.slider("Inital energy of particles (J)", 1, 100, 10)
+    particleEnergy = st.slider("Inital average particle energy (eV)", 1, 100, 10) * 1e-16
     particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
     randomness = st.checkbox("Randomness 🤷", value=False)
 
     if st.button("Save inital distribution settings"):
-        config_data = {
+        config_settings = {
                 "particleNumber": particleNumber,
-                "particleEnergy": particleEnergy * 1e-15, #TODO: fix this adjustment scale
+                "particleEnergy": particleEnergy, #TODO: fix this adjustment scale
                 "particleSize": scale_convert(particleSize),
                 "useNonConstantZ": useNonConstantZ,
                 "randomness": randomness
             }
-        write_to_json(config_data)
+        write_to_json(config_settings)
         st.success("Configuration saved to output.json")
 
 p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
@@ -149,7 +149,7 @@ with col_text:
 
 
 with col_plot1: 
-    fig = plt.figure()  # Adjust the figsize as needed
+    fig = plt.figure(figsize=(10,6))  # Adjust the figsize as needed
     ax = fig.add_subplot(111, projection='3d')
     ax.quiver(p['pos'][:,0], p['pos'][:,1], p['pos'][:,2]*0, p['vel'][:,0], p['vel'][:,1], p['vel'][:,2], length=0.000005, normalize=True, color='blue', arrow_length_ratio=0.0002, alpha=0.1)
 
@@ -182,13 +182,12 @@ with col_plot2:
     x = x_data
     y = y_data
     velocities = p['vel'] # Replace with your actual velocities
-    print(velocities)
+
 
     # Calculate the magnitude of velocities
     speeds = np.linalg.norm(velocities, axis=1)
     momentum = speeds * p['mass']
-    print(np.min(speeds))
-    print(np.max(speeds))
+
     
 
     # Create a figure and axis

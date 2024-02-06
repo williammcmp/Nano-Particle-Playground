@@ -110,9 +110,9 @@ def GenerateParticles(n, Simulation, mode = "Origin",
 def pGen (n, size, energy, reduceZ, randomness):
     mass = [ParticleShericalMass(size[0]), ParticleShericalMass(size[1])]
     p_mass = np.random.uniform(mass[0] , mass[1], n)
-    p_positions = np.random.randn(n,2) * 1e-9 # scale down the positions to be at the micron scale
+    p_positions = np.random.randn(n,2) * 1e-6 # scale down the positions to be at the micron scale
 
-    p_velocity = calVelocity(p_mass, p_positions, energy, reduceZ, randomness)
+    p_velocity = calVelocity(p_mass, p_positions * 1e-3, energy, reduceZ, randomness)
     
     zeros = np.zeros((p_positions.shape[0], 1)) + 0.0000000001
     p_positions = np.hstack((p_positions, zeros))
