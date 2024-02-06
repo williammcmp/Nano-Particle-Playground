@@ -80,7 +80,7 @@ with slider_col:
     if st.button("Save inital distribution settings"):
         config_data = {
                 "particleNumber": particleNumber,
-                "particleEnergy": particleEnergy,
+                "particleEnergy": particleEnergy * 1e-15, #TODO: fix this adjustment scale
                 "particleSize": scale_convert(particleSize),
                 "useNonConstantZ": useNonConstantZ,
                 "randomness": randomness
