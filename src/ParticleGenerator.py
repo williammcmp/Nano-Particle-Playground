@@ -136,7 +136,7 @@ def pLoad(settings):
     particleCount = settings['particleNumber']
     particles = []
     for row in range(particleCount):
-        charge = random.uniform(1.0, 2.0) * random.choice([-3,3])
+        charge = random.uniform(-3.0, 3.0) * mass[row] 
         particles.append(Particle(position[row], velocity[row], mass[row], charge))
 
     return particles
