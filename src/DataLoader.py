@@ -263,12 +263,12 @@ def load_experimental_data(experiment_type):
     return data_df
 
 # Function to write data to a JSON file
-def write_to_json(data, filename='output.json'):
+def write_to_json(data, filename='output3.json'):
     with open(filename, 'w') as json_file:
         json.dump(data, json_file)
 
 # loads data from a JSON File
-def load_from_json(filename='output.json'):
+def load_from_json(filename='output3.json'):
     try:
         with open(filename, 'r') as json_file:
             data = json.load(json_file)
