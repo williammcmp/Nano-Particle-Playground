@@ -162,7 +162,7 @@ def plotSimulatedPosition(position, charge):
 
     return fig, ax
 
-def plotRadiaPosition(position):
+def plotRadialPosition(position):
     radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2) * 1e6
     radius_filted = radius[radius > 2]
 

@@ -421,7 +421,7 @@ else:
         st.table(df)
         st.caption("Proption of particles inside and outside the ablation site")
 
-        plotRadiaPosition(position)
+        plotRadialPosition(position)
 
     with plot_col2:
         
