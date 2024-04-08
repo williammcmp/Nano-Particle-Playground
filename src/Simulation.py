@@ -267,6 +267,31 @@ class Simulation:
         return position, velocity, force, mass, charge       
             
 
+    def PlotFroces( self ): 
+        fig = plt.figure(figsize=(12,12))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        for force in self.Forces:
+            force.Diagram(ax)
+                        
+        ax.legend()
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title('Force Body Diagram')
+        ax.set_xlim([-5, 5])
+        ax.set_ylim([-5, 5])
+        ax.set_zlim([0, 5])
+
+        # Remove axis ticks
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_zticks([])
+
+
+        return fig, ax
+
+
     # converts Particle objs to array for after computing
     def __calNumPyArray(self):
         position = np.zeros([len(self.Particles), 3])

@@ -47,6 +47,13 @@ class Force(ABC):
         pass
 
 
+    def Diagram( self, ax ):
+        """
+        The the force to the free body diagram.
+        """
+        pass
+
+
     def Field(self):
         """
         Calculates the force field.
@@ -131,6 +138,11 @@ class Gravity(Force):
         """
         for particle in particles:
             particle.SumForce = particle.SumForce + (self.Field() * particle.Mass)
+
+    def Diagram( self, ax):
+        ax.quiver(0, 0, 4,
+                  0, 0, -4, 
+                  length = 1, label = self.Name, color = 'red', alpha = 1)
     
     # def NanoApply( self, particles):
     #     """
@@ -191,6 +203,17 @@ class Magnetic(Force):
         for particle in particles:
             particle.SumForce = particle.SumForce + (particle.Charge * (np.cross(particle.Velocity, self.Field())))
 
+    def Diagram( self, ax):
+        x, y, z = np.meshgrid(np.linspace(-4, 4, 3), 
+                      np.linspace(-4, 4, 3),
+                      np.linspace(-0, 4, 3))
+        
+        u, v, w = self.Field() * 2
+
+        ax.quiver(x, y, z, u, v, w,
+                  label = self.Name, color = 'blue', alpha = 0.7)
+
+
 
 class Electric(Force):
     """
@@ -207,6 +230,16 @@ class Electric(Force):
     def Apply(self, particles):
         for particle in particles:
             particle.SumForce = particle.SumForce + (particle.Charge * self.Field())
+    
+    def Diagram( self, ax):
+        x, y, z =  np.meshgrid(np.linspace(-4, 4, 3), 
+                      np.linspace(-4, 4, 3),
+                      np.linspace(-0, 4, 3))
+        
+        u, v, w = self.Field() * 2
+
+        ax.quiver(x, y, z, u, v, w,
+                  label = self.Name, color = 'green', alpha = 0.7)
     
 class Barrier(Force):
     """
@@ -274,3 +307,11 @@ class GroundPlane(Force):
                 particle.Position[2] = 0 # reset the particle's position to above the ground plane
 
                 particle.Velocity = particle.Velocity * np.array([self.Magnitude, self.Magnitude, -1*self.Magnitude])
+
+    def Diagram(self, ax):
+        # Create a ground plane
+        X, Y = np.meshgrid(np.linspace(-5, 5, 50), np.linspace(-5, 5, 50))
+        Z = np.zeros(X.shape)  # Ground plane at z=0
+
+        # Plot the ground plane
+        ax.plot_surface(X, Y, Z, color='tan', alpha=0.5)

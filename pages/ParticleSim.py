@@ -73,11 +73,17 @@ def scale_convert(range, scaleFactor = 1e-9):
 
     return lowerRange, upperRange
 
+def getDataSeries(simulation):
+    if simulation.HasForce('Magnetic'):
+        return "Magnetic Field out of the Page"
+    else:
+        return "No Magentic Field"
+
 # ---------------
 # Sidebar - simulation duration time
 # ---------------
 st.sidebar.markdown("Simulation Time Settings:")
-simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=250, step=50) / 1000 # convert to seconds
 simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 1000 # convert to seconds
 
 
@@ -112,6 +118,13 @@ with row3_1:
 
 
 # ---------------
+# Laser Settings
+# ---------------
+st.divider()
+st.subheader("Laser Settings")
+st.markdown("this is where the laser settings need to be placed")
+
+# ---------------
 # Particle Settings
 # ---------------
 st.divider()
@@ -134,7 +147,7 @@ with slider_col:
     # variables as needed
     config_settings = {
             "particleNumber": particleNumber,
-            "particleEnergy": particleEnergy, #TODO: fix this adjustment scale
+            "particleEnergy": particleEnergy, 
             "particleSize": scale_convert(particleSize),
             "useNonConstantZ": useNonConstantZ,
             "randomness": randomness
@@ -199,24 +212,16 @@ with plot_col2:
     st.pyplot(fig)
 
 # ---------------
-# Laser Settings
-# ---------------
-st.divider()
-st.subheader("Laser Settings")
-st.markdown("this is where the laser settings need to be placed")
-
-# ---------------
 # Simulation Enviroment Setup
 # ---------------
 st.divider()
-
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
 with row0_1:
     st.subheader('Simulation Settings')
     st.markdown('Define the enviroment of the simulation')
 
-slider_col, plot_col1 = st.columns([2, 1])
+slider_col, plot_col1 = st.columns([1, 1])
 
 with slider_col:
     st.markdown("Forces")
@@ -258,9 +263,9 @@ with slider_col:
     simulation.AddForce([GroundPlane()])
 
 with plot_col1:
-    st.markdown("add force vector diagram here")
+    fig, ax = simulation.PlotFroces()
 
-
+    st.pyplot(fig)
 
 # ---------------
 # Running the Simulation
@@ -305,6 +310,9 @@ with plot_col1:
     st.table(df)
     st.caption("Proption of particles inside and outside the ablation site")
 
+    st.markdown(f'''**Simulation Stats:**''')
+    st.markdown(sim_info)
+
 # 3D plot of the particle trajectories
 with plot_col2:
     
@@ -315,13 +323,37 @@ row2 = st.container()
 # Second Row of plot - simulation figures
 text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
 
-with text_col:
-    st.markdown(f'''**Simulation Stats:**''')
-    st.markdown(sim_info)
+# with text_col:
+#     st.markdown(f'''**Simulation Stats:**''')
+#     st.markdown(sim_info)
 
 # with plot_col:
 #     fig, ax = plotMassDisplacement(position, charge)
 
 #     st.pyplot(fig)
+
+
+
+# TODO: Work out what is happening with the plots of experimental and simulated data...
+dataSeries = getDataSeries(simulation)
+
+fig, ax = plotExperimentalData(dataSeries)
+
+# There is some scaling on on the simulation results there.
+ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
+
+# Add the 1/r^3 curve
+r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+
+# Calculate the corresponding function values
+y = 1 / (r**3)
+
+ax.plot(r * 10, y * 1e4 + 2000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+
+# sets the legend's lables to be bright
+legend = ax.legend()
+for lh in legend.legendHandles:
+    lh.set_alpha(1)
+st.pyplot(fig)
 
 
