@@ -208,7 +208,7 @@ class Magnetic(Force):
                       np.linspace(-4, 4, 3),
                       np.linspace(-0, 4, 3))
         
-        u, v, w = self.Field() * 2
+        u, v, w = self.Field() * 20
 
         ax.quiver(x, y, z, u, v, w,
                   label = self.Name, color = 'blue', alpha = 0.7)

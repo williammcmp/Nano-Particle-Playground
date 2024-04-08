@@ -171,7 +171,7 @@ def plotRadialPosition(position):
     radius_data = {'All Particles': radius,
                    'Outside ablation site': radius_filted}
 
-    sns.displot(radius_data, kind='kde', bw_adjust=0.5)
+    # sns.displot(radius_data, kind='kde', bw_adjust=0.5)
 
     # sns.displot(radius, kind='kde', bw_adjust=0.5, label="all particles")
     # sns.displot(radius_filted, kind='kde', bw_adjust=0.5, label="outside ablation site")

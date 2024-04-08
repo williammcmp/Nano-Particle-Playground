@@ -136,7 +136,7 @@ with row0_1:
 slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
-    particleNumber = st.slider("Number of particles", 10, 10000, 100)
+    particleNumber = st.slider("Number of particles", 10, 1000, 100)
     particleEnergy = st.slider("Inital average particle energy (eV)", 1, 100, 10) * 1e-16
     particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
@@ -170,22 +170,23 @@ with plot_col1:
     ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
     ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
 
-    mu = 0
-    variance = 1
-    sigma = math.sqrt(variance)
-    x = np.linspace(mu - 3*sigma, mu + 3*sigma, 100) * 1e-6
-    # ax.plot(x, stats.norm.pdf(x, mu, sigma), color="red", alpha=0.5)
-
-
     # Set plot labels and legend
     plt.legend()
     plt.grid()
     plt.xlabel('Positon (m)')
     plt.ylabel('Particle Count')
-    plt.title('Normalized Axial Distribution of Particles')
+    plt.title('Distribution of Particles')
 
     # Show the plot using Streamlit
     st.pyplot(fig)
+    # TODO: Distribution of particle size
+    # p_pd = pd.DataFrame.from_dict(p)
+    # # small_p = p_pd[p_pd['mass'] < ]
+    # fig, ax = plt.subplots()
+    # # Plot the norm alized histogram
+    # ax.hist(p['mass'], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
+    # ax.hist(p['mass'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
+
 
 with plot_col2:
     x_data = p['pos'][:,0]
@@ -234,9 +235,9 @@ with slider_col:
         # TODO Make this better for non-side bar application
         c = st.container()
         c.markdown("Define the Magnetic Field (T):")
-        magneticX = c.number_input("Magnetic X", value=0.0)
-        magneticY = c.number_input("Magnetic Y", value=0.0)
-        magneticZ = c.number_input("Magnetic Z", value=0.0)
+        magneticX = c.number_input("Magnetic X", value=0.1, min_value = -0.2, max_value = 0.2)
+        magneticY = c.number_input("Magnetic Y", value=0.0, min_value = -0.2, max_value = 0.2)
+        magneticZ = c.number_input("Magnetic Z", value=0.0, min_value = -0.2, max_value = 0.2)
         print(np.array([magneticX, magneticY, magneticZ]))
 
         magForce = Magnetic() # creating the Magnetic obj
@@ -270,90 +271,91 @@ with plot_col1:
 # ---------------
 # Running the Simulation
 # ---------------
-computeTime, numCals = simulation.Run(simDuration, simTimeStep)
-position, velocity, force, mass, charge = simulation.StreamletData()
+if st.button("Run the Simulation"):
+    computeTime, numCals = simulation.Run(simDuration, simTimeStep)
+    position, velocity, force, mass, charge = simulation.StreamletData()
 
-sim_info = f'''
-    ```
-    - Particles = {len(simulation.Particles):,}
-    - Simulated time = {simDuration}s
-    - Time Step intervals = {simTimeStep}s
-    - Compute Time = {computeTime:.4}s
-    ```
-    '''
-
-
-# ---------------
-# Plotting the Simulation results
-# ---------------
-st.divider()
-
-row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
-with row0_1:
-    st.subheader('Simulation Figures')
-    # st.markdown('Define the enviroment of the simulation')
-
-row1 = st.container()
-plot_col1, plot_col2 = row1.columns([1, 1])
-
-# Scatter plot of final postions of the particles
-with plot_col1:
-    fig, ax = plotSimulatedPosition(position, charge)
-
-    st.pyplot(fig)
-    radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)
-    inside = np.count_nonzero(radius < 1e-6)
-    outside = np.count_nonzero(radius > 1e-6)
-    stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
-    df = pd.DataFrame.from_dict(stats, orient='index')
-    df.columns = ['inside', 'outside']
-    st.table(df)
-    st.caption("Proption of particles inside and outside the ablation site")
-
-    st.markdown(f'''**Simulation Stats:**''')
-    st.markdown(sim_info)
-
-# 3D plot of the particle trajectories
-with plot_col2:
-    
-    fig, ax = plotTrajectories(simulation)
-    st.pyplot(fig)
-
-row2 = st.container()
-# Second Row of plot - simulation figures
-text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
-
-# with text_col:
-#     st.markdown(f'''**Simulation Stats:**''')
-#     st.markdown(sim_info)
-
-# with plot_col:
-#     fig, ax = plotMassDisplacement(position, charge)
-
-#     st.pyplot(fig)
+    sim_info = f'''
+        ```
+        - Particles = {len(simulation.Particles):,}
+        - Simulated time = {simDuration}s
+        - Time Step intervals = {simTimeStep}s
+        - Compute Time = {computeTime:.4}s
+        ```
+        '''
 
 
+    # ---------------
+    # Plotting the Simulation results
+    # ---------------
+    st.divider()
 
-# TODO: Work out what is happening with the plots of experimental and simulated data...
-dataSeries = getDataSeries(simulation)
+    row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
+    with row0_1:
+        st.subheader('Simulation Figures')
+        # st.markdown('Define the enviroment of the simulation')
 
-fig, ax = plotExperimentalData(dataSeries)
+    row1 = st.container()
+    plot_col1, plot_col2 = row1.columns([1, 1])
 
-# There is some scaling on on the simulation results there.
-ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
+    # Scatter plot of final postions of the particles
+    with plot_col1:
+        fig, ax = plotSimulatedPosition(position, charge)
 
-# Add the 1/r^3 curve
-r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+        st.pyplot(fig)
+        radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)
+        inside = np.count_nonzero(radius < 1e-6)
+        outside = np.count_nonzero(radius > 1e-6)
+        stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df.columns = ['inside', 'outside']
+        st.table(df)
+        st.caption("Proption of particles inside and outside the ablation site")
 
-# Calculate the corresponding function values
-y = 1 / (r**3)
+        st.markdown(f'''**Simulation Stats:**''')
+        st.markdown(sim_info)
 
-ax.plot(r * 10, y * 1e4 + 2000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+    # 3D plot of the particle trajectories
+    with plot_col2:
+        
+        fig, ax = plotTrajectories(simulation)
+        st.pyplot(fig)
 
-# sets the legend's lables to be bright
-legend = ax.legend()
-for lh in legend.legendHandles:
-    lh.set_alpha(1)
-st.pyplot(fig)
+    row2 = st.container()
+    # Second Row of plot - simulation figures
+    text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
+
+    # with text_col:
+    #     st.markdown(f'''**Simulation Stats:**''')
+    #     st.markdown(sim_info)
+
+    # with plot_col:
+    #     fig, ax = plotMassDisplacement(position, charge)
+
+    #     st.pyplot(fig)
+
+
+
+    # TODO: Work out what is happening with the plots of experimental and simulated data...
+    # dataSeries = getDataSeries(simulation)
+
+    # fig, ax = plotExperimentalData(dataSeries)
+
+    # # There is some scaling on on the simulation results there.
+    # ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
+
+    # # Add the 1/r^3 curve
+    # r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+
+    # # Calculate the corresponding function values
+    # y = 1 / (r**3)
+
+    # ax.plot(r * 10, y * 1e4 + 2000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+
+    # # sets the legend's lables to be bright
+    # legend = ax.legend()
+    # for lh in legend.legendHandles:
+    #     lh.set_alpha(1)
+    # st.pyplot(fig)
 
 
