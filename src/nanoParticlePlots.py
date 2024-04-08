@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
 import pandas as pd
-import seaborn as sns
+# import seaborn as sns
 
 from src.Particle import Particle
 from src.Simulation import Simulation
