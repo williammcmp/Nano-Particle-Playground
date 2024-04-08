@@ -234,11 +234,12 @@ with slider_col:
     if st.checkbox("Magnetic field"):
         # TODO Make this better for non-side bar application
         c = st.container()
-        c.markdown("Define the Magnetic Field (T):")
+        c.markdown("Define the Magnetic Field (T) Componets:")
         magneticX = c.number_input("Magnetic X", value=0.1, min_value = -0.2, max_value = 0.2)
         magneticY = c.number_input("Magnetic Y", value=0.0, min_value = -0.2, max_value = 0.2)
         magneticZ = c.number_input("Magnetic Z", value=0.0, min_value = -0.2, max_value = 0.2)
-        print(np.array([magneticX, magneticY, magneticZ]))
+
+        st.markdown(f"Magnetic Field Magnitude: {np.linalg.norm(np.array([magneticX, magneticY, magneticZ]))} T")
 
         magForce = Magnetic() # creating the Magnetic obj
         # updateing the field -> obj will save the direction and magitude seperatlly
@@ -255,6 +256,8 @@ with slider_col:
         electricY = c.number_input("Electric Y", value=0.0)
         electricZ = c.number_input("Electric Z", value=0.0)
 
+        st.markdown(f"Electric Field Magnitude: {np.linalg.norm(np.array([electricX, electricY, electricZ]))} (V/m)")
+
         eleForce = Electric()
         # updateing the field -> obj will save the direction and magitude seperatlly
         eleForce.UpdateField(np.array([electricX, electricY, electricZ])) 
@@ -268,6 +271,7 @@ with plot_col1:
 
     st.pyplot(fig)
 
+st.divider()
 # ---------------
 # Running the Simulation
 # ---------------
@@ -288,7 +292,6 @@ if st.button("Run the Simulation"):
     # ---------------
     # Plotting the Simulation results
     # ---------------
-    st.divider()
 
     row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
     with row0_1:
@@ -319,6 +322,9 @@ if st.button("Run the Simulation"):
     with plot_col2:
         
         fig, ax = plotTrajectories(simulation)
+        ax.set_xlim([-2e-5, 2e-5])
+        ax.set_ylim([-2e-5, 2e-5])
+
         st.pyplot(fig)
 
     row2 = st.container()
