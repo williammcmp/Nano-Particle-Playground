@@ -122,7 +122,88 @@ with row3_1:
 # ---------------
 st.divider()
 st.subheader("Laser Settings")
-st.markdown("this is where the laser settings need to be placed")
+st.markdown("Configure the setting of the pusle laser used for the laser ablation. Default setting model the SpiteFire Femtosecond Pulse Laser system")
+slider_col, plot_col1 = st.columns([1, 2])
+
+with slider_col:
+    # Laser input settings
+    wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=640) * 1e-9 # default wavelength of 640 nm
+    laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
+    pulse_rate = st.number_input("Pulse rate (MHz)", min_value=10, max_value=1000, value=80) * 1e6 # default pulse rate of 80 MHz
+    pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
+    numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.1) # default NA of 0.1
+
+
+    # Calculating laser parameters
+    beam_radius = wavelength / (np.pi * numerical_aperture)
+    focus_area = np.pi * (wavelength / np.pi * numerical_aperture) ** 2 # area of the beam focuse onto the medium 
+    intensity_per_pulse = (np.pi * laser_power * numerical_aperture ** 2 ) / (pulse_rate * pulse_duration * wavelength ** 2) * 1e-4 # indensity of the beam per pulse
+
+    # Display data in a table
+    table_data = {
+        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Intensity per Pulse (w/cm^2)"],
+        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{intensity_per_pulse:.3}"]
+    }
+
+
+    # Calculating ablated volume
+    # Rayleigh range = (𝜋 ⍵_0^2 n) / (λ)
+    z_air = (np.pi * beam_radius ** 2 * 1) / (wavelength) # n = 1 - air
+    
+    # TODO: update this so include the n for different wavelengths
+    z_silicon = z_air * (1 / 3.88163) # n = 2.88163 - Silicon at 632.6 nm
+
+    # Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air
+    air_volume = 4/3 * beam_radius ** 2 * z_air
+    silicon_volume = 4/3 * beam_radius ** 2 * z_silicon
+    st.table(table_data)
+
+
+with plot_col1:
+    # Parameters for the Gaussian distribution
+    fig, ax = plt.subplots()
+
+    # Generate x values
+    x = np.linspace(-12, 12, 100) * 1e-6
+
+    # Calculate the probability density function (PDF) for each x
+    pdf = np.exp((-2 * x ** 2 ) / (beam_radius) ** 2)
+
+    # Plot the Gaussian distribution
+    ax.plot(x, pdf, color='red')
+    ax.axvline(x = beam_radius, color = "gray", linestyle='--' )
+    ax.axvline(x = -beam_radius, color = "gray", linestyle='--' )
+    ax.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
+
+    ax.set_xlabel('x (m)')
+    ax.set_ylabel('Beam Intensity (I / $I_0$)')
+
+    st.pyplot(fig)
+
+    # xmin, xmax, ymin, ymax = -10, 10, -10, 10
+    # x    = np.linspace(xmin, xmax, 200)
+    # y    = np.linspace(ymin, ymax, 200)
+    # X, Y = np.meshgrid(x, y)
+
+
+    # # Compute the intensity profile
+    # R2  = (X**2 + Y**2)
+    # I   = np.exp((-2 * R2 ** 2 ) / (beam_radius) ** 2)
+    # I   = I / np.max(I)
+
+    # slice_idx = 100
+    # I1D       = I[:, slice_idx]
+
+    # # Plot the results
+    # #fig   = plt.figure()
+    # fig, ax   = plt.subplots(2,1,sharex=True,figsize=(6,6), gridspec_kw={'height_ratios': [2, 1]})
+    # cbar = ax[0].imshow(I, cmap='hot',extent=[xmin, xmax, ymin, ymax])
+    # ax[0].set_xlabel('x (mm)')
+    # ax[0].set_ylabel('y (mm)')
+    # plt.colorbar(cbar)
+
+
+
 
 # ---------------
 # Particle Settings
@@ -179,13 +260,7 @@ with plot_col1:
 
     # Show the plot using Streamlit
     st.pyplot(fig)
-    # TODO: Distribution of particle size
-    # p_pd = pd.DataFrame.from_dict(p)
-    # # small_p = p_pd[p_pd['mass'] < ]
-    # fig, ax = plt.subplots()
-    # # Plot the norm alized histogram
-    # ax.hist(p['mass'], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
-    # ax.hist(p['mass'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
+
 
 
 with plot_col2:
