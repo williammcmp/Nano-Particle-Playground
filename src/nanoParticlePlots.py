@@ -381,3 +381,32 @@ def list_to_markdown_table(data):
     
 
     return fList
+
+def PlotBeamFocal(ax, beam_width, z_air, z_silicon):
+    
+    x = np.linspace(-beam_width, beam_width, 200)  # Limit x to the range where the square root is defined
+    
+    # Calacuate the Air focal 
+    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))
+
+    # Plot Air focal spot
+    ax.plot(x, eps_air, color = 'blue', label = "Air")
+
+    # Calculate the Silicon focus plot
+    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2))
+
+    # Plot Silicon focual spot
+    ax.plot(x, eps_silicon, color = 'green', label = "Silicon")
+
+
+    # Calcuate beam profiles
+    z = np.linspace(0, (z_air + z_air) / 2, 200)
+    beam_air = beam_width * np.sqrt(1 + (z ** 2 / z_air ** 2))
+    beam_silicon = beam_width * np.sqrt(1 + (z ** 2 / z_silicon ** 2))
+
+    ax.plot(beam_air, z, color = "lightgray", linestyle='dotted', label = 'Beam Width')
+    ax.plot(-beam_air, z, color = "lightgray", linestyle='dotted')
+    ax.plot(beam_silicon, -z, color = "lightgray", linestyle='dotted')
+    ax.plot(-beam_silicon, -z, color = "lightgray", linestyle='dotted')
+
+    return ax

@@ -128,7 +128,7 @@ slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     # Laser input settings
-    wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=640) * 1e-9 # default wavelength of 640 nm
+    wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
     laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
     pulse_rate = st.number_input("Pulse rate (MHz)", min_value=10, max_value=1000, value=80) * 1e6 # default pulse rate of 80 MHz
     pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
@@ -140,11 +140,6 @@ with slider_col:
     focus_area = np.pi * (wavelength / np.pi * numerical_aperture) ** 2 # area of the beam focuse onto the medium 
     intensity_per_pulse = (np.pi * laser_power * numerical_aperture ** 2 ) / (pulse_rate * pulse_duration * wavelength ** 2) * 1e-4 # indensity of the beam per pulse
 
-    # Display data in a table
-    table_data = {
-        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Intensity per Pulse (w/cm^2)"],
-        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{intensity_per_pulse:.3}"]
-    }
 
 
     # Calculating ablated volume
@@ -154,9 +149,19 @@ with slider_col:
     # TODO: update this so include the n for different wavelengths
     z_silicon = z_air * (1 / 3.88163) # n = 2.88163 - Silicon at 632.6 nm
 
-    # Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air
-    air_volume = 4/3 * beam_radius ** 2 * z_air
-    silicon_volume = 4/3 * beam_radius ** 2 * z_silicon
+    # Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air * 1/2  --> need to devide by to as each medium have a volume of half the ellipsoid
+    air_volume = 4/6 * beam_radius ** 2 * z_air
+    silicon_volume = 4/6 * beam_radius ** 2 * z_silicon
+
+    # Display data in a table
+    table_data = {
+        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Intensity per Pulse (w/cm^2)", "Focuse depth - Air (m)", "Focuse depth - Silicon (m)", "Ablated Volume (m^2)"],
+        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{intensity_per_pulse:.3}", f"{z_air:.3}", f"{z_silicon:.3}", f"{silicon_volume:.3}"]
+    }
+    st.dataframe(table_data, hide_index=True)
+
+    
+
 
 
 with plot_col1:
@@ -164,7 +169,7 @@ with plot_col1:
     fig, ax = plt.subplots(figsize=(6, 4))
 
     # Generate x values
-    x = np.linspace(-12, 12, 100) * 1e-6
+    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius), 100)
 
     # Calculate the probability density function (PDF) for each x
     pdf = np.exp((-2 * x ** 2 ) / (beam_radius) ** 2)
@@ -180,12 +185,26 @@ with plot_col1:
     ax.set_title("Gaussian Beam Intensity Profile")
 
     st.pyplot(fig)
-    st.dataframe(table_data, hide_index=True)
+
+    fig, ax = plt.subplots(figsize=(7,7))
+
+    ax = PlotBeamFocal(ax, beam_radius, z_air, z_silicon)
+    ax.axvline(x = 0, color = "gray", linestyle='--')
+    ax.axhline(y = 0, color = "red")
+    ax.set_xlabel("X (m)")
+    ax.set_ylabel("Z (m)")
+    ax.set_title("Focual profile at interface")
+
+    ax.set_xlim([-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius)])
+    ax.legend()
+    st.pyplot(fig)
+
+
 
 with plot_col2:
     # Define the grid for the focal spot
-    x = np.linspace(-12e-6, 12e-6, 1000)
-    y = np.linspace(-12e-6, 12e-6, 1000)
+    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
+    y = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
     X, Y = np.meshgrid(x, y)
 
     # Calculate the two-dimensional intensity distribution
@@ -196,9 +215,13 @@ with plot_col2:
     c = ax.imshow(I, extent=[x.min(), x.max(), y.min(), y.max()], origin='lower', cmap='inferno')
     ax.set_xlabel('x (m)')
     ax.set_ylabel('y (m)')
+    # ax.set_ylim([-2 * beam_radius, 2 * beam_radius, ])
+
     ax.set_title('Focal Spot Intensity Distribution')
     plt.colorbar(c, label='Intensity (normalized)')
     st.pyplot(fig)
+    
+
 
 
 
