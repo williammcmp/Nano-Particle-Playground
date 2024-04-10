@@ -123,7 +123,8 @@ with row3_1:
 st.divider()
 st.subheader("Laser Settings")
 st.markdown("Configure the setting of the pusle laser used for the laser ablation. Default setting model the SpiteFire Femtosecond Pulse Laser system")
-slider_col, plot_col1 = st.columns([1, 2])
+
+slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     # Laser input settings
@@ -156,12 +157,11 @@ with slider_col:
     # Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air
     air_volume = 4/3 * beam_radius ** 2 * z_air
     silicon_volume = 4/3 * beam_radius ** 2 * z_silicon
-    st.table(table_data)
 
 
 with plot_col1:
     # Parameters for the Gaussian distribution
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     # Generate x values
     x = np.linspace(-12, 12, 100) * 1e-6
@@ -176,31 +176,29 @@ with plot_col1:
     ax.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
 
     ax.set_xlabel('x (m)')
-    ax.set_ylabel('Beam Intensity (I / $I_0$)')
+    ax.set_ylabel('Intensity (I / $I_0$)')
+    ax.set_title("Gaussian Beam Intensity Profile")
 
     st.pyplot(fig)
+    st.dataframe(table_data, hide_index=True)
 
-    # xmin, xmax, ymin, ymax = -10, 10, -10, 10
-    # x    = np.linspace(xmin, xmax, 200)
-    # y    = np.linspace(ymin, ymax, 200)
-    # X, Y = np.meshgrid(x, y)
+with plot_col2:
+    # Define the grid for the focal spot
+    x = np.linspace(-12e-6, 12e-6, 1000)
+    y = np.linspace(-12e-6, 12e-6, 1000)
+    X, Y = np.meshgrid(x, y)
 
+    # Calculate the two-dimensional intensity distribution
+    I = np.exp(-2 * (X**2 + Y**2) / beam_radius**2)
 
-    # # Compute the intensity profile
-    # R2  = (X**2 + Y**2)
-    # I   = np.exp((-2 * R2 ** 2 ) / (beam_radius) ** 2)
-    # I   = I / np.max(I)
-
-    # slice_idx = 100
-    # I1D       = I[:, slice_idx]
-
-    # # Plot the results
-    # #fig   = plt.figure()
-    # fig, ax   = plt.subplots(2,1,sharex=True,figsize=(6,6), gridspec_kw={'height_ratios': [2, 1]})
-    # cbar = ax[0].imshow(I, cmap='hot',extent=[xmin, xmax, ymin, ymax])
-    # ax[0].set_xlabel('x (mm)')
-    # ax[0].set_ylabel('y (mm)')
-    # plt.colorbar(cbar)
+    # Plotting
+    fig, ax = plt.subplots(figsize=(7,7))
+    c = ax.imshow(I, extent=[x.min(), x.max(), y.min(), y.max()], origin='lower', cmap='inferno')
+    ax.set_xlabel('x (m)')
+    ax.set_ylabel('y (m)')
+    ax.set_title('Focal Spot Intensity Distribution')
+    plt.colorbar(c, label='Intensity (normalized)')
+    st.pyplot(fig)
 
 
 
