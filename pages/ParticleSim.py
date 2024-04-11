@@ -223,6 +223,17 @@ with plot_col2:
     
 
 
+z = np.linspace(0, z_silicon, 100)  # z-axis
+s = np.tile(pdf, (z.size, 1))  # Duplicate the profile along the z-axis
+
+fig, ax = plt.subplots(figsize=(7, 7))
+c = ax.imshow(s, extent=[x.min(), x.max(), z.min(), z.max()], aspect='auto', origin='lower', cmap='inferno')
+ax.set_xlabel('x (m)')
+ax.set_ylabel('z (m)')
+plt.colorbar(c, label='Intensity (normalized)')
+st.pyplot(fig)
+
+
 
 
 
