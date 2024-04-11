@@ -444,3 +444,5 @@ if simMode != "Silicon Nano-Particles":
         st.markdown(sim_info)
         st.markdown("Froces:")
         st.markdown(simulation.FroceList())
+
+st.table(simulation.ParticleInfo())

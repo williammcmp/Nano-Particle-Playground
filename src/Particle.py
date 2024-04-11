@@ -33,13 +33,14 @@ class Particle:
         self.Charge = charge
         self.History = position
         self.HistoryVel = velocity
+        self.initalVel = velocity
 
     def Save(self):
         """
         Saves the positional history of the particle. Used for ploting the particles' path
         """
         self.History = np.vstack((self.History, self.Position))
-        # self.HistoryVel = np.vstack((self.HistoryVel, self.Velocity))
+        self.HistoryVel = np.vstack((self.HistoryVel, self.Velocity))
 
     def Display(self):
         """

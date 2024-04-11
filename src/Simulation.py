@@ -367,6 +367,18 @@ class Simulation:
                 f.bField = direction
                 break
 
+    def ParticleInfo (self) :
+        dict = {"mass": [],
+                "position": [],
+                "inital_velocity": []}
+        
+        for particle in self.Particles:
+            dict['mass'].append(particle.Mass)
+            dict['position'].append(particle.Position)
+            dict['inital_velocity'].append(particle.initalVel)
+
+        return dict
+
         
             
 
