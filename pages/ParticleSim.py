@@ -139,24 +139,35 @@ with slider_col:
     beam_radius = wavelength / (np.pi * numerical_aperture)
     focus_area = np.pi * (wavelength / np.pi * numerical_aperture) ** 2 # area of the beam focuse onto the medium 
     intensity_per_pulse = (np.pi * laser_power * numerical_aperture ** 2 ) / (pulse_rate * pulse_duration * wavelength ** 2) * 1e-4 # indensity of the beam per pulse
+    power_per_pulse = laser_power / (pulse_rate * pulse_duration)
+    peak_intesnity_per_pulse = 2 * power_per_pulse / (np.pi * beam_radius ** 2)
 
-
-
-    # Calculating ablated volume
+    # Material proerties
     # Rayleigh range = (𝜋 ⍵_0^2 n) / (λ)
     z_air = (np.pi * beam_radius ** 2 * 1) / (wavelength) # n = 1 - air
     
     # TODO: update this so include the n for different wavelengths
     z_silicon = z_air * (1 / 3.88163) # n = 2.88163 - Silicon at 632.6 nm
 
-    # Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air * 1/2  --> need to devide by to as each medium have a volume of half the ellipsoid
+    # Beer's Law - α = 4kπ/cλ
+    # Need to change the complex refractive idex to be dependent on the wavelenght 
+    alpha = 4 * 0.0047 * np.pi / (wavelength)
+
+    # Calculating focused volume
+    #   Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air * 1/2  --> need to devide by to as each medium have a volume of half the ellipsoid
     air_volume = 4/6 * beam_radius ** 2 * z_air
     silicon_volume = 4/6 * beam_radius ** 2 * z_silicon
 
+    # Intesnity abs
+    z = np.linspace(0, z_silicon * 10, 100)
+    I_gaus = peak_intesnity_per_pulse / (1 + (z / z_silicon)**2) # Intensity decay into the medium
+    I_k = I_gaus * np.exp(-alpha * z) # Intensity decay accounting for complex refractive index
+    I_abs = I_gaus * (1 -  np.exp(-alpha * z)) # Intesnsity absorbed at each point 
+
     # Display data in a table
     table_data = {
-        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Intensity per Pulse (w/cm^2)", "Focuse depth - Air (m)", "Focuse depth - Silicon (m)", "Ablated Volume (m^2)"],
-        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{intensity_per_pulse:.3}", f"{z_air:.3}", f"{z_silicon:.3}", f"{silicon_volume:.3}"]
+        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Focuse depth - Air (m)", "Focuse depth - Silicon (m)", "Focuse Volume - Silicon (m^2)", "Peak intensity per pulse (W/m2)", "Intensity per Pulse (w/cm^2)"],
+        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{z_air:.3}", f"{z_silicon:.3}", f"{silicon_volume:.3}", f"{peak_intesnity_per_pulse:.3}", f"{intensity_per_pulse:.3}"]
     }
     st.dataframe(table_data, hide_index=True)
 
@@ -169,24 +180,57 @@ with plot_col1:
     fig, ax = plt.subplots(figsize=(6, 4))
 
     # Generate x values
-    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius), 100)
+    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius), 1000)
 
     # Calculate the probability density function (PDF) for each x
     pdf = np.exp((-2 * x ** 2 ) / (beam_radius) ** 2)
 
     # Plot the Gaussian distribution
-    ax.plot(x, pdf, color='red')
-    ax.axvline(x = beam_radius, color = "gray", linestyle='--' )
-    ax.axvline(x = -beam_radius, color = "gray", linestyle='--' )
-    ax.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
+    # ax.plot(x, pdf, color='red')
+    # ax.axvline(x = beam_radius, color = "gray", linestyle='--' )
+    # ax.axvline(x = -beam_radius, color = "gray", linestyle='--' )
+    # ax.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
 
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('Intensity (I / $I_0$)')
-    ax.set_title("Gaussian Beam Intensity Profile")
+    # ax.set_xlabel('x (m)')
+    # ax.set_ylabel('Intensity (I / $I_0$)')
+    # ax.set_title("Gaussian Beam Intensity Profile")
 
-    st.pyplot(fig)
+    abs_factor = I_abs / peak_intesnity_per_pulse
 
-    fig, ax = plt.subplots(figsize=(7,7))
+    abs_profile = np.outer(pdf, abs_factor).T
+
+
+    # Setup figure and gridspec
+    fig = plt.figure(figsize=(10, 8))
+    gs = plt.GridSpec(3, 1, height_ratios=[2, 2, 0.2], hspace=0)  # No gap between plots
+
+    # Create subplots
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1], sharex=ax1)
+
+    # Plot Gaussian PDF on ax1
+    ax1.plot(x, pdf, color='red')
+    ax1.set_title("Gaussian Beam Intensity Profile")
+    ax1.set_ylabel('Intensity (I / $I_0$)')
+    
+    ax1.axvline(x = beam_radius, color = "gray", linestyle='--' )
+    ax1.axvline(x = -beam_radius, color = "gray", linestyle='--' )
+    ax1.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
+    ax1.set_xticklabels([])  # Hide x-tick labels to avoid duplication
+
+    # Plot Heatmap on ax2
+    im = ax2.imshow(abs_profile, extent=[x.min(), x.max(), z.max(), z.min()], aspect='auto', origin='upper', cmap='inferno')
+    ax2.set_xlabel('X position (m)')
+    ax2.set_ylabel('Silicon Depth (m)')
+
+    # Add color bar at the bottom
+    cax = fig.add_subplot(gs[2])
+    # cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
+    # cbar.set_label('Intensity (I / $I_0$)')
+
+    st.pyplot()
+
+    fig, ax = plt.subplots(figsize=(10,9))
 
     ax = PlotBeamFocal(ax, beam_radius, z_air, z_silicon)
     ax.axvline(x = 0, color = "gray", linestyle='--')
@@ -202,36 +246,53 @@ with plot_col1:
 
 
 with plot_col2:
-    # Define the grid for the focal spot
-    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
-    y = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
-    X, Y = np.meshgrid(x, y)
+    # # Define the grid for the focal spot
+    # x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
+    # y = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
+    # X, Y = np.meshgrid(x, y)
 
-    # Calculate the two-dimensional intensity distribution
-    I = np.exp(-2 * (X**2 + Y**2) / beam_radius**2)
+    # # Calculate the two-dimensional intensity distribution
+    # I = np.exp(-2 * (X**2 + Y**2) / beam_radius**2)
 
-    # Plotting
-    fig, ax = plt.subplots(figsize=(7,7))
-    c = ax.imshow(I, extent=[x.min(), x.max(), y.min(), y.max()], origin='lower', cmap='inferno')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
-    # ax.set_ylim([-2 * beam_radius, 2 * beam_radius, ])
+    # # Plotting
+    # fig, ax = plt.subplots(figsize=(10,8))
+    # c = ax.imshow(I, extent=[x.min(), x.max(), y.min(), y.max()], origin='lower', cmap='inferno')
+    # ax.set_xlabel('x (m)')
+    # ax.set_ylabel('y (m)')
+    # # ax.set_ylim([-2 * beam_radius, 2 * beam_radius, ])
 
-    ax.set_title('Focal Spot Intensity Distribution')
-    plt.colorbar(c, label='Intensity (normalized)')
-    st.pyplot(fig)
+    # ax.set_title('Focal Spot Intensity Distribution')
+    # plt.colorbar(c, label='Intensity (normalized)')
+    # st.pyplot(fig)
     
 
+    # Intensity absorption profile along z-axis, (x,y = 0)
+    fig, ax = plt.subplots(figsize=(10,8))
+    ax.plot(z, I_gaus, label="Gaussian Decay")
+    ax.plot(z, I_k, label="Complex Decay")
+    ax.plot(z, I_abs, label="Intensity absorbed")
+    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
+    ax.legend()
+    ax.set_xlabel('z (m)')
+    ax.set_ylabel('Intensity (W/m^2)')
+    ax.set_title("Silicon Absorption Profile")
 
-z = np.linspace(0, z_silicon, 100)  # z-axis
-s = np.tile(pdf, (z.size, 1))  # Duplicate the profile along the z-axis
+    st.pyplot()
 
-fig, ax = plt.subplots(figsize=(7, 7))
-c = ax.imshow(s, extent=[x.min(), x.max(), z.min(), z.max()], aspect='auto', origin='lower', cmap='inferno')
-ax.set_xlabel('x (m)')
-ax.set_ylabel('z (m)')
-plt.colorbar(c, label='Intensity (normalized)')
-st.pyplot(fig)
+
+# Plotting the energy absored
+
+
+    # z = np.linspace(0, z_silicon * 1.3, 100)  # z-axis
+
+    # s = np.tile(pdf, (z.size, 1))  # Duplicate the profile along the z-axis
+
+    # fig, ax = plt.subplots(figsize=(7, 7))
+    # c = ax.imshow(s, extent=[x.min(), x.max(), z.min(), z.max()], aspect='auto', origin='lower', cmap='inferno')
+    # ax.set_xlabel('x (m)')
+    # ax.set_ylabel('z (m)')
+    # plt.colorbar(c, label='Intensity (normalized)')
+    # st.pyplot(fig)
 
 
 
@@ -471,19 +532,5 @@ if st.button("Run the Simulation"):
     #     lh.set_alpha(1)
     # st.pyplot(fig)
 
-ranges = simulation.GetExpectedRange()
 
-fig, ax = plt.subplots()
-# Plot the norm alized histogram
-ax.hist(ranges, bins=50, color='green', alpha=0.6, label="X-distribution")
-
-# Set plot labels and legend
-plt.legend()
-plt.grid()
-plt.xlabel('Positon (m)')
-plt.ylabel('Particle Count')
-plt.title('Distribution of Particles')
-
-# Show the plot using Streamlit
-st.pyplot(fig)
 
