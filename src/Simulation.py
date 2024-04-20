@@ -90,6 +90,11 @@ class Simulation:
                 forceList.append(force)
 
         return forceList
+    
+    def GetExpectedRange(self):
+        rangeList = np.array([particle.Range for particle in self.Particles])
+        return rangeList
+
 
     def RemoveForce( self, force ):
         if self.HasForce(force.Name):

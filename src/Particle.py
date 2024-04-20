@@ -55,6 +55,7 @@ class Particle:
         self.Charge = charge
         self.History = position
         self.HistoryVel = velocity
+        self.Range = self.ExpectedRange()
 
     def Save(self):
         """
@@ -72,6 +73,20 @@ class Particle:
         @rtype: numpy.ndarray
         """
         return self.Position
+    
+    def ExpectedRange( self ):
+        """
+        Returnes the expected range of the particle from the inital conditions of the particles initalisation.
+        """
+
+        vel_mag = np.linalg.norm(self.Velocity)
+
+        angle = np.arctan2(np.linalg.norm(self.Velocity[:2]), self.Velocity[2])
+
+        # Calculate the range using the correct angle in radians
+        range = (vel_mag**2 * np.sin(2 * angle) / 9.8) + np.linalg.norm(self.Position)
+
+        return range
 
     def __str__(self):
         """

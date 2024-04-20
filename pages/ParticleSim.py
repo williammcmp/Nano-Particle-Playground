@@ -471,4 +471,19 @@ if st.button("Run the Simulation"):
     #     lh.set_alpha(1)
     # st.pyplot(fig)
 
+ranges = simulation.GetExpectedRange()
+
+fig, ax = plt.subplots()
+# Plot the norm alized histogram
+ax.hist(ranges, bins=50, color='green', alpha=0.6, label="X-distribution")
+
+# Set plot labels and legend
+plt.legend()
+plt.grid()
+plt.xlabel('Positon (m)')
+plt.ylabel('Particle Count')
+plt.title('Distribution of Particles')
+
+# Show the plot using Streamlit
+st.pyplot(fig)
 
