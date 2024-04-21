@@ -63,7 +63,7 @@ class Particle:
         """
 
         self.History = np.vstack((self.History, self.Position))
-        # self.HistoryVel = np.vstack((self.HistoryVel, self.Velocity))
+        self.HistoryVel = np.vstack((self.HistoryVel, self.Velocity))
 
     def Display(self):
         """
