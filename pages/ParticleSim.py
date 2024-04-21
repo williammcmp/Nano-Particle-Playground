@@ -164,6 +164,8 @@ with slider_col:
     I_k = I_gaus * np.exp(-alpha * z) # Intensity decay accounting for complex refractive index
     I_abs = I_gaus * (1 -  np.exp(-alpha * z)) # Intesnsity absorbed at each point 
 
+    coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
+
     # Display data in a table
     table_data = {
         "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Focuse depth - Air (m)", "Focuse depth - Silicon (m)", "Focuse Volume - Silicon (m^2)", "Peak intensity per pulse (W/m2)", "Intensity per Pulse (w/cm^2)"],
@@ -272,9 +274,10 @@ with plot_col2:
     ax.plot(z, I_k, label="Complex Decay")
     ax.plot(z, I_abs, label="Intensity absorbed")
     ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
+    # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
     ax.legend()
     ax.set_xlabel('z (m)')
-    ax.set_ylabel('Intensity (W/m^2)')
+    ax.set_ylabel('Energy (eV)')
     ax.set_title("Silicon Absorption Profile")
 
     st.pyplot()
