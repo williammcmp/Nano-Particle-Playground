@@ -160,8 +160,8 @@ with slider_col:
 
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
-    I_gaus = peak_intesnity_per_pulse / (1 + (z / z_silicon)**2) # Intensity decay into the medium
-    I_k = I_gaus * np.exp(-alpha * z) # Intensity decay accounting for complex refractive index
+    I_gaus = (peak_intesnity_per_pulse / (1 + (z / z_silicon)**2) ) * 1e-4 # Intensity decay into the medium
+    I_k =  I_gaus * np.exp(-alpha * z) # Intensity decay accounting for complex refractive index
     I_abs = I_gaus * (1 -  np.exp(-alpha * z)) # Intesnsity absorbed at each point 
 
     coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
@@ -217,7 +217,10 @@ with plot_col1:
     
     ax1.axvline(x = beam_radius, color = "gray", linestyle='--' )
     ax1.axvline(x = -beam_radius, color = "gray", linestyle='--' )
+    ax1.axvline(x = 0, color = "gray", linestyle='--' )
     ax1.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
+
+    ax.set_xlim([-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius)])
     ax1.set_xticklabels([])  # Hide x-tick labels to avoid duplication
 
     # Plot Heatmap on ax2
@@ -277,10 +280,28 @@ with plot_col2:
     # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
     ax.legend()
     ax.set_xlabel('z (m)')
-    ax.set_ylabel('Energy (eV)')
+    ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
 
     st.pyplot()
+
+
+    energy_abs = pulse_duration * np.pi * (beam_radius ** 2) * I_abs * 1e-6 # TODO adjust these scaling values to be accurate --> check the calcuations at the top (match Q1 F NLO)
+    energy_abs_eV = (energy_abs / 1e-19) 
+
+    fig, ax = plt.subplots(figsize=(10,8))
+    ax.plot(z, energy_abs_eV, label="Silicon") #me need to scale up or down on by 1e-4
+    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
+    # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
+    ax.axhline(4.6, label="Silicon Work Function", color='r')
+
+    ax.legend()
+    ax.set_xlabel('z (m)')
+    ax.set_ylabel('Absrobed Energy ( eV/cm^2 )')
+    ax.set_title("Silicon Absorption Energy")
+
+    st.pyplot()
+
 
 
 # Plotting the energy absored
