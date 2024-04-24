@@ -2,6 +2,7 @@
 
 import pandas as pd
 import os
+import json
 
 def load_data_from_csv(file_path):
     """
@@ -260,3 +261,18 @@ def load_experimental_data(experiment_type):
     data_df = data_df.iloc[1:]
 
     return data_df
+
+# Function to write data to a JSON file
+def write_to_json(data, filename='output1.json'):
+    with open(filename, 'w') as json_file:
+        json.dump(data, json_file)
+
+# loads data from a JSON File
+def load_from_json(filename='output1.json'):
+    try:
+        with open(filename, 'r') as json_file:
+            data = json.load(json_file)
+        return data
+    except FileNotFoundError:
+        print(f"Error: {filename} not found.")
+        return None

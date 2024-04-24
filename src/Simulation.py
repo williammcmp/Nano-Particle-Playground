@@ -1,5 +1,6 @@
 # src/Simulation.py
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import time
 import random
@@ -15,7 +16,6 @@ class Simulation:
     Attributes:
     - Particles (list): A list of Particle objects in the simulation.
     - Forces (list): A list of Force objects acting on the particles.
-    - Constraints (list): A list of constraint objects affecting the particles.
     - Duration (float): A count of the simulation time used - accounts for separate or different time intervals
 
     Methods:
@@ -26,120 +26,96 @@ class Simulation:
     - Run(duration=10, timeStep=0.1, saveHistory=True): Runs the particle simulation for a specified duration with a given time step.
     - Update(dt): Updates the simulation for a given time step 'dt'.
     - FroceList(): Returns a string listing information about the applied forces.
+    - NanoRun(duration=10, timeStep=0.1, saveHistory=True): Runs the particle simulation with Brownian motion for a specified duration with a given time step.
+
     """
 
-    def __init__( self ):
+    def __init__(self):
         """
         Initializes a new Simulation instance.
         """
 
         self.Duration = 0
 
-        self.Particles   = []
-        self.Forces      = []    
-        # Store the ground plane
-        self.Constraints = []
+        self.Particles = []
+        self.Forces = []
 
         # TODO update test to add the ground plane when needed
         # self.Constraints.append( GroundPlane(self.Particles, 0.5) )
-        
-    def AddParticles( self , Particles):
-        """
-        Adds Particles to the Simulation
-        """
-        for partilce in Particles:
-            self.Particles.append(partilce)
 
-    def AddForce( self , Forces ):
+    def AddParticles(self, Particles):
         """
-        Adds Froces to the Simulation
+        Adds list of Particles to the Simulation
+        """
+        for particle in Particles:
+            self.Particles.append(particle)
+
+    def AddForce(self, Forces):
+        """
+        Adds list of Forces to the Simulation
         """
         for force in Forces:
             self.Forces.append(force)
-
-    def AddConstraints( self, Constraints):
+            
+    def HasForce(self, forceName):
         """
-        Adds Constraints to the Simulation
-        """
-        for constrant in Constraints:
-            self.Constraints.append(constrant)
+        Checks if a force with the given name exists in the simulation.
 
-    def Save( self ):
+        Parameters:
+        - forceName (str): The name of the force to check.
+
+        Returns:
+        - bool: True if the force exists, False otherwise.
+        """
+        for force in self.Forces:
+            if forceName == force.Name:
+                return True
+
+        return False
+
+    def GetForce(self, forceName):
+        """
+        Returns a list of forces with the given name.
+
+        Parameters:
+        - forceName (str): The name of the force to retrieve.
+
+        Returns:
+        - list: A list of Force objects with the specified name.
+        """
+        forceList = []
+
+        for force in self.Forces:
+            if forceName == force.Name:
+                forceList.append(force)
+
+        return forceList
+    
+    def GetExpectedRange(self):
+        rangeList = np.array([particle.Range for particle in self.Particles])
+        return rangeList
+
+
+    def RemoveForce( self, force ):
+        if self.HasForce(force.Name):
+            self.Forces.remove(force)
+
+    def ForceTable(self):
+        forces = {}
+        for force in self.Forces:
+            forces.update(force.Dict())
+
+        forcetable = pd.DataFrame.from_dict(forces, orient='index')
+
+        forcetable.columns = ['Direction', 'Magitude', 'Field', 'units']
+        return forcetable
+
+    def Save(self):
         """
         Saves all particles' current position, could expand to include velocity
         """
         for particle in self.Particles:
             particle.Save()
-
-    def PlotPaths( self , txt=""):
-        """
-        Returns a 3D axis with the paths for each particle from the simulation.
-        """
-        # title=f"{len(self.Particles)} Particles over {self.Duration}s"
-
-        fig = plt.figure(figsize=(8,8))
-        ax = fig.add_subplot(111, projection='3d')
-
-
-        for particle in self.Particles:
-            ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2])
-
-        ax.set_xlabel('X (m)')
-        ax.set_ylabel('Y (m)')
-        ax.set_zlabel('Z (m)')
-        ax.set_title('Trajectories of simulated particles')
-
-
-        return fig, ax
-
-    def Plot( self):
-        """
-        Returns a 2D axis with the positon of the particles
-        """
-        title = f"{len(self.Particles):,} Particles after {self.Duration}s"
-
-        [position, velocity, force, mass, charge] = self.__calNumPyArray()
-
-        # Create a scatter plot with the custom colormap
-        fig, ax = plt.subplots()
-        scatter = ax.scatter(
-            position[:, 0],
-            position[:, 1],
-            c=mass,  # Use the mass values for color mapping
-            cmap="viridis",  # Choose a colormap (you can change this)
-            alpha=0.7,  # Adjust transparency
-        )
-
-        # Customize the plot
-        plt.xlabel('X (m)')
-        plt.ylabel('Y (m)')
-        plt.title(title)
-
-        # Add colorbar
-        cbar = plt.colorbar(scatter, ax=ax, label='Mass (kg)')
-
-        # Show the plot
-        return fig
-
-    def Histogram(self, bins = 20):
-        """
-        Returns a histogram of particle's displacment from the origin.
-        """
-        title = f"{len(self.Particles):,} Particles over {self.Duration}s"
-
-        position, _, _, mass, charge = self.__calNumPyArray()
-
-        # Create a histogram of particle masses
-        fig, ax = plt.subplots()
-        ax.hist(np.linalg.norm(position, axis=1), bins=bins, edgecolor='k', alpha=0.7, color="#5433b8")
-
-        # Customize the plot (optional)
-        ax.set_xlabel('Distance from origin (m)')
-        ax.set_ylabel('Frequency')
-        ax.set_title(title)
-
-        return fig
-
 
     def Run(self, duration=10, timeStep=0.1, saveHistory=True):
         """
@@ -162,225 +138,164 @@ class Simulation:
         After completion, the total simulated time and time step size are printed.
 
         Returns:
-        None
+        computeTime, numCals
         """
-        print("\nInitialising Particle Simulations.\nSetting up enviroment\n")
+        print("\nInitialising Particle Simulations.\nSetting up environment\n")
 
-        self.Duration += duration # adding the sim time to track over multiple simulations
-
+        self.Duration += duration  # adding the sim time to track over multiple simulations
 
         print(f"\nSimulating particles:")
         startTime = time.time()
 
-
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
             for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
-                self.Save() # saves the particles postion
+                self.Save()  # saves the particles position
                 self.Update(timeStep)
         else:
             for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.Update(timeStep)
 
         computeTime = time.time() - startTime
-        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + len(self.Constraints) + 1)
+        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + 1)
 
         print("\n Simulation:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
-        print(f"\tTotal number of calculatios = {numCals}")
+        print(f"\tTotal number of calculations = {numCals}")
 
-        print(f"\nForces:")
-        print(self.FroceList())
+        print(f"{self.Forces}")
+
 
         return computeTime, numCals
-    
+
     def NanoRun(self, duration=10, timeStep=0.1, saveHistory=True):
-        
-        print("\nInitialising Particle Simulations.\nSetting up enviroment\n")
+        """
+        Run the particle simulation with Brownian motion for a specified duration with a given time step.
 
-        self.Duration += duration # adding the sim time to track over multiple simulations
+        Parameters:
+        - duration (float): The total duration of the simulation in seconds.
+        - timeStep (float): The time step (seconds) at which the simulation is updated.
+        - saveHistory (boolean): Controls if the positional history of the particles is saved.
 
+        Output:
+        The simulation progresses in time steps, and progress is displayed using a progress bar.
 
-        print(f"\nSimulating particles:")
+        After completion, the total simulated time and time step size are printed.
+
+        Returns:
+        computeTime, numCals
+        """
+        print("\nInitialising Particle Simulations.\nSetting up environment\n")
+
+        self.Duration += duration  # adding the sim time to track over multiple simulations
+
+        print(f"\nSimulating particles with Brownian motion:")
         startTime = time.time()
-
 
         # this saves re-evaluating if saveHistory over each iteration - faster compute time for larger iteration count
         if saveHistory:
             for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
-                self.Save() # saves the particles postion
+                self.Save()  # saves the particles position
                 self.NanoUpdate(timeStep)
         else:
             for x in tqdm(range(int(duration / timeStep)), unit=" Time Steps"):
                 self.NanoUpdate(timeStep)
 
         computeTime = time.time() - startTime
-        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + len(self.Constraints) + 1)
+        numCals = int(duration / timeStep) * len(self.Particles) * (len(self.Forces) + 1)
 
-        print("\n Simulation:")
+        print("\n Simulation with Brownian motion:")
         print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
-        print(f"\tTotal number of calculatios = {numCals}")
+        print(f"\tTotal number of calculations = {numCals}")
 
-        print(f"\nForces:")
-        print(self.FroceList())
+        print(f"{self.Forces}")
 
         return computeTime, numCals
 
-    # faster run method - intended for very large number of particles
-    def FastRun( self, duration=10, timeStep=0.1):
-        print("\nInitialising Particle Simulations.\n\n\t...Setting up enviroment for FAST MODE\n")
-        
-        self.Duration += duration
-
-        [position, velocity, force, mass, charge] = self.__calNumPyArray()
-
-
-        print("\nSimulating particles (fast mode):")
-        startTime = time.time()
-
-        for x in tqdm(range(int(duration / timeStep))): # run the simulation FAST
-            self.FastUpdate(0.01, position, velocity, force, mass, charge)
-
-        endTime = time.time()
-
-        self.__reloadParticels(self.Particles, position, velocity, force, mass, charge)
-
-        computeTime = time.time() - startTime
-        numCals = int(duration / timeStep) * len(self.Particles)
-
-        print("\n Simulation:")
-        print(f"\tParticles = {len(self.Particles)}\n\tSimulated time = {duration}s\n\tTime intervals = {timeStep}s\n\tCompute Time = {computeTime}s")
-        print(f"\tTotal number of calculatios = {numCals}")
-
-        print(f"\nForces:")
-        print(self.FroceList())
-
-        return computeTime, numCals
-
-    def Update( self, dt):    
+    def Update(self, dt):
         """
         Update the simulation for a given time step 'dt'.
 
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
-        """ 
-        for particle in self.Particles:
-            particle.SumForce = np.array([0,0,0])      
-
-        for force in self.Forces:             #-- Accumulate Forces
-            force.Apply( self.Particles )
-            
-        for particle in self.Particles:       #-- Cal the position and velocities for each particle
-            if( particle.Mass == 0 ): continue
-
-            acceleration = particle.SumForce * ( 1 / particle.Mass )
-            particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
-            particle.Position = particle.Position  + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
-            
-        for constraint in self.Constraints:   #-- Apply Penalty Constraints
-            constraint.Apply( self.Particles )
-    
-    def NanoUpdate( self, dt):    
         """
-        Update the simulation for a given time step 'dt'. Same a Update, but with Brownian motion
+        for particle in self.Particles:
+            particle.SumForce = np.array([0, 0, 0])
+
+        for force in self.Forces:  # -- Accumulate Forces and apply barrier constraints
+            force.Apply(self.Particles)
+
+        for particle in self.Particles:  # -- Calculate the position and velocities for each particle
+            if particle.Mass == 0:
+                continue
+
+            acceleration = particle.SumForce * (1 / particle.Mass)  # a = F / m
+            particle.Velocity = particle.Velocity + (acceleration * dt)  # v = u + at
+
+            # if np.linalg.norm(particle.Velocity) > 0.000000001:  # no position update need for particles that are effetivlly stationary
+            particle.Position = particle.Position + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
+
+
+
+    def NanoUpdate(self, dt):
+        """
+        Update the simulation for a given time step 'dt'. Same as Update, but with Brownian motion.
 
         Parameters:
         - dt (float): The time step (seconds) for the simulation update.
-        """ 
+        """
         for particle in self.Particles:
-            particle.SumForce = np.array([0,0,0])      
+            particle.SumForce = np.array([0, 0, 0])
 
-        for force in self.Forces:             #-- Accumulate Forces
-            force.Apply( self.Particles )
-            
-        for particle in self.Particles:       #-- Cal the position and velocities for each particle
-            if( particle.Mass == 0 ): continue
+        for force in self.Forces:  # -- Accumulate Forces and apply barrier constraints
+            force.Apply(self.Particles)
 
-            acceleration = particle.SumForce * ( 1 / particle.Mass )
-            particle.Velocity = particle.Velocity + (acceleration * dt) # v = u + at
-            
+        for particle in self.Particles:  # -- Calculate the position and velocities for each particle
+            if particle.Mass == 0:
+                continue
+
+            acceleration = particle.SumForce * (1 / particle.Mass)  # a = F / m
+            particle.Velocity = particle.Velocity + (acceleration * dt)  # v = u + at
+
             # Brownian motion process
-            browian = (np.sqrt(dt) * np.random.normal(0, 1, 3)) * 0.5
+            brownian = (np.sqrt(dt) * np.random.normal(0, 1, 3)) * 0.5
+            particle.Position = particle.Position + brownian  # applied the p(x,t) of Brownian motion
 
-            if particle.Velocity.all() != 0:
-                particle.Position = particle.Position + browian + (particle.Velocity * dt) - 0.5 * acceleration * dt * dt # x = x_i + vt - 0.5at^2
-            
-            
-        for constraint in self.Constraints:   #-- Apply Penalty Constraints
-            constraint.Apply( self.Particles )
-
-    # faster update method, not as accurate and unable to store history (no path plot) - intedned for very large particle counts
-    def FastUpdate(self, dt, position, velocity, force, mass, charge):
-        # zero out forces, allows for re-calcuations each loop
-        force *= 0
-
-        # Applying the forces
-        for f in self.Forces:
-            if str(f) == "Gravity":
-                force += f.Field()
-                
-            elif str(f) == "Lorentz":
-                force += charge * f.Field()[1] + charge *(np.cross(velocity, f.Field()[0]))
-                
-            else: 
-                print(f)
-                # pass
-        
-        # update position and velocitioes
-        acceleration = force / mass
-        velocity += acceleration * dt
-        position += velocity*dt - 0.5*acceleration*dt*dt
-        
-        # Applying the C
-        for c in self.Constraints:
-            if str(c) == "Ground Plane": 
-                print("A)")
-                negative_z = position[:, 2] < 0 # find when particle below xy plane (-z values)
-                velocity[negative_z] *= np.array([0,0,0]) # bounce logic (flip z and reduce x,y Velcoties)
-                position[:,2] = abs(position[:,2]) # the ground plane
-            else:
-                print(c)
-                # pass
-    
-    def FroceList( self ):
-        """
-        Returns a string listing information about the applied forces.
-
-        Returns:
-        - str: A string listing information about the applied forces.
-        """
-        forceList = []
-        for force in self.Forces:
-            forceList.append(force.Info())
-        
-        return forceList
+            if particle.Velocity.all() != 0:  # no position update needed for particles that are stationary
+                particle.Position = particle.Position + (
+                            particle.Velocity * dt) - 0.5 * acceleration * dt * dt  # x = x_i + vt - 0.5at^2
     
     def StreamletData( self ):
         
         position, velocity, force, mass, charge = self.__calNumPyArray()
                    
-        return position, velocity, force, mass, charge
-    
-    def ChangeBField(self, direction):
-        for f in self.Forces:
-            if str(f) == "Lorentz":
-                f.bField = direction
-                break
-
-    def ParticleInfo (self) :
-        dict = {"mass": [],
-                "position": [],
-                "inital_velocity": []}
-        
-        for particle in self.Particles:
-            dict['mass'].append(particle.Mass)
-            dict['position'].append(particle.Position)
-            dict['inital_velocity'].append(particle.initalVel)
-
-        return dict
-
-        
+        return position, velocity, force, mass, charge       
             
+
+    def PlotFroces( self ): 
+        fig = plt.figure(figsize=(12,12))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        for force in self.Forces:
+            force.Diagram(ax)
+                        
+        ax.legend()
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title('Force Body Diagram')
+        ax.set_xlim([-5, 5])
+        ax.set_ylim([-5, 5])
+        ax.set_zlim([0, 5])
+
+        # Remove axis ticks
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_zticks([])
+
+
+        return fig, ax
+
 
     # converts Particle objs to array for after computing
     def __calNumPyArray(self):
@@ -399,14 +314,3 @@ class Simulation:
             charge[x] = self.Particles[x].Charge
 
         return [position, velocity, force, mass, charge]
-
-    # Saves the particle array state to Particle objects
-    def __reloadParticels(self, Particles, position, velocity, force, mass, charge):
-        print("\narray -> obj")
-        for x in tqdm(range(len(Particles))):
-            Particles[x].Position = position[x]
-            Particles[x].Velocity = velocity[x]
-            Particles[x].SumForce = force[x]
-            Particles[x].Mass = mass[x][0]
-            Particles[x].Charge = charge[x][0]
-        

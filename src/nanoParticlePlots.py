@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
 import pandas as pd
+# import seaborn as sns
 
 from src.Particle import Particle
 from src.Simulation import Simulation
@@ -148,13 +149,49 @@ def plotSimulatedPosition(position, charge):
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-    # Customize the plot (optional)
-    ax.set_xlabel('X (μm)')
-    ax.set_ylabel('Y (μm)')
+    circle = plt.Circle((0, 0), 1e-6, color='r', fill=False)
+    ax.add_artist(circle)
+
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
 
+    ax.set_xlim(-1e-5, 1e-5)
+    ax.set_ylim(-1e-5, 1e-5)
+
     return fig, ax
+
+def plotRadialPosition(position):
+    radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2) * 1e6
+    radius_filted = radius[radius > 2]
+
+    fig, ax = plt.subplots(figsize=(10,6))
+
+    radius_data = {'All Particles': radius,
+                   'Outside ablation site': radius_filted}
+
+    # sns.displot(radius_data, kind='kde', bw_adjust=0.5)
+
+    # sns.displot(radius, kind='kde', bw_adjust=0.5, label="all particles")
+    # sns.displot(radius_filted, kind='kde', bw_adjust=0.5, label="outside ablation site")
+    plt.axvline(x=2, color='r', linestyle='--')
+
+    # # Shade the area to the left of the vertical line
+    plt.axvspan(-5, 2, alpha=0.2, color='red')
+
+    # # Add text to the shaded area
+    plt.text(2.5 , 0.10, 'Ablation Site', color='red', fontsize=12)
+
+    plt.xlim(-0.5, 25)
+    plt.ylim(bottom=-0.001)
+    plt.ylabel("Density (particle/µm^2)")
+    plt.xlabel("Radial position (µm)")
+    plt.legend()
+    plt.grid()
+
+    st.pyplot()
+
 
 def plotSimulatedMassHistogram(mass):
     fig, ax = plt.subplots(figsize=(10,7))
@@ -167,7 +204,7 @@ def plotSimulatedMassHistogram(mass):
     return fig, ax
 
 
-def plotTrajectories(simulation, direction):
+def plotTrajectories(simulation):
 
    
     fig = plt.figure(figsize=(8,8))
@@ -192,22 +229,45 @@ def plotTrajectories(simulation, direction):
     X, Y, Z = np.meshgrid(x, y, z)
 
     # Magnetic field components [Bx, By, Bz] at each point in the grid
-    Bx = direction[0]
-    By = direction[1]
-    Bz = direction[2]
+    Bx = 0
+    By = 0
+    Bz = 0
 
-    vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
+    # Update the direction if the magnetic force is used
+    # if simulation.HasForce("Magnetic"):
+    #     direction = simulation.GetForce("Magnetic")[0].Field()
+    #     print(direction)
+    #     Bx = direction[0]
+    #     By = direction[1]
+    #     Bz = direction[2]
 
-    ax.quiver(X, Y, Z, Bx, By, Bz, length=0.1 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
+    # vectorScale = np.sqrt((x_limits[0] + x_limits[1])**2 + (y_limits[0] + y_limits[1])**2) # helps scale the B Field quivers
+
+    # ax.quiver(X, Y, Z, Bx, By, Bz, length=0.1 * vectorScale, normalize=True, color='b', label="B Field", alpha=0.4) # Bfield direction
     
     # sets the legend's lables to be bright
     legend = ax.legend()
     for lh in legend.legendHandles:
         lh.set_alpha(1)     
-    ax.set_xlabel('X (μm)')
-    ax.set_ylabel('Y (μm)')
-    ax.set_zlabel('Z (μm)')
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
+    ax.set_zlabel('Z (m)')
     ax.set_title('Trajectories of simulated Silicon Nano-Particles')
+    # ax.set_xlim([-1e-5, 1e-5])
+    # ax.set_ylim([-1e-5, 1e-5])
+    # ax.set_zlim([0,0.005])
+
+    radius = 2 * 1e-6
+    center = (0, 0, 0)
+    num_points = 100
+
+    # Parametric equations for a circle in 3D space
+    theta = np.linspace(0, 2*np.pi, num_points)
+    x = center[0] + radius * np.cos(theta)
+    y = center[1] + radius * np.sin(theta)
+    z = center[2] + np.zeros_like(theta)  # All z-coordinates are zeros (lies in XY plane)
+
+    ax.plot(x, y, z, color='r')
 
     return fig, ax
 
@@ -321,3 +381,32 @@ def list_to_markdown_table(data):
     
 
     return fList
+
+def PlotBeamFocal(ax, beam_width, z_air, z_silicon):
+    
+    x = np.linspace(-beam_width, beam_width, 200)  # Limit x to the range where the square root is defined
+    
+    # Calacuate the Air focal 
+    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))
+
+    # Plot Air focal spot
+    ax.plot(x, eps_air, color = 'blue', label = "Air")
+
+    # Calculate the Silicon focus plot
+    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2))
+
+    # Plot Silicon focual spot
+    ax.plot(x, eps_silicon, color = 'green', label = "Silicon")
+
+
+    # Calcuate beam profiles
+    z = np.linspace(0, (z_air + z_air) / 2, 200)
+    beam_air = beam_width * np.sqrt(1 + (z ** 2 / z_air ** 2))
+    beam_silicon = beam_width * np.sqrt(1 + (z ** 2 / z_silicon ** 2))
+
+    ax.plot(beam_air, z, color = "lightgray", linestyle='dotted', label = 'Beam Width')
+    ax.plot(-beam_air, z, color = "lightgray", linestyle='dotted')
+    ax.plot(beam_silicon, -z, color = "lightgray", linestyle='dotted')
+    ax.plot(-beam_silicon, -z, color = "lightgray", linestyle='dotted')
+
+    return ax

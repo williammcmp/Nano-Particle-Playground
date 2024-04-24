@@ -21,7 +21,7 @@ simulation = Simulation() # initalise the simulation object
 # ------------
 # Set page layout to wide
 st.set_page_config(layout="wide", page_title="Nano Particle Simulation", initial_sidebar_state="collapsed")
-
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # makes the plots in line with the style of the application dark mode
 rc = {'figure.figsize':(8,4.5),
@@ -47,26 +47,26 @@ plt.rcParams.update(rc)
 def buildSideBar(simMode):
     if simMode == "Three Particle system (testing)":
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=1000, value=3, step=500, disabled = True)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (ms)", min_value=10, max_value=2000, value=650, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 1000 # convert to seconds
 
     elif simMode == "Silicon Nano-Particles":
         # The max number of particles has been reduced in order to stop people form fucking crashing the server
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=5, max_value=1000, value=100, step=75, disabled = True)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=4, disabled = True)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5, disabled = True) / 1000 # convert to seconds
     
     else:
         partilceNumber = st.sidebar.number_input("Number of Particles", min_value=1, max_value=10000, value=100, step=500)
-        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=0, max_value=30, value=5)
-        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 100 # convert to seconds
+        simDuration = st.sidebar.number_input("Simulation time (s)", min_value=10, max_value=2000, value=500, step=50) / 1000 # convert to seconds
+        simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value=10.0, value=1.0, step=0.5) / 1000 # convert to seconds
 
     return partilceNumber, simDuration, simTimeStep 
 
 def buildPartilceDistributions(simMode):
     if simMode == "Standard":
         a = st.sidebar.expander("Particle Distribution Settings")
-        positionType = a.selectbox("Starting Position:", ["Origin", "Random", "off the wall"])
+        positionType = a.selectbox("Starting Position:", ["Origin", "Random", "off the wall", "load"])
         if positionType == "Random ":
             positionX = a.number_input("Average inital X pos:")
             positionY = a.number_input("Average inital Y pos:")
@@ -129,64 +129,59 @@ mode, positionX, positionY, positionZ, massRange, avgEnergy, charged, chargedNev
 
 
 
-
-# Forces of the Simulation 
+# Forces of the Simulation - Builds the user settings for the simulation
 if simMode != "Silicon Nano-Particles":
     a = st.sidebar.expander("Simulation Forces")
-    gravity = a.checkbox("Gravity", value=True)
+    if a.checkbox("Gravity", value=True):
+        simulation.AddForce([Gravity()]) # Adds the ground plane to force list
 
-    # Disabled charged based forces if particles are not charged
-    if not charged: 
-        electric = a.checkbox("Electric field", disabled=True, value=False)
-        magnetic = a.checkbox("Magnetic field", disabled=True, value=False)
-    else:
-        magnetic = a.checkbox("Magnetic field")
-        if magnetic:
-            c = a.container()
-            c.markdown("Define the Magnetic Field (T):")
-            magneticX = c.number_input("Magnetic X", value=0.0)/1000
-            magneticY = c.number_input("Magnetic Y", value=0.0)
-            magneticZ = c.number_input("Magnetic Z", value=0.018) # default it is out of the page
-        else:
-            magneticX = np.array([0, 0, 0])
-            magneticY = np.array([0, 0, 0])
-            magneticZ = np.array([0, 0, 0])             
+    # option for the user to define the magnetic field
+    if a.checkbox("Magnetic field"):
+        c = a.container()
+        c.markdown("Define the Magnetic Field (T):")
+        magneticX = c.number_input("Magnetic X", value=0.0)
+        magneticY = c.number_input("Magnetic Y", value=0.0)
+        magneticZ = c.number_input("Magnetic Z", value=0.0)
+        print(np.array([magneticX, magneticY, magneticZ]))
 
-        electric = a.checkbox("Electric field")
-        if electric:
-            c = a.container()
-            c.markdown("Define the Electric Field (T):")
-            electricX = c.number_input("Electric X", value=0.0)
-            electricY = c.number_input("Electric Y", value=0.0)
-            electricZ = c.number_input("Electric Z", value=0.0)
+        magForce = Magnetic() # creating the Magnetic obj
+        # updateing the field -> obj will save the direction and magitude seperatlly
+        magForce.UpdateField(np.array([magneticX, magneticY, magneticZ])) 
+        print(magForce.Field())
+        simulation.AddForce([magForce]) # Adds mag force to force list 
+
+    # option for the user to define the electric field
+    if a.checkbox("Electric field"):
+        c = a.container()
+        c.markdown("Define the Electric Field (V/m):")
+        electricX = c.number_input("Electric X", value=0.0)
+        electricY = c.number_input("Electric Y", value=0.0)
+        electricZ = c.number_input("Electric Z", value=0.0)
+
+        eleForce = Electric()
+        # updateing the field -> obj will save the direction and magitude seperatlly
+        eleForce.UpdateField(np.array([electricX, electricY, electricZ])) 
+        simulation.AddForce([eleForce])
+
 
     # Constraints of the Simulation
-    a = st.sidebar.expander("Simulation Constrains")
+    a = st.sidebar.expander("Simulation Barriers")
 
     groundPlane = a.checkbox("Ground Plane", value=True)
     if groundPlane:
-        particleBounce = a.checkbox("Particle Bounce")
+        particleBounce = a.checkbox("Bouncey ground")
         if particleBounce:
             particleBounceFactor = a.number_input("Bounce factor (0 - no bounce, 1 lots of bounce)")
+            simulation.AddForce([GroundPlane(damping=particleBounceFactor)])
         else:
-            particleBounceFactor = 0
-    rand = a.checkbox("Fixed Random Seed", value=True)
-    if rand:
-        randSeed = a.number_input("Seed Number", step=1, value=2)
-        random.seed(randSeed)
+            simulation.AddForce([GroundPlane()])
 
-    wall = a.checkbox("Wall plane", value = False)
+
+    if a.checkbox("Wall plane", value=False): #TODO: add more logic for addational barrier types (diagnal and user custom)
+        simulation.AddForce([Barrier(damping=0.5, plane=np.array([1.0, 0.0, 0.0]) )])
 
 else: # condition for the Silicion Nano-Particle mode
-    gravity = True
-    electric = False
-    magnetic = True
-    magneticX = np.array([0, 0, 0])
-    magneticY = np.array([0, 0, 0])
-    magneticZ = np.array([0, 0, 0]) 
-    groundPlane = True
-    particleBounceFactor = 0
-    wall = False
+    simulation.AddForce([Gravity(), Barrier()]) # only gravity and the ground plane are required by default
 
 
 # ------------
@@ -199,23 +194,14 @@ if simMode != "Three Particle system (testing)":
 else:
     GenerateTestParticles(simulation)
 
-# Allows for plotting inital positions
-initalPos = simulation.Plot()
-
-# Apply forces to the sim
-if gravity :  simulation.AddForce([Gravity()])
-if magnetic : simulation.AddForce([Lorentz(np.array([magneticX, magneticY, magneticZ]))])
-if electric : simulation.AddForce([Lorentz(np.array([0, 0, 0]), np.array([electricX, electricY, electricZ]))])
-if groundPlane : simulation.AddConstraints([GroundPlane(particleBounceFactor)])
-if wall : simulation.AddConstraints([Wall()])
 
 # ------------
-# Introduction
+# Introduction / Headder
 # ------------
 
 row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
 with row0_1:
-    st.title('Characterisation of Laser-Ablated Ailicon NanoParticles')
+    st.title('Characterisation of Laser-Ablated Silicon NanoParticles')
 with row0_2:
     image_container = st.container()
 
@@ -266,8 +252,8 @@ if simMode == "Silicon Nano-Particles":
                              "Magnetic Field Across the Page -Y": np.array([0, -0.18, 0]),
                              "Magnetic Field Across the Page +Y": np.array([0, 0.18, 0])
                              }
-
-        simulation.ChangeBField(magneticDirection[dataSeries])
+        if simulation.HasForce("Magnetic"):
+            simulation.GetForce("Magnetic")[0].UpdateField(magneticDirection[dataSeries]) #updates the direction and magitude of the magnetic field
 
         # fig, ax = plotExperimentalSummary()
         # st.pyplot(fig)
@@ -374,10 +360,10 @@ if simMode == "Silicon Nano-Particles":
         st.markdown(simText())
         st.markdown(f'''**Simulation Stats:**''')
         st.markdown(sim_info)
-        st.markdown(list_to_markdown_table(simulation.FroceList()))
+        # st.markdown(list_to_markdown_table(simulation.FroceList()))
 
     with plot_col:
-        fig, ax = plotTrajectories(simulation, magneticDirection[dataSeries])
+        fig, ax = plotTrajectories(simulation)
 
         st.pyplot(fig)
 
@@ -400,20 +386,22 @@ if simMode == "Silicon Nano-Particles":
         st.pyplot(fig)
 else: 
     # Run the SIM for non Nano-partilce modes
-
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
     
-    sim_info = f'''
-    ```
-    - Particles = {len(simulation.Particles):,}
-    - Simulated time = {simDuration}s
-    - Time Step intervals = {simTimeStep}s
-    - Calacuation mode = {simMode}
-    - Compute Time = {computeTime:.4}s
-    - Total number of calculations = {numCals:,}
-    ```
-    '''
+    sim_info = {'Simulation Stats': [len(simulation.Particles), simDuration, simTimeStep, simMode, computeTime, numCals]}
+    sim_df = pd.DataFrame.from_dict(sim_info, orient="index")
+    sim_df.columns = ["Particles", "Simulated time (s)", "Time step interval (s)", "Simulation Mode", "Compute Time (s)", "Number of Calculations"]
+    # sim_info = f'''
+    # ```
+    # - Particles = {len(simulation.Particles):,}
+    # - Simulated time = {simDuration}s
+    # - Time Step intervals = {simTimeStep}s
+    # - Calacuation mode = {simMode}
+    # - Compute Time = {computeTime:.4}s
+    # - Total number of calculations = {numCals:,}
+    # ```
+    # '''
 
     st.markdown(f"**Simulation Mode:** `{simMode}`")
     # First Row of plots
@@ -424,15 +412,38 @@ else:
         fig, ax = plotSimulatedPosition(position, charge)
 
         st.pyplot(fig)
+        radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)
+        inside = np.count_nonzero(radius < 1e-6)
+        outside = np.count_nonzero(radius > 1e-6)
+        stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df.columns = ['inside', 'outside']
+        st.table(df)
+        st.caption("Proption of particles inside and outside the ablation site")
+
+        # plotRadialPosition(position)
 
     with plot_col2:
-        fig, ax = plotTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
+        
+        fig, ax = plotTrajectories(simulation)
 
         st.pyplot(fig)
 
-    # fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
+    fig, ax = plt.subplots(figsize=(10,6))
+    for particle in simulation.Particles:
+        ax.plot(range(len(particle.History[:, 1])), particle.History[:, 2]) #plot the x axis of the particle over each time  step
+
+    ax.set_xlabel('Time Step (n) ')
+    ax.set_ylabel('position (z)')
+    # ax.set_xlim(0, 10)
 
     st.pyplot(fig)
+
+
+
+    # fig, ax = plotForceTrajectories(simulation, np.array([magneticX, magneticY, magneticZ]))
+
+    # st.pyplot(fig)
 
 
 
@@ -440,9 +451,7 @@ with st.expander("How to Use The Particle Simulation"):
     st.markdown(how_to_use_info(simMode))
 
 if simMode != "Silicon Nano-Particles":
-    with st.expander("Simulation Computation Info (Stats)"):
-        st.markdown(sim_info)
-        st.markdown("Froces:")
-        st.markdown(simulation.FroceList())
-
-st.table(simulation.ParticleInfo())
+    with st.expander("Simulation Stats"):
+        st.table(sim_df)
+        # st.markdown("Froces:")
+        st.table(simulation.ForceTable())
