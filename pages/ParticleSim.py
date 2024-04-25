@@ -14,6 +14,7 @@ from src.Particle import Particle
 from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
+from src.LaserBeam import PulsedLaserBeam
 from src.DataLoader import load_experimental_data
 from src.streamlitText import *
 from src.nanoParticlePlots import *
@@ -130,48 +131,25 @@ with slider_col:
     # Laser input settings
     wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
     laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
-    pulse_rate = st.number_input("Pulse rate (MHz)", min_value=10, max_value=1000, value=80) * 1e6 # default pulse rate of 80 MHz
+    pulse_rate = st.number_input("Pulse rate (MHz)", min_value=0.01, max_value=1000.0, value=80.0) * 1e6 # default pulse rate of 80 MHz
     pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
     numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.1) # default NA of 0.1
 
 
-    # Calculating laser parameters
-    beam_radius = wavelength / (np.pi * numerical_aperture)
-    focus_area = np.pi * (wavelength / np.pi * numerical_aperture) ** 2 # area of the beam focuse onto the medium 
-    intensity_per_pulse = (np.pi * laser_power * numerical_aperture ** 2 ) / (pulse_rate * pulse_duration * wavelength ** 2) * 1e-4 # indensity of the beam per pulse
-    power_per_pulse = laser_power / (pulse_rate * pulse_duration)
-    peak_intesnity_per_pulse = 2 * power_per_pulse / (np.pi * beam_radius ** 2)
+    Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, numerical_aperture)
 
-    # Material proerties
-    # Rayleigh range = (𝜋 ⍵_0^2 n) / (λ)
-    z_air = (np.pi * beam_radius ** 2 * 1) / (wavelength) # n = 1 - air
-    
-    # TODO: update this so include the n for different wavelengths
-    z_silicon = z_air * (1 / 3.88163) # n = 2.88163 - Silicon at 632.6 nm
-
-    # Beer's Law - α = 4kπ/cλ
-    # Need to change the complex refractive idex to be dependent on the wavelenght 
-    alpha = 4 * 0.0047 * np.pi / (wavelength)
-
-    # Calculating focused volume
-    #   Ellipoid Volume = 4/3 * a * b * c  = 4/3 * ⍵_0^2 * z_air * 1/2  --> need to devide by to as each medium have a volume of half the ellipsoid
-    air_volume = 4/6 * beam_radius ** 2 * z_air
-    silicon_volume = 4/6 * beam_radius ** 2 * z_silicon
+    z_air, z_silicon = Beam.calculate_rayleigh_range()
 
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
-    I_gaus = (peak_intesnity_per_pulse / (1 + (z / z_silicon)**2) ) * 1e-4 # Intensity decay into the medium
-    I_k =  I_gaus * np.exp(-alpha * z) # Intensity decay accounting for complex refractive index
-    I_abs = I_gaus * (1 -  np.exp(-alpha * z)) # Intesnsity absorbed at each point 
+    I_gaus = (Beam.intensity_per_pulse / (1 + (z / z_silicon)**2) ) * 1e-4 # Intensity decay into the medium
+    I_k =  I_gaus * np.exp(-Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
+    I_abs = I_gaus * (1 -  np.exp(-Beam.calculate_absorption_coefficient() * z)) # Intesnsity absorbed at each point 
 
     coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
 
-    # Display data in a table
-    table_data = {
-        "Parameter": ["Beam waist ⍵_0 (m)", "Focus Area (m^2)", "Focuse depth - Air (m)", "Focuse depth - Silicon (m)", "Focuse Volume - Silicon (m^2)", "Peak intensity per pulse (W/m2)", "Intensity per Pulse (w/cm^2)"],
-        "Value": [f"{beam_radius:.3}", f"{focus_area:.3}", f"{z_air:.3}", f"{z_silicon:.3}", f"{silicon_volume:.3}", f"{peak_intesnity_per_pulse:.3}", f"{intensity_per_pulse:.3}"]
-    }
-    st.dataframe(table_data, hide_index=True)
+
+    st.dataframe(Beam.get_beam_statistics())
 
     
 
@@ -182,10 +160,10 @@ with plot_col1:
     fig, ax = plt.subplots(figsize=(6, 4))
 
     # Generate x values
-    x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius), 1000)
+    x = np.linspace(-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist), 1000)
 
     # Calculate the probability density function (PDF) for each x
-    pdf = np.exp((-2 * x ** 2 ) / (beam_radius) ** 2)
+    pdf = np.exp((-2 * x ** 2 ) / (Beam.beam_waist) ** 2)
 
     # Plot the Gaussian distribution
     # ax.plot(x, pdf, color='red')
@@ -197,7 +175,7 @@ with plot_col1:
     # ax.set_ylabel('Intensity (I / $I_0$)')
     # ax.set_title("Gaussian Beam Intensity Profile")
 
-    abs_factor = I_abs / peak_intesnity_per_pulse
+    abs_factor = I_abs / Beam.intensity_per_pulse
 
     abs_profile = np.outer(pdf, abs_factor).T
 
@@ -215,12 +193,12 @@ with plot_col1:
     ax1.set_title("Gaussian Beam Intensity Profile")
     ax1.set_ylabel('Intensity (I / $I_0$)')
     
-    ax1.axvline(x = beam_radius, color = "gray", linestyle='--' )
-    ax1.axvline(x = -beam_radius, color = "gray", linestyle='--' )
+    ax1.axvline(x = Beam.beam_waist, color = "gray", linestyle='--' )
+    ax1.axvline(x = -Beam.beam_waist, color = "gray", linestyle='--' )
     ax1.axvline(x = 0, color = "gray", linestyle='--' )
     ax1.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
 
-    ax.set_xlim([-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius)])
+    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
     ax1.set_xticklabels([])  # Hide x-tick labels to avoid duplication
 
     # Plot Heatmap on ax2
@@ -237,14 +215,14 @@ with plot_col1:
 
     fig, ax = plt.subplots(figsize=(10,9))
 
-    ax = PlotBeamFocal(ax, beam_radius, z_air, z_silicon)
+    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon)
     ax.axvline(x = 0, color = "gray", linestyle='--')
     ax.axhline(y = 0, color = "red")
     ax.set_xlabel("X (m)")
     ax.set_ylabel("Z (m)")
     ax.set_title("Focual profile at interface")
 
-    ax.set_xlim([-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius)])
+    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
     ax.legend()
     st.pyplot(fig)
 
@@ -286,7 +264,7 @@ with plot_col2:
     st.pyplot()
 
 
-    energy_abs = pulse_duration * np.pi * (beam_radius ** 2) * I_abs * 1e-6 # TODO adjust these scaling values to be accurate --> check the calcuations at the top (match Q1 F NLO)
+    energy_abs = pulse_duration * np.pi * (Beam.beam_waist ** 2) * I_abs * 1e-6 # TODO adjust these scaling values to be accurate --> check the calcuations at the top (match Q1 F NLO)
     energy_abs_eV = (energy_abs / 1e-19) 
 
     fig, ax = plt.subplots(figsize=(10,8))
