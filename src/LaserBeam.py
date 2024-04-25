@@ -107,21 +107,14 @@ class PulsedLaserBeam:
         absorption_coefficient = self.calculate_absorption_coefficient()
 
         data = {
-            "Wavelength (nm)": [self.wavelength * 1e9],
-            "Power (W)": [self.power],
-            "Pulse Rate (Hz)": [self.pulse_rate],
-            "Pulse Duration (s)": [self.pulse_duration],
-            "Numerical Aperture": [self.numerical_aperture],
-            "Beam Waist (m)": [self.beam_waist],
-            "Focus Area (m^2)": [self.focus_area],
-            "Energy Per Pulse (J)": [self.energy_per_pulse],
-            "Intensity Per Pulse (W/m^2)": [self.intensity_per_pulse],
-            "Power Per Pulse (W)": [self.power_per_pulse],
-            "Rayleigh Range (n1) (m)": [rayleigh_range_n1],
-            "Rayleigh Range (n2) (m)": [rayleigh_range_n2],
-            "Absorption Coefficient (1/m)": [absorption_coefficient]
+            "Beam Waist (cm)": [f'{self.beam_waist*1e-4:.3g}'],
+            "Focus Area (cm^2)": [f'{self.focus_area*1e-4:.3g}'],
+            "Energy Per Pulse (J)": [f'{self.energy_per_pulse:.3g}'],
+            "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
+            "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
         }
-        return pd.DataFrame(data)
+
+        return pd.DataFrame(data).T
 
     def _calculate_beam_waist(self):
         """
