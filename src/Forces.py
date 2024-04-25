@@ -1,6 +1,6 @@
 # src/Force.py
 import numpy as np
-from abc import ABC, classmethod
+from abc import ABC, abstractclassmethod
 
 from numpy.core.multiarray import array as array
 
@@ -36,7 +36,7 @@ class Force(ABC):
         self.Direction = direction / np.linalg.norm(direction)
         self.Units = units
 
-    @classmethod
+    @abstractclassmethod
     def Apply(self, particles):
         """
         Abstract method to apply the force to a list of particles.
