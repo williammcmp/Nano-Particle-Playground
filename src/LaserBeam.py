@@ -32,8 +32,8 @@ class PulsedLaserBeam:
         self.beam_waist = self._calculate_beam_waist()
         self.focus_area = self._calculate_focus_area()
         self.energy_per_pulse = self._calculate_energy_per_pulse()
-        self.intensity_per_pulse = self._calculate_intensity_per_pulse()
         self.power_per_pulse = self._calculate_power_per_pulse()
+        self.intensity_per_pulse = self._calculate_intensity_per_pulse()
 
     def calculate_rayleigh_range(self, n1=1.003, n2=3.881631):
         """
@@ -48,8 +48,8 @@ class PulsedLaserBeam:
         Returns:
             tuple: Rayleigh range values for the first and second media.
         """
-        z_n1 = (np.pi * self.beam_waist ** 2 * n1) / self.wavelength
-        z_n2 = (np.pi * self.beam_waist ** 2 * n2) / self.wavelength
+        z_n1 = (np.pi * (self.beam_waist ** 2 )* n1) / self.wavelength
+        z_n2 = z_n1 / n2
 
         return z_n1, z_n2
     
@@ -134,9 +134,9 @@ class PulsedLaserBeam:
     def _calculate_focus_area(self):
         """
         Calculates the focus area of the beam.
-        π * λ / (ω_0)
+        π * ω_0^2
         """
-        return np.pi * self.wavelength / self.beam_waist
+        return np.pi * self.beam_waist ** 2
     
     def _calculate_energy_per_pulse(self):
         """
@@ -157,7 +157,7 @@ class PulsedLaserBeam:
         Calculates the intensity of each pulse.
           / A = energy per_pulse / focuse area
         """
-        return self.energy_per_pulse / self.focus_area
+        return self.power_per_pulse / self.focus_area
 
 
     
