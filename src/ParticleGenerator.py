@@ -1,12 +1,14 @@
 # src/ParticleGenerator.py
 from src.Particle import Particle
+from src.LaserBeam import PulsedLaserBeam
+from src.DataLoader import *
+
 from tqdm import tqdm
 import numpy as np
 import scipy as sp
 import random
 import json
 
-from src.DataLoader import *
 
 # Generates there standard test particles
 def GenerateTestParticles(Simulation):
@@ -199,6 +201,72 @@ def ParticleShericalMass(diamater, density = 2330):
 
     return mass
 
+# TODO find a more suitable limit for the particle count
+def MultiPhotonIonisation(ionisation_density = 10e26, beam=PulsedLaserBeam, particle_limit=2000):
+    
+    # Calcuating points of the distribution
+    # mean spacing <r> = (1 / density) ^ (1/3)
+    avg_spacing = (1/ionisation_density) ** (1/3) # used for mean particle size
+
+    z_air, z_silicon = beam.calculate_rayleigh_range() # used for depth of material in MPI
+
+    # Ionised volume - use 1/2 w_0 and 1/2 z_0
+    volume = (1/6) * (beam.beam_waist**2) * z_silicon
+
+    charged_particle_count = volume * ionisation_density
+
+    # U = kq^2/r
+    potential_energy = 8.99e9 * (1.6e-9 ** 2) / avg_spacing
+
+    # Used to limit the number of particle acidentallty created
+    if charged_particle_count < particle_limit:
+        count = charged_particle_count
+    else:
+        count=particle_limit
+
+    # building the particle distributions --> aussimes each postion, mass and energy are somewhat un-related (FALSE!!)
+    positions = GeneratePointInElipsoid(beam.beam_waist, beam.beam_waist, z_silicon, count)
+    mass = np.random.uniform(ParticleShericalMass(avg_spacing)*0.5, ParticleShericalMass(avg_spacing)*1.5, count)
+    velocity = GetVelocity(positions, mass, potential_energy) 
+    charge = 1.6e-19 # loss 1 electron
+
+    particles = []
+    for row in range(count):
+        charge = random.uniform(-3.0, 3.0) * mass[row] 
+        particles.append(Particle(positions[row], velocity[row], mass[row], charge))
+
+    return particles
+    
+
+# TODO: cleanup function
+def GetVelocity(position, mass, energy):
+    
+    pos_norm = np.linalg.norm(position)
+    v_mag = np.sqrt(2 * energy / mass)
+
+    velocity = pos_norm * v_mag
+
+    return velocity
+
+
+
+
+    
+
+def GeneratePointInElipsoid(a, b, c, count=1):
+    # Only allows for the bottom half of the elipsoid -> ablated material
+    points = []
+    while len(points) < count:
+        # Generate random point within bounding box [-a, a] x [-b, b] x [-c, 0]
+        x = np.random.uniform(low=-a, high=a)
+        y = np.random.uniform(low=-b, high=b)
+        z = np.random.uniform(low=-c, high=0)
+        
+        # Check if point lies within the ellipsoid
+        if (x**2 / a**2) + (y**2 / b**2) + (z**2 / c**2) <= 1:
+            points.append([x, y, z])
+            
+    return np.array(points)
 
     
     

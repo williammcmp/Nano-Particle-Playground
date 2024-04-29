@@ -123,18 +123,58 @@ with row3_1:
 # ---------------
 st.divider()
 st.subheader("Laser Settings")
-st.markdown("Configure the setting of the pusle laser used for the laser ablation. Default setting model the SpiteFire Femtosecond Pulse Laser system")
+st.markdown("Configure the setting of the pusle laser used for the laser ablation.")
 
-slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
+slider_col, plot_col1, plot_col2, plot_col3 = st.columns([0.5, 1, 1, 1])
 
 with slider_col:
+    options = ['PHAROS', 'SpitFire', 'Custom']
+    laster_option = st.selectbox('Select the laser system.', options, index=0)
     # Laser input settings
-    wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
-    laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
-    pulse_rate = st.number_input("Pulse rate (MHz)", min_value=0.01, max_value=1000.0, value=80.0) * 1e6 # default pulse rate of 80 MHz
-    pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
-    numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.1) # default NA of 0.1
+    if laster_option == 'SpitFire':
+    
+        wavelength = 1064 * 1e-9 # default wavelength of 640 nm
+        laser_power = 0.01 # default power of 1 W
+        pulse_rate = 1 * 1e3 # default pulse rate MHz
+        pulse_duration = 100 * 1e-13 # default pulse duration of 100 fs
+        numerical_aperture = 0.10 # default NA of 0.1
+        variables_dict = {
+            'Wavelength (m)': f'{wavelength:.3g}',
+            'Laser Power (W)': f'{laser_power:.3g}',
+            'Pulse Rate (Hz)': f'{pulse_rate:.3g}',
+            'Pulse Duration (s)': f'{pulse_duration:.3g}',
+            'Numerical Aperture': f'{numerical_aperture:.3g}'
+        }
+        # Convert the dictionary into a DataFrame
+        variables_df = pd.DataFrame(variables_dict, index=['Value']).T
 
+        # Display the DataFrame in Streamlit
+        st.dataframe(variables_df)
+
+    elif laster_option == "PHAROS":
+        wavelength = 1030 * 1e-9 # default wavelength of 640 nm
+        laser_power = 7 # default power of 1 W
+        pulse_rate = 200 * 1e3 # default pulse rate  kHz
+        pulse_duration = 100 * 1e-13 # default pulse duration of 100 fs
+        numerical_aperture = 0.14 # default NA of 0.1
+        variables_dict = {
+            'Wavelength (m)': f'{wavelength:.3g}',
+            'Laser Power (W)': f'{laser_power:.3g}',
+            'Pulse Rate (Hz)': f'{pulse_rate:.3g}',
+            'Pulse Duration (s)': f'{pulse_duration:.3g}',
+            'Numerical Aperture': f'{numerical_aperture:.3g}'
+        }
+        # Convert the dictionary into a DataFrame
+        variables_df = pd.DataFrame(variables_dict, index=['Value']).T
+
+        # Display the DataFrame in Streamlit
+        st.dataframe(variables_df)
+    else:
+        wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
+        laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
+        pulse_rate = st.number_input("Pulse rate (MHz)", min_value=0.01, max_value=1000.0, value=0.3) * 1e6 # default pulse rate of 80 MHz
+        pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
+        numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.14) # default NA of 0.1
 
     Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, numerical_aperture)
 
@@ -142,12 +182,14 @@ with slider_col:
 
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
-    I_gaus = (Beam.intensity_per_pulse / (1 + (z / z_silicon)**2) ) * 1e-4 # Intensity decay into the medium
+    I_gaus = (Beam.intensity_per_pulse * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
     I_k =  I_gaus * np.exp(-Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
     I_abs = I_gaus * (1 -  np.exp(-Beam.calculate_absorption_coefficient() * z)) # Intesnsity absorbed at each point 
 
     coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
 
+    # Sourced from FIG 3 -  L. Sudrie et. al 2002, "Femtosecond Laser-Induced Damage and Filamentary Propagation in Fused Silica"
+    mulit_photon_ionisation_limit = 4e12 # (W/cm^2)
 
     st.dataframe(Beam.get_beam_statistics())
 
@@ -229,49 +271,35 @@ with plot_col1:
 
 
 with plot_col2:
-    # # Define the grid for the focal spot
-    # x = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
-    # y = np.linspace(-beam_radius - 0.002 * np.sqrt(beam_radius), beam_radius + 0.002 * np.sqrt(beam_radius),  1000)
-    # X, Y = np.meshgrid(x, y)
-
-    # # Calculate the two-dimensional intensity distribution
-    # I = np.exp(-2 * (X**2 + Y**2) / beam_radius**2)
-
-    # # Plotting
-    # fig, ax = plt.subplots(figsize=(10,8))
-    # c = ax.imshow(I, extent=[x.min(), x.max(), y.min(), y.max()], origin='lower', cmap='inferno')
-    # ax.set_xlabel('x (m)')
-    # ax.set_ylabel('y (m)')
-    # # ax.set_ylim([-2 * beam_radius, 2 * beam_radius, ])
-
-    # ax.set_title('Focal Spot Intensity Distribution')
-    # plt.colorbar(c, label='Intensity (normalized)')
-    # st.pyplot(fig)
-    
 
     # Intensity absorption profile along z-axis, (x,y = 0)
     fig, ax = plt.subplots(figsize=(10,8))
-    ax.plot(z, I_gaus, label="Gaussian Decay")
-    ax.plot(z, I_k, label="Complex Decay")
-    ax.plot(z, I_abs, label="Intensity absorbed")
-    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
-    # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
+    ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
+    ax.plot(z, I_k, label="Complex Decay", alpha=0.7)
+    ax.plot(z, I_abs, label="Intensity absorbed", color='red')
+    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--', alpha=0.7)
+    ax.axhline(mulit_photon_ionisation_limit, label="MFI Limit", color='green', alpha=0.7)
+    # ax.axhline(coulomb_limit, label="Columb Limit", alpha=0.4)
     ax.legend()
     ax.set_xlabel('z (m)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
+    ax.set_ylim([0, I_gaus.max() * 2])
 
     st.pyplot()
 
+with plot_col3:
+    # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
+    energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
 
-    energy_abs = pulse_duration * np.pi * (Beam.beam_waist ** 2) * I_abs * 1e-6 # TODO adjust these scaling values to be accurate --> check the calcuations at the top (match Q1 F NLO)
-    energy_abs_eV = (energy_abs / 1e-19) 
+    # jouels to eVV --> 1J = 6.242e18eV
+    energy_abs_eV = (energy_abs * 6.242e18) 
 
     fig, ax = plt.subplots(figsize=(10,8))
     ax.plot(z, energy_abs_eV, label="Silicon") #me need to scale up or down on by 1e-4
     ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
     # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
-    ax.axhline(4.6, label="Silicon Work Function", color='r')
+    # ax.axhline(4.6, label="Silicon Work Function", color='r')
 
     ax.legend()
     ax.set_xlabel('z (m)')
@@ -312,11 +340,14 @@ with row0_1:
 slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
-    particleNumber = st.slider("Number of particles", 10, 1000, 100)
-    particleEnergy = st.slider("Inital average particle energy (eV)", 1, 100, 10) * 1e-16
-    particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
+    particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
+    particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
+    particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
+    particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
     randomness = st.checkbox("Randomness 🤷", value=False)
+    particleSize = (particleSize_min, particleSize_max)
+
 
     # Automatically update the JSON file to read the settings
     # This could be removed and have the particle sim read directly from the
