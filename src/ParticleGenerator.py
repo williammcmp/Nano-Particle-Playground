@@ -227,8 +227,10 @@ def MultiPhotonIonisation(ionisation_density = 10e26, beam=PulsedLaserBeam, part
     # building the particle distributions --> aussimes each postion, mass and energy are somewhat un-related (FALSE!!)
     positions = GeneratePointInElipsoid(beam.beam_waist, beam.beam_waist, z_silicon, count)
     mass = np.random.uniform(ParticleShericalMass(avg_spacing)*0.5, ParticleShericalMass(avg_spacing)*1.5, count)
-    velocity = GetVelocity(positions, mass, potential_energy) 
+    velocity = GetVelocity(positions, mass, potential_energy)
     charge = 1.6e-19 # loss 1 electron
+
+    print(velocity)
 
     particles = []
     for row in range(count):
@@ -240,13 +242,17 @@ def MultiPhotonIonisation(ionisation_density = 10e26, beam=PulsedLaserBeam, part
 
 # TODO: cleanup function
 def GetVelocity(position, mass, energy):
-    
-    pos_norm = np.linalg.norm(position)
+    pos_norm = np.linalg.norm(position, axis=1, keepdims=True)
     v_mag = np.sqrt(2 * energy / mass)
-
-    velocity = pos_norm * v_mag
-
+    
+    # Normalize position vectors to get directions
+    direction = position / pos_norm
+    
+    # Calculate velocity vectors
+    velocity = v_mag * direction
+    
     return velocity
+
 
 
 
