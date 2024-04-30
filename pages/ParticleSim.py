@@ -125,7 +125,7 @@ st.divider()
 st.subheader("Laser Settings")
 st.markdown("Configure the setting of the pusle laser used for the laser ablation.")
 
-slider_col, plot_col1, plot_col2, plot_col3 = st.columns([0.7, 1, 1, 1])
+slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
 
 with slider_col:
     options = ['PHAROS', 'SpitFire', 'Custom']
@@ -158,10 +158,10 @@ with slider_col:
         pulse_duration = 100 * 1e-13 # default pulse duration of 100 fs
         numerical_aperture = 0.14 # default NA of 0.1
         variables_dict = {
-            'Wavelength (m)': f'{wavelength:.3g}',
+            'Wavelength (nm)': f'{wavelength*1e9:.4g}',
             'Laser Power (W)': f'{laser_power:.3g}',
-            'Pulse Rate (Hz)': f'{pulse_rate:.3g}',
-            'Pulse Duration (s)': f'{pulse_duration:.3g}',
+            'Pulse Rate (KHz)': f'{pulse_rate*1e-3:.3g}',
+            'Pulse Duration (fs)': f'{pulse_duration*1e13:.3g}',
             'Numerical Aperture': f'{numerical_aperture:.3g}'
         }
         # Convert the dictionary into a DataFrame
@@ -169,6 +169,7 @@ with slider_col:
 
         # Display the DataFrame in Streamlit
         st.dataframe(variables_df)
+        Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, beam_waist=15e-6)# Change the beam waist to be 15µm
     else:
         wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
         laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
@@ -176,17 +177,22 @@ with slider_col:
         pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
         numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.14) # default NA of 0.1
 
-    Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, numerical_aperture)
+        Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, numerical_aperture)
+
 
     z_air, z_silicon = Beam.calculate_rayleigh_range()
 
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
-    I_gaus = (Beam.intensity_per_pulse * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
-    I_k =  I_gaus * np.exp(-Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
+    I_gaus = (Beam.peak_intensity * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
+    I_k =  Beam.peak_intensity * np.exp(-Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
     I_abs = I_gaus * (1 -  np.exp(-Beam.calculate_absorption_coefficient() * z)) # Intesnsity absorbed at each point 
 
     coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
+    threshold = I_k.max() * Beam.abs_threshold
+    index = np.argmin(np.abs(I_k - threshold))
+    z_abs_depth = z[index]
+    
 
     # Sourced from FIG 3 -  L. Sudrie et. al 2002, "Femtosecond Laser-Induced Damage and Filamentary Propagation in Fused Silica"
     mulit_photon_ionisation_limit = 4e12 # (W/cm^2)
@@ -206,16 +212,6 @@ with plot_col1:
 
     # Calculate the probability density function (PDF) for each x
     pdf = np.exp((-2 * x ** 2 ) / (Beam.beam_waist) ** 2)
-
-    # Plot the Gaussian distribution
-    # ax.plot(x, pdf, color='red')
-    # ax.axvline(x = beam_radius, color = "gray", linestyle='--' )
-    # ax.axvline(x = -beam_radius, color = "gray", linestyle='--' )
-    # ax.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
-
-    # ax.set_xlabel('x (m)')
-    # ax.set_ylabel('Intensity (I / $I_0$)')
-    # ax.set_title("Gaussian Beam Intensity Profile")
 
     abs_factor = I_abs / Beam.intensity_per_pulse
 
@@ -257,7 +253,7 @@ with plot_col1:
 
     fig, ax = plt.subplots(figsize=(10,9))
 
-    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon)
+    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth)
     ax.axvline(x = 0, color = "gray", linestyle='--')
     ax.axhline(y = 0, color = "red")
     ax.set_xlabel("X (m)")
@@ -275,20 +271,18 @@ with plot_col2:
     # Intensity absorption profile along z-axis, (x,y = 0)
     fig, ax = plt.subplots(figsize=(10,8))
     ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
-    ax.plot(z, I_k, label="Complex Decay", alpha=0.7)
-    ax.plot(z, I_abs, label="Intensity absorbed", color='red')
-    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--', alpha=0.7)
-    ax.axhline(mulit_photon_ionisation_limit, label="MFI Limit", color='green', alpha=0.7)
-    # ax.axhline(coulomb_limit, label="Columb Limit", alpha=0.4)
+    ax.plot(z, I_k, label="Complex Decay")
+    ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
+    ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
+    ax.axhline(threshold)
     ax.legend()
     ax.set_xlabel('z (m)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
-    ax.set_ylim([0, I_gaus.max() * 1.5])
+    ax.set_ylim([0, I_gaus.max() * 1.1])
 
     st.pyplot()
 
-with plot_col3:
     # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
     energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
 
@@ -307,9 +301,6 @@ with plot_col3:
     ax.set_title("Silicon Absorption Energy")
 
     st.pyplot()
-
-
-
 # Plotting the energy absored
 
 
@@ -342,86 +333,80 @@ with row0_1:
 slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
-    particle_settings = st.selectbox('Particle Source Type', particle_options, index=0)
+    # particle_settings = st.selectbox('Particle Source Type', particle_options, index=0)
 
-    if particle_settings == 'Custom':
-        particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
-        particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
-        particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
-        particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
-        useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
-        randomness = st.checkbox("Randomness 🤷", value=False)
-        particleSize = (particleSize_min, particleSize_max)
+    # if particle_settings == 'Custom':
+    particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
+    particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
+    particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
+    particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
+    useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
+    randomness = st.checkbox("Randomness 🤷", value=False)
+    particleSize = (particleSize_min, particleSize_max)
 
 
-        # Automatically update the JSON file to read the settings
-        # This could be removed and have the particle sim read directly from the
-        # variables as needed
-        config_settings = {
-                "particleNumber": particleNumber,
-                "particleEnergy": particleEnergy, 
-                "particleSize": scale_convert(particleSize),
-                "useNonConstantZ": useNonConstantZ,
-                "randomness": randomness
-            }
-        write_to_json(config_settings)
-        
-        # Loads the particles from the JSON files
-        particles = LoadParticleSettings()
-
-         # adds the particles to the simulation obj
-        simulation.AddParticles(particles)
+    # Automatically update the JSON file to read the settings
+    # This could be removed and have the particle sim read directly from the
+    # variables as needed
+    config_settings = {
+            "particleNumber": particleNumber,
+            "particleEnergy": particleEnergy, 
+            "particleSize": scale_convert(particleSize),
+            "useNonConstantZ": useNonConstantZ,
+            "randomness": randomness
+        }
+    write_to_json(config_settings)
     
-        p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
-
-
-        with plot_col1:
-            fig, ax = plt.subplots()
-            # Plot the norm alized histogram
-            ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
-            ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
-
-            # Set plot labels and legend
-            plt.legend()
-            plt.grid()
-            plt.xlabel('Positon (m)')
-            plt.ylabel('Particle Count')
-            plt.title('Distribution of Particles')
-
-            # Show the plot using Streamlit
-            st.pyplot(fig)
-
-
-
-        with plot_col2:
-            x_data = p['pos'][:,0]
-            y_data = p['pos'][:,1]
-
-            
-            # Create a 2D histogram
-            heatmap, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
-
-            # Create a figure and axes
-            fig, ax = plt.subplots()
-
-            # Plot the heatmap using imshow on the axes 'ax'
-            image = ax.imshow(heatmap.T, extent=[xedges.min(), xedges.max(), yedges.min(), yedges.max()],
-                            origin='lower', cmap='viridis')
-
-            # Add colorbar
-            cbar = plt.colorbar(image, ax=ax, label='Particle Density')
-
-            plt.xlabel('X-axis')
-            plt.ylabel('Y-axis')
-            plt.title('Inital particle position')
-            
-            st.pyplot(fig)
-    else:
-        particles = MultiPhotonIonisation(2e21, Beam)
-
+    # Loads the particles from the JSON files
+    particles = LoadParticleSettings()
 
         # adds the particles to the simulation obj
-        simulation.AddParticles(particles)
+    simulation.AddParticles(particles)
+
+    p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
+
+
+    with plot_col1:
+        fig, ax = plt.subplots()
+        # Plot the norm alized histogram
+        ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
+        ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
+
+        # Set plot labels and legend
+        plt.legend()
+        plt.grid()
+        plt.xlabel('Positon (m)')
+        plt.ylabel('Particle Count')
+        plt.title('Distribution of Particles')
+
+        # Show the plot using Streamlit
+        st.pyplot(fig)
+
+
+
+    with plot_col2:
+        x_data = p['pos'][:,0]
+        y_data = p['pos'][:,1]
+
+        
+        # Create a 2D histogram
+        heatmap, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
+
+        # Create a figure and axes
+        fig, ax = plt.subplots()
+
+        # Plot the heatmap using imshow on the axes 'ax'
+        image = ax.imshow(heatmap.T, extent=[xedges.min(), xedges.max(), yedges.min(), yedges.max()],
+                        origin='lower', cmap='viridis')
+
+        # Add colorbar
+        cbar = plt.colorbar(image, ax=ax, label='Particle Density')
+
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.title('Inital particle position')
+        
+        st.pyplot(fig)
 
 
 

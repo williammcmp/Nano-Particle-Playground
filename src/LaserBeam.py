@@ -20,22 +20,29 @@ class PulsedLaserBeam:
         get_beam_statistics(n1, k1, n2): Placeholder method for future beam statistics calculations.
     """
 
-    def __init__(self, wavelength=1064e-9, power=1, pulse_rate=300e3, pulse_duration=100e-13, numerical_aperture=0.14):
+    def __init__(self, wavelength=1064e-9, power=1, pulse_rate=300e3, pulse_duration=100e-13, numerical_aperture=0.14, beam_waist = 0):
         # All units are SI, meaning 300 KHz = 300e3 Hz
         self.wavelength = wavelength
         self.power = power
         self.pulse_rate = pulse_rate
         self.pulse_duration = pulse_duration
         self.numerical_aperture = numerical_aperture
+        self.reflectanc_factor = 0.52 #TODO add this as a process to calcuate
+        self.abs_threshold = 0.64
 
         # Internal calculation methods
-        self.beam_waist = self._calculate_beam_waist()
+        self.beam_waist = beam_waist
+        
+        if beam_waist == 0:
+            self.beam_waist = self._calculate_beam_waist()
+
         self.focus_area = self._calculate_focus_area()
         self.energy_per_pulse = self._calculate_energy_per_pulse()
         self.power_per_pulse = self._calculate_power_per_pulse()
         self.intensity_per_pulse = self._calculate_intensity_per_pulse()
+        self.peak_intensity = self._calculate_peak_intensity()
 
-    def calculate_rayleigh_range(self, n1=1.003, n2=3.881631):
+    def calculate_rayleigh_range(self, n1=1.003, n2=3.565):
         """
         Calculates the Rayleigh range for two different refractive indices.
 
@@ -49,11 +56,11 @@ class PulsedLaserBeam:
             tuple: Rayleigh range values for the first and second media.
         """
         z_n1 = (np.pi * (self.beam_waist ** 2 )* n1) / self.wavelength
-        z_n2 = z_n1 / n2
+        z_n2 = z_n1/n2
 
         return z_n1, z_n2
     
-    def calculate_absorption_coefficient(self, k=0.0046):
+    def calculate_absorption_coefficient(self, k=0.00024048):
         """
         Calculates the optical absorption coefficient based on Beer's Law.
 
@@ -68,7 +75,7 @@ class PulsedLaserBeam:
         """
         return 4 * k * np.pi / self.wavelength
     
-    def calculate_focus_volume(self, n1=1.003, n2=3.881631):
+    def calculate_focus_volume(self, n1=1.003, n2=3.5650):
         """
         Calculates the focus volume in two different media using Rayleigh range values.
 
@@ -88,7 +95,7 @@ class PulsedLaserBeam:
 
         return v1, v2
     
-    def get_beam_statistics(self, n1=1.003, k1=0.0046, n2=3.881631):
+    def get_beam_statistics(self, n1=1.003, k1=0.00024048, n2=3.5650):
         """
         Gathers all the properties and calculated metrics of the beam into a DataFrame.
         
@@ -107,11 +114,14 @@ class PulsedLaserBeam:
         absorption_coefficient = self.calculate_absorption_coefficient()
 
         data = {
-            "Beam Waist (cm)": [f'{self.beam_waist*1e-4:.3g}'],
-            "Focus Area (cm^2)": [f'{self.focus_area*1e-4:.3g}'],
-            "Energy Per Pulse (J)": [f'{self.energy_per_pulse:.3g}'],
-            "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
+            "Beam Waist (µm)": [f'{self.beam_waist*1e6:.3g}'],
+            "Focus Area (cm^2)": [f'{self.focus_area*1e4:.3g}'],
+            "Energy Per Pulse (µJ)": [f'{self.energy_per_pulse*1e6:.3g}'],
+            "Power Per Pulse (MW)": [f'{self.power_per_pulse*1e-6:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
+            "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}'],
+            "Reflectanc Factor":[f'{self.reflectanc_factor}'],
+            "Abs Threshold" : [f'{self.abs_threshold}']
         }
 
         return pd.DataFrame(data).T
@@ -148,9 +158,16 @@ class PulsedLaserBeam:
     def _calculate_intensity_per_pulse(self):
         """
         Calculates the intensity of each pulse.
-          / A = energy per_pulse / focuse area
+         J / A = energy per_pulse / focuse area
         """
         return self.power_per_pulse / self.focus_area
+    
+    def _calculate_peak_intensity(self):
+        '''
+        Calculates the peak Intensity
+        I_0 = 2P_per_pulse / 𝜋⍵_0^2
+        '''
+        return 2 * self.power_per_pulse / (np.pi * (self.beam_waist ** 2))
 
 
     
