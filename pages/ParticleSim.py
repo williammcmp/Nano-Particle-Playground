@@ -125,7 +125,7 @@ st.divider()
 st.subheader("Laser Settings")
 st.markdown("Configure the setting of the pusle laser used for the laser ablation.")
 
-slider_col, plot_col1, plot_col2, plot_col3 = st.columns([0.5, 1, 1, 1])
+slider_col, plot_col1, plot_col2, plot_col3 = st.columns([0.7, 1, 1, 1])
 
 with slider_col:
     options = ['PHAROS', 'SpitFire', 'Custom']
@@ -284,7 +284,7 @@ with plot_col2:
     ax.set_xlabel('z (m)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
-    ax.set_ylim([0, I_gaus.max() * 2])
+    ax.set_ylim([0, I_gaus.max() * 1.5])
 
     st.pyplot()
 
@@ -337,81 +337,93 @@ with row0_1:
     st.subheader('Particle Settings')
     st.markdown('Define the inital state of the paritcles from the ablation proces.')
 
+    particle_options = ['Multi Photon Ionisation', 'Custom']
+
 slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
-    particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
-    particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
-    particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
-    particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
-    useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
-    randomness = st.checkbox("Randomness 🤷", value=False)
-    particleSize = (particleSize_min, particleSize_max)
+    particle_settings = st.selectbox('Particle Source Type', particle_options, index=0)
+
+    if particle_settings == 'Custom':
+        particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
+        particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
+        particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
+        particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
+        useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
+        randomness = st.checkbox("Randomness 🤷", value=False)
+        particleSize = (particleSize_min, particleSize_max)
 
 
-    # Automatically update the JSON file to read the settings
-    # This could be removed and have the particle sim read directly from the
-    # variables as needed
-    config_settings = {
-            "particleNumber": particleNumber,
-            "particleEnergy": particleEnergy, 
-            "particleSize": scale_convert(particleSize),
-            "useNonConstantZ": useNonConstantZ,
-            "randomness": randomness
-        }
-    write_to_json(config_settings)
+        # Automatically update the JSON file to read the settings
+        # This could be removed and have the particle sim read directly from the
+        # variables as needed
+        config_settings = {
+                "particleNumber": particleNumber,
+                "particleEnergy": particleEnergy, 
+                "particleSize": scale_convert(particleSize),
+                "useNonConstantZ": useNonConstantZ,
+                "randomness": randomness
+            }
+        write_to_json(config_settings)
+        
+        # Loads the particles from the JSON files
+        particles = LoadParticleSettings()
+
+         # adds the particles to the simulation obj
+        simulation.AddParticles(particles)
     
-    # Loads the particles from the JSON files
-    particles = LoadParticleSettings()
-
-    # adds the particles to the simulation obj
-    simulation.AddParticles(particles)
+        p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
 
 
-p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
+        with plot_col1:
+            fig, ax = plt.subplots()
+            # Plot the norm alized histogram
+            ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
+            ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
 
+            # Set plot labels and legend
+            plt.legend()
+            plt.grid()
+            plt.xlabel('Positon (m)')
+            plt.ylabel('Particle Count')
+            plt.title('Distribution of Particles')
 
-with plot_col1:
-    fig, ax = plt.subplots()
-    # Plot the norm alized histogram
-    ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
-    ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
-
-    # Set plot labels and legend
-    plt.legend()
-    plt.grid()
-    plt.xlabel('Positon (m)')
-    plt.ylabel('Particle Count')
-    plt.title('Distribution of Particles')
-
-    # Show the plot using Streamlit
-    st.pyplot(fig)
+            # Show the plot using Streamlit
+            st.pyplot(fig)
 
 
 
-with plot_col2:
-    x_data = p['pos'][:,0]
-    y_data = p['pos'][:,1]
+        with plot_col2:
+            x_data = p['pos'][:,0]
+            y_data = p['pos'][:,1]
 
-    
-    # Create a 2D histogram
-    heatmap, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
+            
+            # Create a 2D histogram
+            heatmap, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
 
-    # Create a figure and axes
-    fig, ax = plt.subplots()
+            # Create a figure and axes
+            fig, ax = plt.subplots()
 
-    # Plot the heatmap using imshow on the axes 'ax'
-    image = ax.imshow(heatmap.T, extent=[xedges.min(), xedges.max(), yedges.min(), yedges.max()],
-                    origin='lower', cmap='viridis')
+            # Plot the heatmap using imshow on the axes 'ax'
+            image = ax.imshow(heatmap.T, extent=[xedges.min(), xedges.max(), yedges.min(), yedges.max()],
+                            origin='lower', cmap='viridis')
 
-    # Add colorbar
-    cbar = plt.colorbar(image, ax=ax, label='Particle Density')
+            # Add colorbar
+            cbar = plt.colorbar(image, ax=ax, label='Particle Density')
 
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Inital particle position')
-    
-    st.pyplot(fig)
+            plt.xlabel('X-axis')
+            plt.ylabel('Y-axis')
+            plt.title('Inital particle position')
+            
+            st.pyplot(fig)
+    else:
+        particles = MultiPhotonIonisation(2e21, Beam)
+
+
+        # adds the particles to the simulation obj
+        simulation.AddParticles(particles)
+
+
 
 # ---------------
 # Simulation Enviroment Setup
