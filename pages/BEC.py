@@ -49,19 +49,20 @@ plt.rcParams.update(rc)
 
 slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
 
-with slider_col:
-    st.markdown("A Classical Method")
-    count = st.number_input("Number of Particles", 10, 10000, 1000) # number of particles in the ellips
-    time = st.number_input("Time of flight (ms)", 1, 1000, 100) * 1e-3 # number of seconds the partiles are simulated for
-
 positions = []
 velocity = []
+
+with slider_col:
+    st.markdown("A Classical Method")
+    count = st.number_input("Number of Particles", 10, 1000, 100) # number of particles in the ellips
+    time = st.number_input("Time of flight (s)", 1, 100, 1) # number of seconds the partiles are simulated for
+
 while len(positions) < count:
     # Generate random point within bounding ellips
     x = np.random.uniform(low=-10, high=10)
     y = np.random.uniform(low=-7, high=7)
-    v_x = np.random.normal(10) * np.random.choice([-1,1])
-    v_y = np.random.normal(10) * np.random.choice([-1,1])
+    v_x = np.random.normal(0, 1) 
+    v_y = np.random.normal(0, 1) 
     
     # Check if point lies within the ellipsoid
     if (x**2 / 10**2) + (y**2 / 7**2) <= 1:
@@ -91,7 +92,7 @@ with plot_col1:
 
     st.pyplot(fig)
 
-omputeTime, numCals = simulation.Run(time, 0.001)
+omputeTime, numCals = simulation.Run(time, time/100)
 
 position, velocity, force, mass, charge = simulation.StreamletData()
 
@@ -105,7 +106,5 @@ with plot_col2:
     ax.set_ylabel('Y (m)')
     ax.set_title('Final position')
     ax.grid(True)
-    ax.set_xlim(-15, 15)
-    ax.set_ylim(-15, 15)
 
     st.pyplot(fig)
