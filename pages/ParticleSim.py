@@ -210,71 +210,41 @@ with slider_col:
 
 with plot_col1:
     # Parameters for the Gaussian distribution
-    fig, ax = plt.subplots(figsize=(6, 4))
 
     # Generate x values
     x = np.linspace(-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist), 1000)
-
     # Calculate the probability density function (PDF) for each x
     pdf = np.exp((-2 * x ** 2 ) / (Beam.beam_waist) ** 2)
-
     abs_factor = I_abs / Beam.intensity_per_pulse
-
     abs_profile = np.outer(pdf, abs_factor).T
 
 
+    fig, ax = plt.subplots(figsize=(10, 8))
     # Setup figure and gridspec
     fig = plt.figure(figsize=(10, 8))
     gs = plt.GridSpec(3, 1, height_ratios=[2, 2, 0.2], hspace=0)  # No gap between plots
-
     # Create subplots
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1], sharex=ax1)
-
     # Plot Gaussian PDF on ax1
     ax1.plot(x, pdf, color='red')
     ax1.set_title("Gaussian Beam Intensity Profile")
     ax1.set_ylabel('Intensity (I / $I_0$)')
-    
     ax1.axvline(x = Beam.beam_waist, color = "gray", linestyle='--' )
     ax1.axvline(x = -Beam.beam_waist, color = "gray", linestyle='--' )
     ax1.axvline(x = 0, color = "gray", linestyle='--' )
     ax1.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
-
     ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
     ax1.set_xticklabels([])  # Hide x-tick labels to avoid duplication
-
     # Plot Heatmap on ax2
     im = ax2.imshow(abs_profile, extent=[x.min(), x.max(), z.max(), z.min()], aspect='auto', origin='upper', cmap='inferno')
     ax2.set_xlabel('X position (m)')
     ax2.set_ylabel('Silicon Depth (m)')
-
-    # Add color bar at the bottom
     cax = fig.add_subplot(gs[2])
-    # cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
-    # cbar.set_label('Intensity (I / $I_0$)')
-
     st.pyplot()
 
-    fig, ax = plt.subplots(figsize=(10,9))
-
-    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth)
-    ax.axvline(x = 0, color = "gray", linestyle='--')
-    ax.axhline(y = 0, color = "red")
-    ax.set_xlabel("X (m)")
-    ax.set_ylabel("Z (m)")
-    ax.set_title("Focual profile at interface")
-
-    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
-    ax.legend()
-    st.pyplot(fig)
-
-
-
-with plot_col2:
-
     # Intensity absorption profile along z-axis, (x,y = 0)
-    fig, ax = plt.subplots(figsize=(10,8))
+    fig, ax = plt.subplots(figsize=(10,8.5))
     ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
     ax.plot(z, I_k, label="Complex Decay")
     ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
@@ -284,28 +254,39 @@ with plot_col2:
     ax.set_xlabel('z (m)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
-    # ax.set_ylim([0, I_gaus.max() * 1.1])
-
     st.pyplot()
 
+    
+
+
+
+with plot_col2:
+    # Ablation depth and focal spot depth
+    fig, ax = plt.subplots(figsize=(10,8))
+    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth)
+    ax.axvline(x = 0, color = "gray", linestyle='--')
+    ax.axhline(y = 0, color = "red")
+    ax.set_xlabel("X (m)")
+    ax.set_ylabel("Z (m)")
+    ax.set_title("Focual profile at interface")
+    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
+    ax.legend()
+    st.pyplot(fig)
+
+
+    # Energy absorption profile
     # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
     energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
-
-    # jouels to eVV --> 1J = 6.242e18eV
-    energy_abs_eV = (energy_abs * 6.242e18) 
-
     fig, ax = plt.subplots(figsize=(10,8))
-    ax.plot(z, energy_abs_eV, label="Silicon") #me need to scale up or down on by 1e-4
+    ax.plot(z, energy_abs, label="Silicon") #me need to scale up or down on by 1e-4
     ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
-    # ax.axhline(coulomb_limit, label="Columb Limit", color='r')
-    # ax.axhline(4.6, label="Silicon Work Function", color='r')
-
     ax.legend()
-    ax.set_xlabel('z (m)')
-    ax.set_ylabel('Absrobed Energy ( eV/cm^2 )')
+    ax.set_xlabel('Depth into Silicon (m)')
+    ax.set_ylabel('Absrobed Energy ( J )')
     ax.set_title("Silicon Absorption Energy")
-
     st.pyplot()
+
+    
 # Plotting the energy absored
 
 
