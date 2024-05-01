@@ -382,7 +382,7 @@ def list_to_markdown_table(data):
 
     return fList
 
-def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth):
+def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth, z_MPI_depth):
     
     x = np.linspace(-beam_width, beam_width, 200)  # Limit x to the range where the square root is defined
     
@@ -395,10 +395,12 @@ def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth):
     # Calculate the Silicon focus plot
     eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2))
     eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))
+    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))
 
     # Plot Silicon focual spot
     ax.plot(x, eps_silicon, color = 'green', label = "Silicon")
-    ax.plot(x, eps_abs_depth, color = 'orange', label = "Absorbed depth")
+    ax.plot(x, eps_abs_depth, color = 'orange', label = "Thermal depth")
+    ax.plot(x, eps_MPI_depth, color =  'purple', label = "MPI depth")
 
 
     # Calcuate beam profiles

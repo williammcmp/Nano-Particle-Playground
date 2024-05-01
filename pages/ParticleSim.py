@@ -155,7 +155,7 @@ with slider_col:
         wavelength = 1030 * 1e-9 # default wavelength of 640 nm
         laser_power = 7 # default power of 1 W
         pulse_rate = 200 * 1e3 # default pulse rate  kHz
-        pulse_duration = 100 * 1e-13 # default pulse duration of 100 fs
+        pulse_duration = 100 * 1e-15 # default pulse duration of 100 fs
         numerical_aperture = 0.14 # default NA of 0.1
         variables_dict = {
             'Wavelength (nm)': f'{wavelength*1e9:.4g}',
@@ -174,7 +174,7 @@ with slider_col:
         wavelength = st.number_input("Wavelength λ (nm)", min_value=300, max_value=1064, value=800) * 1e-9 # default wavelength of 640 nm
         laser_power = st.number_input("Laser power (W)", min_value=0.001, max_value=20.0, value=1.0) # default power of 1 W
         pulse_rate = st.number_input("Pulse rate (MHz)", min_value=0.01, max_value=1000.0, value=0.3) * 1e6 # default pulse rate of 80 MHz
-        pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-13 # default pulse duration of 100 fs
+        pulse_duration = st.number_input("Pulse Duration (fs)", min_value=1, max_value=500, value=100) * 1e-16 # default pulse duration of 100 fs
         numerical_aperture = st.number_input("Numerical Aperture (NA)", min_value=0.01, max_value=2.0, value=0.14) # default NA of 0.1
 
         Beam = PulsedLaserBeam(wavelength, laser_power, pulse_rate, pulse_duration, numerical_aperture)
@@ -185,19 +185,24 @@ with slider_col:
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
     I_gaus = (Beam.peak_intensity * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
-    I_k =  Beam.peak_intensity * np.exp(-Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
-    I_abs = I_gaus * (1 -  np.exp(-Beam.calculate_absorption_coefficient() * z)) # Intesnsity absorbed at each point 
+    I_k =  Beam.peak_intensity * 1e-4 * np.exp(- Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
+    I_MPI = Beam.peak_intensity * 1e-4 * np.exp(-6 * Beam.calculate_absorption_coefficient() * z)
+    I_abs = I_gaus - I_k# Intesnsity absorbed at each point 
 
     coulomb_limit = (465e3 * 2330) / (15.813 * 8.85e-12 * 377)
-    threshold = I_k.max() * Beam.abs_threshold
-    index = np.argmin(np.abs(I_k - threshold))
-    z_abs_depth = z[index]
-    
+    k_threshold = I_k.max() * Beam.abs_threshold
+    MPI_threshold = I_MPI.max() * Beam.abs_threshold
+    k_index = np.argmin(np.abs(I_k - k_threshold))
+    MPI_index = np.argmin(np.abs(I_MPI - MPI_threshold))
 
-    # Sourced from FIG 3 -  L. Sudrie et. al 2002, "Femtosecond Laser-Induced Damage and Filamentary Propagation in Fused Silica"
-    mulit_photon_ionisation_limit = 4e12 # (W/cm^2)
+    z_abs_depth = z[k_index]
+    z_MPI_depth = z[MPI_index]
+
 
     st.dataframe(Beam.get_beam_statistics())
+
+
+
 
     
 
@@ -253,7 +258,7 @@ with plot_col1:
 
     fig, ax = plt.subplots(figsize=(10,9))
 
-    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth)
+    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth)
     ax.axvline(x = 0, color = "gray", linestyle='--')
     ax.axhline(y = 0, color = "red")
     ax.set_xlabel("X (m)")
@@ -274,12 +279,12 @@ with plot_col2:
     ax.plot(z, I_k, label="Complex Decay")
     ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
     ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
-    ax.axhline(threshold)
+    ax.axhline(k_threshold, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
     ax.legend()
     ax.set_xlabel('z (m)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Silicon Absorption Profile")
-    ax.set_ylim([0, I_gaus.max() * 1.1])
+    # ax.set_ylim([0, I_gaus.max() * 1.1])
 
     st.pyplot()
 

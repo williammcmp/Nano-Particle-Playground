@@ -73,7 +73,8 @@ class PulsedLaserBeam:
         Returns:
             float: Absorption coefficient.
         """
-        return 4 * k * np.pi / self.wavelength
+        # return 4 * k * np.pi / self.wavelength
+        return 4387
     
     def calculate_focus_volume(self, n1=1.003, n2=3.5650):
         """
@@ -117,7 +118,7 @@ class PulsedLaserBeam:
             "Beam Waist (µm)": [f'{self.beam_waist*1e6:.3g}'],
             "Focus Area (cm^2)": [f'{self.focus_area*1e4:.3g}'],
             "Energy Per Pulse (µJ)": [f'{self.energy_per_pulse*1e6:.3g}'],
-            "Power Per Pulse (MW)": [f'{self.power_per_pulse*1e-6:.3g}'],
+            "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
             "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}'],
             "Reflectanc Factor":[f'{self.reflectanc_factor}'],
