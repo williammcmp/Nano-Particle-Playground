@@ -382,6 +382,7 @@ def list_to_markdown_table(data):
 
     return fList
 
+# TODO refactor to be more maintainable
 def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth, z_MPI_depth):
     
     x = np.linspace(-beam_width, beam_width, 200)  # Limit x to the range where the square root is defined
