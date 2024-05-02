@@ -72,7 +72,7 @@ slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     particleNumber = st.slider("Number of particles", 10, 10000, 1000)
-    particleEnergy = st.slider("Inital average particle energy (µJ)", 1, 100, 10) * 1e-6
+    particleEnergy = st.slider("Total inital energy (µJ)", 1, 100, 10) * 1e-6
     particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
     randomness = st.checkbox("Randomness 🤷", value=False)
