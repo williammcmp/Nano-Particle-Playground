@@ -56,6 +56,7 @@ class Particle:
         self.History = position
         self.HistoryVel = velocity
         self.Range = self.ExpectedRange()
+        self.Energy = 0.5 * self.Mass * (np.linalg.norm(self.Velocity) ** 2)
 
     def Save(self):
         """
