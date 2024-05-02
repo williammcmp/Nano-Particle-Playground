@@ -76,9 +76,9 @@ def scale_convert(range, scaleFactor = 1e-9):
 
 def getDataSeries(simulation):
     if simulation.HasForce('Magnetic'):
-        return "Magnetic Field out of the Page"
+        return "BFieldOut"
     else:
-        return "No Magentic Field"
+        return "NoBField"
 
 # ---------------
 # Sidebar - simulation duration time
@@ -291,92 +291,74 @@ with plot_col2:
 # Particle Settings
 # ---------------
 st.divider()
-row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
-with row0_1:
+slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
+with slider_col:
     st.subheader('Particle Settings')
     st.markdown('Define the inital state of the paritcles from the ablation proces.')
 
-    particle_options = ['Multi Photon Ionisation', 'Custom']
+    # Calculating the volume ablated
+    v_melt = 2 * np.pi * (Beam.beam_waist ** 2 ) * z_abs_depth # thermal
+    v_MPI = 2 * np.pi * ((0.5 * Beam.beam_waist) ** 2 ) * z_MPI_depth # MPI
 
-slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
+    mass, diamater = ParticlesFromVolume(v_melt)
+    #TODO: rename this to make more sense
+    abs_energy = ((1 - Beam.reflectanc_factor) * Beam.energy_per_pulse) - 16e-6 # the left over energy absoured in total from the beam
+    st.markdown(len(mass))
+    st.markdown(v_melt)
 
-with slider_col:
-    # particle_settings = st.selectbox('Particle Source Type', particle_options, index=0)
-
-    # if particle_settings == 'Custom':
-    particleNumber = st.number_input("Number of particles", min_value=10, max_value=1000, value=100, step=1)
-    particleEnergy = st.number_input("Initial average particle energy (eV)", min_value=1, max_value=100, value=10, step=1) * 1e-16
-    particleSize_min = st.number_input('Particle Size Minimum (nm)', min_value=10.0, max_value=150.0, value=10.0, step=1.0)
-    particleSize_max = st.number_input('Particle Size Maximum (nm)', min_value=10.0, max_value=150.0, value=100.0, step=1.0)
-    useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
-    randomness = st.checkbox("Randomness 🤷", value=False)
-    particleSize = (particleSize_min, particleSize_max)
-
-
-    # Automatically update the JSON file to read the settings
-    # This could be removed and have the particle sim read directly from the
-    # variables as needed
     config_settings = {
-            "particleNumber": particleNumber,
-            "particleEnergy": particleEnergy, 
-            "particleSize": scale_convert(particleSize),
-            "useNonConstantZ": useNonConstantZ,
-            "randomness": randomness
-        }
-    write_to_json(config_settings)
+        "particleNumber": len(mass), # Change the number of particles with correct proptions
+        "particleEnergy": abs_energy, 
+        "useNonConstantZ": False,
+        "randomness": False
+    }
+
+    particles, dict = pLoad(config_settings)
     
-    # Loads the particles from the JSON files
-    particles = LoadParticleSettings()
+    particle_energies = 0.5 * dict['mass'] * (np.linalg.norm(dict['velocity'], axis=1) ** 2)
 
-        # adds the particles to the simulation obj
+    # Sum up the energies for all particles
+    total_ablated_energy = np.sum(particle_energies)
+
+    stats = {
+        'Melt Depth (m)': z_abs_depth,
+        'Melt Volume (m^3)': v_melt, 
+        'Melt mass (kg)': v_melt * 2330,
+        'MPI depth (m)': z_MPI_depth,
+        'MPI Volume (m^3)': v_MPI,
+        'Particle Count': dict['count'],
+        'Absorbed energy - leftover (J)': abs_energy,
+        'Avg particle mass (kg)': np.mean(dict['mass']),
+        'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1)),
+        'Total ablated mass': np.sum(dict['mass']),
+        'Total ablated energy': total_ablated_energy,
+        'particle 1 - energy': particles[0].Energy
+    }
+
+    print(particles[1])
+
+
     simulation.AddParticles(particles)
+    
+    
+with plot_col1:
+    fig, ax = plt.subplots(figsize=(10,8))
+    ax.hist(diamater * 1e9, 30, density=True)
+    ax.set_title("Distribution of particle diamater")
+    ax.set_xlabel("Diamater (nm)")
+    st.pyplot()
 
-    p = pGen(particleNumber, particleSize, particleEnergy, useNonConstantZ, randomness)
+with plot_col2: 
+    formatted_stats = {}
+    for key, value in stats.items():
+        if isinstance(value, float):
+            formatted_stats[key] = f"{value:.3g}"
+        else:
+            formatted_stats[key] = value
 
-
-    with plot_col1:
-        fig, ax = plt.subplots()
-        # Plot the norm alized histogram
-        ax.hist(p['pos'][:,0], bins=30, density=False, color='green', alpha=0.6, label="X-distribution")
-        ax.hist(p['pos'][:,1], bins=30, density=False, color='blue', alpha=0.6, label="Y-distribution")
-
-        # Set plot labels and legend
-        plt.legend()
-        plt.grid()
-        plt.xlabel('Positon (m)')
-        plt.ylabel('Particle Count')
-        plt.title('Distribution of Particles')
-
-        # Show the plot using Streamlit
-        st.pyplot(fig)
-
-
-
-    with plot_col2:
-        x_data = p['pos'][:,0]
-        y_data = p['pos'][:,1]
-
-        
-        # Create a 2D histogram
-        heatmap, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
-
-        # Create a figure and axes
-        fig, ax = plt.subplots()
-
-        # Plot the heatmap using imshow on the axes 'ax'
-        image = ax.imshow(heatmap.T, extent=[xedges.min(), xedges.max(), yedges.min(), yedges.max()],
-                        origin='lower', cmap='viridis')
-
-        # Add colorbar
-        cbar = plt.colorbar(image, ax=ax, label='Particle Density')
-
-        plt.xlabel('X-axis')
-        plt.ylabel('Y-axis')
-        plt.title('Inital particle position')
-        
-        st.pyplot(fig)
-
-
+    for key, value in formatted_stats.items():
+        print(f"{key}: {value}")
+    st.table(formatted_stats)
 
 # ---------------
 # Simulation Enviroment Setup
@@ -488,8 +470,8 @@ if st.button("Run the Simulation"):
     with plot_col2:
         
         fig, ax = plotTrajectories(simulation)
-        ax.set_xlim([-2e-5, 2e-5])
-        ax.set_ylim([-2e-5, 2e-5])
+        # ax.set_xlim([-2e-5, 2e-5])
+        # ax.set_ylim([-2e-5, 2e-5])
 
         st.pyplot(fig)
 
@@ -509,26 +491,34 @@ if st.button("Run the Simulation"):
 
 
     # TODO: Work out what is happening with the plots of experimental and simulated data...
-    # dataSeries = getDataSeries(simulation)
+    dataSeries = getDataSeries(simulation)
 
-    # fig, ax = plotExperimentalData(dataSeries)
+    fig, ax = plotExperimentalData("No Magentic Field")
 
-    # # There is some scaling on on the simulation results there.
-    # ax.scatter(mass*10, np.linalg.norm(position, axis=1) * 1e3, alpha=0.8, label="Simulation")
+    # There is some scaling on on the simulation results there.
+    ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e7, alpha=0.8, label="Simulation")
 
-    # # Add the 1/r^3 curve
-    # r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+    # Add the 1/r^3 curve
+    r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
 
-    # # Calculate the corresponding function values
-    # y = 1 / (r**3)
+    # Calculate the corresponding function values
+    y = 1 / (r**3)
 
-    # ax.plot(r * 10, y * 1e4 + 2000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+    ax.plot(r * 28 - 25, y * 9e3 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
 
-    # # sets the legend's lables to be bright
-    # legend = ax.legend()
-    # for lh in legend.legendHandles:
-    #     lh.set_alpha(1)
-    # st.pyplot(fig)
+    # sets the legend's lables to be bright
+    legend = ax.legend()
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    st.pyplot(fig)
 
 
+
+    sim_info = {'Simulation Stats': [len(simulation.Particles), simDuration, simTimeStep, computeTime, numCals]}
+    sim_df = pd.DataFrame.from_dict(sim_info, orient="index")
+    sim_df.columns = ["Particles", "Simulated time (s)", "Time step interval (s)", "Compute Time (s)", "Number of Calculations"]
+    with st.expander("Simulation Stats"):
+            st.table(sim_df)
+            # st.markdown("Froces:")
+            st.table(simulation.ForceTable())
 

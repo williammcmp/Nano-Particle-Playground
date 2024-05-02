@@ -99,7 +99,7 @@ def plotExperimentalDistribution(dataSeries, fig, ax):
     
         
 
-def plotExperimentalData(dataSeries):
+def plotExperimentalData(m_type = "No Magentic Field" ):
     # This dictionary makes it easer to load the data files
     dataType = {
         "No Magentic Field" : "NoBField",
@@ -110,15 +110,16 @@ def plotExperimentalData(dataSeries):
     }
     
     # Loads the data frame of the specific data series selected by the user
-    data_df = load_experimental_data(dataType[dataSeries])
+    data_df = load_experimental_data(dataType[m_type])
 
     # Convert the X,Y positions to R or displcement values
     data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
                          "size": data_df["Width"]})
 
     # Create a figure and axis
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = plt.subplots(figsize=(10,8))
     ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
+    
     # Creates the error bard from experimental data
     for i in range(1,20):
         filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
@@ -133,7 +134,7 @@ def plotExperimentalData(dataSeries):
     
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
-    ax.set_title(f'Silicon Nano-Particles Size Vs Displacement - {dataSeries}')
+    ax.set_title(f'Silicon Nano-Particles Size Vs Displacement')
     ax.set_xlim(0, 100)
     ax.set_ylim(0,14000)
     ax.grid(True)
@@ -149,7 +150,7 @@ def plotSimulatedPosition(position, charge):
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-    circle = plt.Circle((0, 0), 1e-6, color='r', fill=False)
+    circle = plt.Circle((0, 0), 15e-6, color='r', fill=False)
     ax.add_artist(circle)
 
     ax.set_xlabel('X (m)')
@@ -157,8 +158,8 @@ def plotSimulatedPosition(position, charge):
     ax.set_title('Simulated position of Silicion Nano-Particles')
     ax.grid(True)
 
-    ax.set_xlim(-1e-5, 1e-5)
-    ax.set_ylim(-1e-5, 1e-5)
+    ax.set_xlim(-2e-4, 2e-4)
+    ax.set_ylim(-2e-4, 2e-4)
 
     return fig, ax
 

@@ -109,12 +109,17 @@ def GenerateParticles(n, Simulation, mode = "Origin",
 
 
 
-def pGen (n, size, energy, reduceZ, randomness):
-    diameter = sp.stats.gamma.rvs(2, 5, 10, size=1) * 1e-9
+def pGen (n, abs_energy, reduceZ = False, randomness=False):
+
+    diameter = sp.stats.gamma.rvs(2, 5, 10, size=n) * 1e-9
     mass = ParticleShericalMass(diameter)
     p_positions = np.random.normal(0, 6.5, size=(n,2)) * 1e-6 # scale down the positions to be at the micron scale
 
+    avg_energy = abs_energy / len(mass)
+    energy = np.random.normal(avg_energy, avg_energy * 1e-2, n) # random energies centred around the averge per particle
+    print(energy[1])
     p_velocity = calVelocity(mass, p_positions, energy, reduceZ, randomness)
+    
     
     zeros = np.zeros((p_positions.shape[0], 1)) + 0.0000000001
     p_positions = np.hstack((p_positions, zeros))
@@ -126,10 +131,10 @@ def pGen (n, size, energy, reduceZ, randomness):
     }
     return dic 
 
-# Looads the from the pGen
+# Looads the particles from the pGen
 def pLoad(settings):
 
-    generatedSettings = pGen(settings['particleNumber'], settings['particleSize'], settings['particleEnergy'], settings['useNonConstantZ'], settings['randomness'])
+    generatedSettings = pGen(settings['particleNumber'], settings['particleEnergy'], settings['useNonConstantZ'], settings['randomness'])
 
     position = generatedSettings['pos'] 
     mass = generatedSettings['mass']
@@ -137,35 +142,46 @@ def pLoad(settings):
 
     particleCount = settings['particleNumber']
     particles = []
-    for row in range(particleCount):
-        charge = random.uniform(-3.0, 3.0) * mass[row] 
-        particles.append(Particle(position[row], velocity[row], mass[row], charge))
+    
+    # Defining max particle count to allow for limits to the particle sim performance
+    max_particle_count = 1000
 
-    return particles
+    # TODO: make is acctully good code ya shit head
+    for row in range(particleCount):
+        if row < max_particle_count:
+            particles.append(Particle(position[row], velocity[row], mass[row]))
+        else: 
+            pass
+
+    # TODO remove this dict
+    dict = {'mass': mass,
+            'velocity': velocity,
+            'count': particleCount}
+    return particles, dict
     
 
 def calVelocity(mass, position, energy, reduceZ = False, randomness=False):
 
-    velMag = np.sqrt(2 * (energy * 100) / mass) # 1/3 needed to allow for energy across all axies
+    velMag = np.sqrt(2 * energy /(3 * mass)) # 1/3 needed to allow for energy across all axies
     
     
     if reduceZ:
-        z = np.sqrt(9 - (position[:,0]**2 + position[:,1]**2)) # Reduces the velocity in the Z mag when further away from the origin (pre normalised z is always 1)
+        z = np.sqrt(9 - (0.5*position[:,0]**2 + position[:,1]**2)) # Reduces the velocity in the Z mag when further away from the origin (pre normalised z is always 1)
     else:
         z = np.ones((position.shape[0], 1)) # The virtical compoent of the vecotr before normalisation is always 1
 
     zMag = z.reshape(-1, 1) # Allows z postional values to be hstacked on the position array
 
-    velDir = np.hstack((position * 1e5, zMag)) # 1e4 is to scale up the position from the origin
+    velDir = np.hstack((position * 1e5, zMag)) # 1e5 is to scale up the position from the origin --> Allows for radial change
     velNorm = velDir / np.linalg.norm(velDir, axis=1, keepdims=True) # ensure normalization along the correct axis
     Velocity = velMag.reshape(-1, 1) * velNorm
 
     if randomness:
         a = np.random.randn(position.shape[0],3) # Random offset in the particles inital velocity
-        Velocity = Velocity + a * 1e-3 # apply the random offset to the particles inital velocity. 1e-3 is to scale down the random offset -> designed to run at the nm scales
+        # Velocity = Velocity + a * 1e-5 # apply the random offset to the particles inital velocity. 1e-3 is to scale down the random offset -> designed to run at the nm scales
         Velocity[:, 2] = np.abs(Velocity[:, 2]) # makes Vz positive
 
-    return Velocity
+    return Velocity * 5e-4
         
 
 def LoadParticleSettings():
@@ -277,13 +293,13 @@ def GeneratePointInElipsoid(a, b, c, count=1):
     
     
 def ParticlesFromVolume(volume):
-    ablated_mass = volume * 2330 # Cal the mass from 2330 kg/m^3
+    ablated_mass = volume * 2330 # Cal the mass from 2330 kg/cm^3
 
     mass = np.array([])
     diamaters = np.array([])
     while np.sum(mass) < ablated_mass:
         # Generate a particle Size from the gamma distribution
-        diameter = sp.stats.gamma.rvs(2, 5, 10, size=1) * 1e-9
+        diameter = sp.stats.gamma.rvs(2, 6, 10, size=1) * 1e-9
         m = ParticleShericalMass(diameter)
         mass = np.append(mass, m)
         diamaters  = np.append(diamaters, diameter)
