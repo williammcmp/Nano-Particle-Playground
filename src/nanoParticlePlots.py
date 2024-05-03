@@ -117,8 +117,8 @@ def plotExperimentalData(m_type = "No Magentic Field" ):
                          "size": data_df["Width"]})
 
     # Create a figure and axis
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
+    fig, ax = plt.subplots(figsize=(10,6.5))
+    # ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
     
     # Creates the error bard from experimental data
     for i in range(1,20):
@@ -134,32 +134,32 @@ def plotExperimentalData(m_type = "No Magentic Field" ):
     
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Displacement (nm)')
-    ax.set_title(f'Silicon Nano-Particles Size Vs Displacement')
     ax.set_xlim(0, 100)
     ax.set_ylim(0,14000)
     ax.grid(True)
 
     return fig, ax
 
-def plotSimulatedPosition(position, charge):
+def plotSimulatedPosition(position, charge, title = 'Simulated position of Silicon Nano-Particles'):
 
     # Create a scatter plot with colored points
     fig, ax = plt.subplots(figsize=(10,6))
-    sc = ax.scatter(position[:, 0], position[:, 1], c=charge, alpha=0.5)
+    sc = ax.scatter(position[:, 0] * 1e3, position[:, 1] * 1e3, c=charge, alpha=0.5)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-    circle = plt.Circle((0, 0), 15e-6, color='r', fill=False)
+    circle = plt.Circle((0, 0), 15e-3, color='r', fill=False, label="Creator Radius = 15µm")
     ax.add_artist(circle)
 
-    ax.set_xlabel('X (m)')
-    ax.set_ylabel('Y (m)')
-    ax.set_title('Simulated position of Silicion Nano-Particles')
+    ax.set_xlabel('X (mm)')
+    ax.set_ylabel('Y (mm)')
+    ax.set_title(title)
     ax.grid(True)
+    ax.axis('equal')
 
-    ax.set_xlim(-2e-4, 2e-4)
-    ax.set_ylim(-2e-4, 2e-4)
+    ax.set_xlim(-2e-1, 2e-1)
+    ax.set_ylim(-2e-1, 2e-1)
 
     return fig, ax
 

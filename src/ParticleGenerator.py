@@ -113,7 +113,7 @@ def pGen (n, abs_energy, reduceZ = False, randomness=False):
 
     diameter = sp.stats.gamma.rvs(2, 5, 10, size=n) * 1e-9
     mass = ParticleShericalMass(diameter)
-    p_positions = np.random.normal(0, 6.5, size=(n,2)) * 1e-6 # scale down the positions to be at the micron scale
+    p_positions = np.random.normal(0, 5, size=(n,2)) * 1e-6 # scale down the positions to be at the micron scale
 
     avg_energy = abs_energy / len(mass)
     energy = np.random.normal(avg_energy, avg_energy * 1e-2, n) # random energies centred around the averge per particle
@@ -149,9 +149,15 @@ def pLoad(settings):
     # TODO: make is acctully good code ya shit head
     for row in range(particleCount):
         if row < max_particle_count:
+
             particles.append(Particle(position[row], velocity[row], mass[row]))
         else: 
             pass
+
+    # Add charged particles
+    for row in range(round(particleCount * 0.05)):
+        particles.append(Particle(position[row], velocity[row], mass[row], charge=1.6e-19))
+        particles.append(Particle(position[row + 10], velocity[row + 10], mass[row + 10], charge=2*1.6e-19))
 
     # TODO remove this dict
     dict = {'mass': mass,
