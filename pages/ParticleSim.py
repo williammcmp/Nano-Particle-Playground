@@ -202,12 +202,6 @@ with slider_col:
     st.dataframe(Beam.get_beam_statistics())
 
 
-
-
-    
-
-
-
 with plot_col1:
     # Parameters for the Gaussian distribution
 
@@ -243,23 +237,6 @@ with plot_col1:
     cax = fig.add_subplot(gs[2])
     st.pyplot()
 
-    # Intensity absorption profile along z-axis, (x,y = 0)
-    fig, ax = plt.subplots(figsize=(10,8.5))
-    ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
-    ax.plot(z, I_k, label="Complex Decay")
-    ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
-    ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
-    ax.axhline(k_threshold, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
-    ax.legend()
-    ax.set_xlabel('z (m)')
-    ax.set_ylabel('Absrobed Intensity (w/cm^2)')
-    ax.set_title("Silicon Absorption Profile")
-    st.pyplot()
-
-    
-
-
-
 with plot_col2:
     # Ablation depth and focal spot depth
     fig, ax = plt.subplots(figsize=(10,8))
@@ -274,17 +251,41 @@ with plot_col2:
     st.pyplot(fig)
 
 
-    # Energy absorption profile
-    # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
-    energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax.plot(z, energy_abs, label="Silicon") #me need to scale up or down on by 1e-4
-    ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
+# ---------------
+# Energy absorption Profiles
+# ---------------
+st.divider()
+slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
+with slider_col:
+    st.subheader("Energy Absorption Profiles")
+
+with plot_col1:
+    # Intensity absorption profile along z-axis, (x,y = 0)
+    fig, ax = plt.subplots(figsize=(10,8.5))
+    ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
+    ax.plot(z, I_k, label="Complex Decay")
+    ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
+    ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
+    ax.axhline(k_threshold, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
     ax.legend()
-    ax.set_xlabel('Depth into Silicon (m)')
-    ax.set_ylabel('Absrobed Energy ( J )')
-    ax.set_title("Silicon Absorption Energy")
+    ax.set_xlabel('z (m)')
+    ax.set_ylabel('Absrobed Intensity (w/cm^2)')
+    ax.set_title("Intensity Absorption Profile")
     st.pyplot()
+
+
+# with plot_col2:
+#     # Energy absorption profile
+#     # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
+#     energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
+#     fig, ax = plt.subplots(figsize=(10,8))
+#     ax.plot(z, energy_abs, label="Silicon") #me need to scale up or down on by 1e-4
+#     ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
+#     ax.legend()
+#     ax.set_xlabel('Depth into Silicon (m)')
+#     ax.set_ylabel('Absrobed Energy ( J )')
+#     ax.set_title("Silicon Absorption Energy")
+#     st.pyplot()
 
 
 # ---------------
@@ -303,8 +304,6 @@ with slider_col:
     mass, diamater = ParticlesFromVolume(v_melt)
     #TODO: rename this to make more sense
     abs_energy = ((1 - Beam.reflectanc_factor) * Beam.energy_per_pulse) - 16e-6 # the left over energy absoured in total from the beam
-    st.markdown(len(mass))
-    st.markdown(v_melt)
 
     config_settings = {
         "particleNumber": len(mass), # Change the number of particles with correct proptions
@@ -359,6 +358,8 @@ with plot_col2:
     for key, value in formatted_stats.items():
         print(f"{key}: {value}")
     st.table(formatted_stats)
+
+
 
 # ---------------
 # Simulation Enviroment Setup
