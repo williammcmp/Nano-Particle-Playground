@@ -34,21 +34,21 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 # makes the plots in line with the style of the application dark mode
-rc = {'figure.figsize':(8,4.5),
-        'axes.facecolor':'#0e1117',
-        'axes.edgecolor': '#0e1117',
-        'axes.labelcolor': 'white',
-        'figure.facecolor': '#0e1117',
-        'patch.edgecolor': '#0e1117',
-        'text.color': 'white',
-        'xtick.color': 'white',
-        'ytick.color': 'white',
-        'grid.color': 'grey',
-        'font.size' : 12,
-        'axes.labelsize': 12,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12}
-plt.rcParams.update(rc)
+# rc = {'figure.figsize':(8,4.5),
+#         'axes.facecolor':'#0e1117',
+#         'axes.edgecolor': '#0e1117',
+#         'axes.labelcolor': 'white',
+#         'figure.facecolor': '#0e1117',
+#         'patch.edgecolor': '#0e1117',
+#         'text.color': 'white',
+#         'xtick.color': 'white',
+#         'ytick.color': 'white',
+#         'grid.color': 'grey',
+#         'font.size' : 12,
+#         'axes.labelsize': 12,
+#         'xtick.labelsize': 12,
+#         'ytick.labelsize': 12}
+# plt.rcParams.update(rc)
 
 # ---------------
 # Helper functions
@@ -455,8 +455,8 @@ if st.button("Run the Simulation"):
 
         st.pyplot(fig)
         radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)
-        inside = np.count_nonzero(radius < 1e-6)
-        outside = np.count_nonzero(radius > 1e-6)
+        inside = np.count_nonzero(radius < 15e-6)
+        outside = np.count_nonzero(radius > 15e-6)
         stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
         df = pd.DataFrame.from_dict(stats, orient='index')
         df.columns = ['inside', 'outside']
@@ -468,6 +468,32 @@ if st.button("Run the Simulation"):
 
     # 3D plot of the particle trajectories
     with plot_col2:
+
+        # TODO: Work out what is happening with the plots of experimental and simulated data...
+        dataSeries = getDataSeries(simulation)
+
+        fig, ax = plotExperimentalData("No Magentic Field")
+        # fig, ax = plotExperimentalData("Magnetic Field into the Page")
+        ax.set_title(f'No Magnetic Field')
+
+
+
+        # There is some scaling on on the simulation results there.
+        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e7, alpha=0.8, label="Simulation")
+
+        # Add the 1/r^3 curve
+        r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+
+        # Calculate the corresponding function values
+        y = 1 / (r**3)
+
+        ax.plot(r * 27 - 20, y * 9e3 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+
+        # sets the legend's lables to be bright
+        legend = ax.legend()
+        for lh in legend.legendHandles:
+            lh.set_alpha(1)
+        st.pyplot(fig)
         
         fig, ax = plotTrajectories(simulation)
         # ax.set_xlim([-2e-5, 2e-5])
@@ -475,42 +501,7 @@ if st.button("Run the Simulation"):
 
         st.pyplot(fig)
 
-    row2 = st.container()
-    # Second Row of plot - simulation figures
-    text_col, spacer, plot_col, spacer2= row2.columns([2, 0.5, 2, 0.5])
-
-    # with text_col:
-    #     st.markdown(f'''**Simulation Stats:**''')
-    #     st.markdown(sim_info)
-
-    # with plot_col:
-    #     fig, ax = plotMassDisplacement(position, charge)
-
-    #     st.pyplot(fig)
-
-
-
-    # TODO: Work out what is happening with the plots of experimental and simulated data...
-    dataSeries = getDataSeries(simulation)
-
-    fig, ax = plotExperimentalData("No Magentic Field")
-
-    # There is some scaling on on the simulation results there.
-    ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e7, alpha=0.8, label="Simulation")
-
-    # Add the 1/r^3 curve
-    r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
-
-    # Calculate the corresponding function values
-    y = 1 / (r**3)
-
-    ax.plot(r * 28 - 25, y * 9e3 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
-
-    # sets the legend's lables to be bright
-    legend = ax.legend()
-    for lh in legend.legendHandles:
-        lh.set_alpha(1)
-    st.pyplot(fig)
+       
 
 
 
