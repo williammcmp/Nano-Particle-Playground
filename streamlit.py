@@ -332,6 +332,14 @@ with slider_col:
         'particle 1 - energy': particles[0].Energy
     }
 
+    particle_stats = {
+        'Thermal Volume (m^3)': v_melt, 
+        'MPI Volume (m^3)': v_MPI,
+        'Absorbed energy - leftover (J)': abs_energy,
+        'Avg particle mass (kg)': np.mean(dict['mass']),
+        'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1))
+    }
+
     print(particles[1])
 
 
@@ -426,6 +434,13 @@ if st.button("Run the Simulation"):
     computeTime, numCals = simulation.Run(simDuration, simTimeStep)
     position, velocity, force, mass, charge = simulation.StreamletData()
 
+    dict = {'pos':position,
+            'vel': velocity,
+            'mass': mass,
+            'charge': charge}
+    
+    write_to_json(dict, "Simulation_Output.json")
+
     sim_info = f'''
         ```
         - Particles = {len(simulation.Particles):,}
@@ -457,9 +472,9 @@ if st.button("Run the Simulation"):
         inside = np.count_nonzero(radius < 15e-6)
         outside = np.count_nonzero(radius > 15e-6)
         stats = {'particle stats': [inside/len(mass), outside/len(mass)]}
-        df = pd.DataFrame.from_dict(stats, orient='index')
-        df.columns = ['inside', 'outside']
-        st.table(df)
+        pos_df = pd.DataFrame.from_dict(stats, orient='index')
+        pos_df.columns = ['inside', 'outside']
+        st.table(pos_df)
         st.caption("Proption of particles inside and outside the ablation site")
 
         st.markdown(f'''**Simulation Stats:**''')
@@ -500,8 +515,6 @@ if st.button("Run the Simulation"):
 
         st.pyplot(fig)
 
-       
-
 
 
     sim_info = {'Simulation Stats': [len(simulation.Particles), simDuration, simTimeStep, computeTime, numCals]}
@@ -509,6 +522,15 @@ if st.button("Run the Simulation"):
     sim_df.columns = ["Particles", "Simulated time (s)", "Time step interval (s)", "Compute Time (s)", "Number of Calculations"]
     with st.expander("Simulation Stats"):
             st.table(sim_df)
-            # st.markdown("Froces:")
             st.table(simulation.ForceTable())
+            st.markdown("Laser Beam Stats")
+            row0_1, row0_2 = st.columns((1, 1))
+            with row0_1:
+                st.table(variables_df)
+
+            with row0_2:
+                st.table(Beam.get_beam_statistics())
+
+            st.table(particle_stats)
+
 
