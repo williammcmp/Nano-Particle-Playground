@@ -2,6 +2,7 @@
 
 import pandas as pd
 import os
+import numpy as np
 import json
 
 def load_data_from_csv(file_path):
@@ -264,8 +265,14 @@ def load_experimental_data(experiment_type):
 
 # Function to write data to a JSON file
 def write_to_json(data, filename='output1.json'):
+    data_serializable = {}
+    for key, value in data.items():
+        if isinstance(value, np.ndarray):
+            data_serializable[key] = value.tolist()
+        else:
+            data_serializable[key] = value
     with open(filename, 'w') as json_file:
-        json.dump(data, json_file)
+        json.dump(data_serializable, json_file)
 
 # loads data from a JSON File
 def load_from_json(filename='output1.json'):
