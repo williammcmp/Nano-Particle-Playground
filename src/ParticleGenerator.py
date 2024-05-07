@@ -147,12 +147,12 @@ def pLoad(settings):
     max_particle_count = 1000
 
     # TODO: make is acctully good code ya shit head
-    for row in range(particleCount):
-        if row < max_particle_count:
+    # for row in range(particleCount):
+    #     if row < max_particle_count:
 
-            particles.append(Particle(position[row], velocity[row], mass[row]))
-        else: 
-            pass
+    #         particles.append(Particle(position[row], velocity[row], mass[row]))
+    #     else: 
+    #         pass
 
     # Add charged particles
     for row in range(round(particleCount * 0.05)):

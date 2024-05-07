@@ -181,7 +181,7 @@ with slider_col:
     z_air, z_silicon = Beam.calculate_rayleigh_range()
 
     # Intesnity abs
-    z = np.linspace(0, z_silicon * 10, 100)
+    z = np.linspace(0, z_silicon * 10, 500)
     I_gaus = (Beam.peak_intensity * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
     I_k =  Beam.peak_intensity * 1e-4 * np.exp(- Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
     I_MPI = Beam.peak_intensity * 1e-4 * np.exp(-6 * Beam.calculate_absorption_coefficient() * z)
@@ -237,14 +237,16 @@ with plot_col1:
 
 with plot_col2:
     # Ablation depth and focal spot depth
-    fig, ax = plt.subplots(figsize=(10,8))
+    fig, ax = plt.subplots(figsize=(6,6))
     ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth)
     ax.axvline(x = 0, color = "gray", linestyle='--')
     ax.axhline(y = 0, color = "red")
-    ax.set_xlabel("X (m)")
-    ax.set_ylabel("Z (m)")
-    ax.set_title("Focual profile at interface")
-    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
+    ax.set_xlabel("X (μm)")
+    ax.set_ylabel("Z (mm)")
+    ax.set_title("Focual profile at Air-Silicon interface")
+    # ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist) * 1e6, Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist) * 1e6])
+    ax.set_xlim([-20, 20])
+    ax.set_ylim([-0.3,0.8])
     ax.legend()
     st.pyplot(fig)
 
@@ -259,16 +261,17 @@ with slider_col:
 
 with plot_col1:
     # Intensity absorption profile along z-axis, (x,y = 0)
-    fig, ax = plt.subplots(figsize=(10,8.5))
-    ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
-    ax.plot(z, I_k, label="Complex Decay")
-    ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
-    ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
-    ax.axhline(k_threshold, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
+    fig, ax = plt.subplots(figsize=(6,6))
+    ax.plot(z*1e3, I_gaus, label="Gaussian Decay", alpha=0.7)
+    ax.plot(z*1e3, I_k, label="Complex Decay")
+    ax.plot(z*1e3, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
+    ax.axvline(z_silicon*1e3, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
+    # ax.axhline(k_threshold*1e3, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
     ax.legend()
-    ax.set_xlabel('z (m)')
+    ax.set_xlabel('z (mm)')
     ax.set_ylabel('Absrobed Intensity (w/cm^2)')
     ax.set_title("Intensity Absorption Profile")
+    ax.set_xlim([0,1])
     st.pyplot()
 
 
@@ -471,22 +474,24 @@ if st.button("Run the Simulation"):
         # TODO: Work out what is happening with the plots of experimental and simulated data...
         dataSeries = getDataSeries(simulation)
 
-        fig, ax = plotExperimentalData("No Magentic Field")
+        fig, ax = plotExperimentalData("Magnetic Field Across the Page -Y")
         # fig, ax = plotExperimentalData("Magnetic Field into the Page")
-        ax.set_title(f'No Magnetic Field')
+        ax.set_title(f'Magnetic Field - X axis')
 
 
 
         # There is some scaling on on the simulation results there.
-        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e7, alpha=0.8, label="Simulation")
+        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e4, alpha=0.8, label="Simulation")
 
         # Add the 1/r^3 curve
-        r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+        # r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+        r = np.linspace(0.1, 150, 1000)  # Adjust the range as needed
 
         # Calculate the corresponding function values
-        y = 1 / (r**3)
+        y = 1 / (r**2)
 
-        ax.plot(r * 27 - 20, y * 9e3 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        # ax.plot(r * 27 - 20, y * 9 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        ax.plot(r-10, y * 3e3 + 0.8, color="c", label=r"$y=\frac{1}{r^2}$", linestyle='--', linewidth=3)
 
         # sets the legend's lables to be bright
         legend = ax.legend()
