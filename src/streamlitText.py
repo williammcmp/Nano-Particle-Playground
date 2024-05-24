@@ -90,3 +90,15 @@ def simText():
     The summary includes simulation parameters and used forces.
     '''
     return text
+
+def laserSetting():
+    text = f'''
+    The single pusle of the laser beam is modelled from a gaussian beam. Using the intesnity of the beam\n
+
+    [insert the gaussian beam profile]
+
+    From this, we can model the intensity of the beam propagating into the Silicon material.
+    
+    '''
+    
+    return text
