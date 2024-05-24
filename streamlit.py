@@ -479,22 +479,24 @@ if st.button("Run the Simulation"):
         # TODO: Work out what is happening with the plots of experimental and simulated data...
         dataSeries = getDataSeries(simulation)
 
-        fig, ax = plotExperimentalData("No Magentic Field")
+        fig, ax = plotExperimentalData("Magnetic Field Across the Page -Y")
         # fig, ax = plotExperimentalData("Magnetic Field into the Page")
-        ax.set_title(f'No Magnetic Field')
+        ax.set_title(f'Magnetic Field - X axis')
 
 
 
         # There is some scaling on on the simulation results there.
-        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e7, alpha=0.8, label="Simulation")
+        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e4, alpha=0.8, label="Simulation")
 
         # Add the 1/r^3 curve
-        r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+        # r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
+        r = np.linspace(0.1, 150, 1000)  # Adjust the range as needed
 
         # Calculate the corresponding function values
-        y = 1 / (r**3)
+        y = 1 / (r**2)
 
-        ax.plot(r * 27 - 20, y * 9e3 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        # ax.plot(r * 27 - 20, y * 9 + 1000, color="c", label=r"Expected $\frac{1}{r^3}$ Curve", linestyle='--', linewidth=3)
+        ax.plot(r-10, y * 3e3 + 0.8, color="c", label=r"$y=\frac{1}{r^2}$", linestyle='--', linewidth=3)
 
         # sets the legend's lables to be bright
         legend = ax.legend()

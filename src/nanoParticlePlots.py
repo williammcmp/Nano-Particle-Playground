@@ -113,29 +113,29 @@ def plotExperimentalData(m_type = "No Magentic Field" ):
     data_df = load_experimental_data(dataType[m_type])
 
     # Convert the X,Y positions to R or displcement values
-    data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
+    data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2) * 1e-3,
                          "size": data_df["Width"]})
 
     # Create a figure and axis
-    fig, ax = plt.subplots(figsize=(10,6.5))
-    # ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
+    fig, ax = plt.subplots(figsize=(6,5))
+    ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
     
-    # Creates the error bard from experimental data
-    for i in range(1,20):
-        filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
-        std_error = filted_data.std() # gets the standard error bars
+    # # Creates the error bard from experimental data
+    # for i in range(1,20):
+    #     filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
+    #     std_error = filted_data.std() # gets the standard error bars
 
-        # Allows for label to be added to first plot (There could be a better solution)
-        if i == 1:
-            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental - Averages") # plots the avg displcement with error bars
-        else:
-            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
+    #     # Allows for label to be added to first plot (There could be a better solution)
+    #     if i == 1:
+    #         ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental - Averages") # plots the avg displcement with error bars
+    #     else:
+    #         ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
 
     
     ax.set_xlabel('Particle size (nm)')
-    ax.set_ylabel('Displacement (nm)')
+    ax.set_ylabel('Displacement (mm)')
     ax.set_xlim(0, 100)
-    ax.set_ylim(0,14000)
+    ax.set_ylim(0,15)
     ax.grid(True)
 
     return fig, ax
@@ -213,7 +213,7 @@ def plotTrajectories(simulation):
     ax = fig.add_subplot(111, projection='3d')
 
     for particle in simulation.Particles:
-        ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2]) # each particles path
+        ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2], alpha=0.6) # each particles path
 
     # Need to set the B-filed to grow that the trajectories of SiNPS
     ax = plt.gca()  # Get the current axes
@@ -391,15 +391,15 @@ def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth, z_MPI_depth, li
     x = np.linspace(-beam_width, beam_width, 200) # Limit x to the range where the square root is defined
     
     # Calacuate the Air focal 
-    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))
+    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))* 1e3
 
     # Plot Air focal spot
     ax.plot(x * 1e6, eps_air*1e3, color='blue', label=r'$z_R$ - Air', linewidth=line_thickness)
 
     # Calculate the Silicon focus plot
-    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2))
-    eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))
-    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))
+    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2)) * 1e3
+    eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))* 1e3
+    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))* 1e3
 
     # Plot Silicon focal spot
     ax.plot(x*1e6, eps_silicon*1e3, color='green', label=r'$z_R$ - Silicon', linewidth=line_thickness)
