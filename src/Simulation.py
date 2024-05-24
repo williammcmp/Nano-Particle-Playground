@@ -273,7 +273,7 @@ class Simulation:
             
 
     def PlotFroces( self ): 
-        fig = plt.figure(figsize=(12,12))
+        fig = plt.figure(figsize=(8,8))
         ax = fig.add_subplot(111, projection='3d')
         
         for force in self.Forces:

@@ -32,21 +32,21 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 # makes the plots in line with the style of the application dark mode
-# rc = {'figure.figsize':(8,4.5),
-#         'axes.facecolor':'#0e1117',
-#         'axes.edgecolor': '#0e1117',
-#         'axes.labelcolor': 'white',
-#         'figure.facecolor': '#0e1117',
-#         'patch.edgecolor': '#0e1117',
-#         'text.color': 'white',
-#         'xtick.color': 'white',
-#         'ytick.color': 'white',
-#         'grid.color': 'grey',
-#         'font.size' : 12,
-#         'axes.labelsize': 12,
-#         'xtick.labelsize': 12,
-#         'ytick.labelsize': 12}
-# plt.rcParams.update(rc)
+rc = {'figure.figsize':(8,4.5),
+        'axes.facecolor':'#0e1117',
+        'axes.edgecolor': '#0e1117',
+        'axes.labelcolor': 'white',
+        'figure.facecolor': '#0e1117',
+        'patch.edgecolor': '#0e1117',
+        'text.color': 'white',
+        'xtick.color': 'white',
+        'ytick.color': 'white',
+        'grid.color': 'grey',
+        'font.size' : 12,
+        'axes.labelsize': 12,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12}
+plt.rcParams.update(rc)
 
 # ---------------
 # Helper functions
@@ -123,7 +123,7 @@ st.divider()
 st.subheader("Laser Settings")
 st.markdown("Configure the setting of the pusle laser used for the laser ablation.")
 
-slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
+slider_col, plot_col1, text_col= st.columns([0.7, 1, 1])
 
 with slider_col:
     options = ['PHAROS', 'SpitFire', 'Custom']
@@ -182,8 +182,9 @@ with slider_col:
 
     # Intesnity abs
     z = np.linspace(0, z_silicon * 10, 100)
-    I_gaus = (Beam.peak_intensity * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
-    I_k =  Beam.peak_intensity * 1e-4 * np.exp(- Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
+    # I_gaus = (Beam.peak_intensity * 1e-4 / (1 + (z / z_silicon)**2))  # Intensity decay into the medium W/cm^
+    I_gaus = (Beam.peak_intensity * ( Beam.reflectanc_factor) ) * 1e-4 * np.exp(- Beam.calculate_absorption_coefficient() * z)  # Intensity decay into the medium W/cm^
+    I_k =  (Beam.peak_intensity * (1 - Beam.reflectanc_factor) ) * 1e-4 * np.exp(- Beam.calculate_absorption_coefficient() * z) # Intensity decay accounting for complex refractive index
     I_MPI = Beam.peak_intensity * 1e-4 * np.exp(-6 * Beam.calculate_absorption_coefficient() * z)
     I_abs = I_gaus - I_k# Intesnsity absorbed at each point 
 
@@ -196,8 +197,11 @@ with slider_col:
     z_abs_depth = z[k_index]
     z_MPI_depth = z[MPI_index]
 
-
+    st.markdown("Beam Profile")
     st.dataframe(Beam.get_beam_statistics())
+
+# with text_col:
+#     st.markdown(laserSetting())
 
 
 with plot_col1:
@@ -206,15 +210,15 @@ with plot_col1:
     # Generate x values
     x = np.linspace(-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist), 1000)
     # Calculate the probability density function (PDF) for each x
-    pdf = np.exp((-2 * x ** 2 ) / (Beam.beam_waist) ** 2)
-    abs_factor = I_abs / Beam.intensity_per_pulse
+    pdf = np.exp((-2 * x ** 2 ) / (Beam.beam_waist) ** 2) * 1e3
+    abs_factor = (pdf.max() / (1 + 0.2 * (z / z_silicon)**2)) 
     abs_profile = np.outer(pdf, abs_factor).T
 
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(8, 8))
     # Setup figure and gridspec
-    fig = plt.figure(figsize=(10, 8))
-    gs = plt.GridSpec(3, 1, height_ratios=[2, 2, 0.2], hspace=0)  # No gap between plots
+    fig = plt.figure(figsize=(8, 8))
+    gs = plt.GridSpec(3, 1, height_ratios=[1.5, 2, 0.2], hspace=0)  # No gap between plots
     # Create subplots
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1], sharex=ax1)
@@ -228,25 +232,13 @@ with plot_col1:
     ax1.axhline(y = 1 / np.e ** 2, color = "gray", linestyle='--' )
     ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
     ax1.set_xticklabels([])  # Hide x-tick labels to avoid duplication
+
     # Plot Heatmap on ax2
-    im = ax2.imshow(abs_profile, extent=[x.min(), x.max(), z.max(), z.min()], aspect='auto', origin='upper', cmap='inferno')
+    im = ax2.imshow(abs_profile, extent=[x.min(), x.max(), z.max(), z.min()], aspect='auto', origin='upper', cmap='hot')
     ax2.set_xlabel('X position (m)')
     ax2.set_ylabel('Silicon Depth (m)')
     cax = fig.add_subplot(gs[2])
     st.pyplot()
-
-with plot_col2:
-    # Ablation depth and focal spot depth
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth)
-    ax.axvline(x = 0, color = "gray", linestyle='--')
-    ax.axhline(y = 0, color = "red")
-    ax.set_xlabel("X (m)")
-    ax.set_ylabel("Z (m)")
-    ax.set_title("Focual profile at interface")
-    ax.set_xlim([-Beam.beam_waist - 0.002 * np.sqrt(Beam.beam_waist), Beam.beam_waist + 0.002 * np.sqrt(Beam.beam_waist)])
-    ax.legend()
-    st.pyplot(fig)
 
 
 # ---------------
@@ -255,36 +247,40 @@ with plot_col2:
 st.divider()
 slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
 with slider_col:
-    st.subheader("Energy Absorption Profiles")
+    st.subheader("Ablation profiles")
+
+
 
 with plot_col1:
-    # Intensity absorption profile along z-axis, (x,y = 0)
-    fig, ax = plt.subplots(figsize=(10,8.5))
-    ax.plot(z, I_gaus, label="Gaussian Decay", alpha=0.7)
-    ax.plot(z, I_k, label="Complex Decay")
-    ax.plot(z, I_abs, label="Intensity absorbed", color='red', linestyle='--', alpha=0.7)
-    ax.axvline(z_silicon, label="Silicon Rayleigh Range", color = "gray", linestyle='--', alpha=0.7)
-    ax.axhline(k_threshold, color='orange',  linestyle='--', label=f'Threshold = I_0 * {Beam.abs_threshold}')
+    # Ablation depth and focal spot depth
+    fig, ax = plt.subplots(figsize=(8,8))
+    line_thickness = 3
+    ax = PlotBeamFocal(ax, Beam.beam_waist, z_air, z_silicon, z_abs_depth, z_MPI_depth, line_thickness)
+    ax.axvline(x = 0, color = "gray", linestyle='--', alpha = 0.6)
+    ax.axhline(y = 0, color = "red")
+    ax.set_xlabel(r"X ($µm$)")
+    ax.set_ylabel(r"Z ($mm$)")
+    ax.set_title("Focual profile at interface")
+    ax.set_xlim([-Beam.beam_waist*1.2e6, Beam.beam_waist*1.2e6])
+    ax.set_ylim([-0.25, 0.7])
     ax.legend()
-    ax.set_xlabel('z (m)')
-    ax.set_ylabel('Absrobed Intensity (w/cm^2)')
-    ax.set_title("Intensity Absorption Profile")
+    st.pyplot(fig)
+
+with plot_col2:
+    # Intensity absorption profile along z-axis, (x,y = 0)
+    z = z * 1e3
+    line_thickness = 2
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.plot(z, I_gaus*1e-12, label="Reflected", alpha=0.7, linewidth=line_thickness)
+    ax.plot(z, I_k*1e-12, label="Propagating", alpha=0.7, linewidth=line_thickness)
+    ax.plot(z, I_abs*1e-12, label="Absorbed", color='red', alpha=1, linewidth=line_thickness)
+    ax.axvline(z_silicon*1e3, label=r'$z_R$ - Silicon', color="gray", linestyle='--', alpha=0.7, linewidth=2)
+
+    ax.legend()
+    ax.set_xlabel(r'Depth of Silicon ($mm$)')
+    ax.set_ylabel(r'Absorbed Intensity ($TW/cm^2$)')
+    ax.set_title(r'Intensity Absorption Profile of Silicon')
     st.pyplot()
-
-
-# with plot_col2:
-#     # Energy absorption profile
-#     # energy abs : J (joules) = pi * w_0^2 * I * pulse duration / 2
-#     energy_abs = np.pi * (Beam.beam_waist ** 2) * I_abs * pulse_duration / 2 
-#     fig, ax = plt.subplots(figsize=(10,8))
-#     ax.plot(z, energy_abs, label="Silicon") #me need to scale up or down on by 1e-4
-#     ax.axvline(z_silicon, label="Silicon Rayleligh Range", color = "gray", linestyle='--')
-#     ax.legend()
-#     ax.set_xlabel('Depth into Silicon (m)')
-#     ax.set_ylabel('Absrobed Energy ( J )')
-#     ax.set_title("Silicon Absorption Energy")
-#     st.pyplot()
-
 
 # ---------------
 # Particle Settings
@@ -372,14 +368,11 @@ with plot_col2:
 # ---------------
 st.divider()
 
-row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
-with row0_1:
-    st.subheader('Simulation Settings')
-    st.markdown('Define the enviroment of the simulation')
-
-slider_col, plot_col1 = st.columns([1, 1])
+slider_col, spaceer_1, plot_col1, spacer_2r = st.columns([1, 0.4, 1, 0.5])
 
 with slider_col:
+    st.subheader('Simulation Settings')
+    st.markdown('Define the enviroment of the simulation')
     st.markdown("Forces")
     # Gravity
     if st.checkbox("Gravity", value=True):
@@ -465,7 +458,7 @@ if st.button("Run the Simulation"):
 
     # Scatter plot of final postions of the particles
     with plot_col1:
-        fig, ax = plotSimulatedPosition(position, charge)
+        fig, ax = plotSimulatedPosition(position, charge, "No Magnetic Field")
 
         st.pyplot(fig)
         radius = np.sqrt(position[:,0] ** 2 + position[:,1] ** 2)

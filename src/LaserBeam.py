@@ -120,9 +120,7 @@ class PulsedLaserBeam:
             "Energy Per Pulse (µJ)": [f'{self.energy_per_pulse*1e6:.3g}'],
             "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
-            "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}'],
-            "Reflectanc Factor":[f'{self.reflectanc_factor}'],
-            "Abs Threshold" : [f'{self.abs_threshold}']
+            "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}']
         }
 
         return pd.DataFrame(data).T
