@@ -391,15 +391,15 @@ def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth, z_MPI_depth, li
     x = np.linspace(-beam_width, beam_width, 200) # Limit x to the range where the square root is defined
     
     # Calacuate the Air focal 
-    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))* 1e3
+    eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))
 
     # Plot Air focal spot
     ax.plot(x * 1e6, eps_air*1e3, color='blue', label=r'$z_R$ - Air', linewidth=line_thickness)
 
     # Calculate the Silicon focus plot
-    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2)) * 1e3
-    eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))* 1e3
-    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))* 1e3
+    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2)) 
+    eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))
+    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))
 
     # Plot Silicon focal spot
     ax.plot(x*1e6, eps_silicon*1e3, color='green', label=r'$z_R$ - Silicon', linewidth=line_thickness)
