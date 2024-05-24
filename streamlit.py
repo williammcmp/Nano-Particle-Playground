@@ -197,11 +197,12 @@ with slider_col:
     z_abs_depth = z[k_index]
     z_MPI_depth = z[MPI_index]
 
+
+with text_col:
     st.markdown("Beam Profile")
     st.dataframe(Beam.get_beam_statistics())
 
-# with text_col:
-#     st.markdown(laserSetting())
+    st.markdown(laserSetting())
 
 
 with plot_col1:
@@ -248,6 +249,9 @@ st.divider()
 slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
 with slider_col:
     st.subheader("Ablation profiles")
+    st.markdown(ablationProfile())
+    with st.expander("More info"):
+        st.markdown(ablationProfileMore())
 
 
 
@@ -336,7 +340,7 @@ with slider_col:
         'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1))
     }
 
-    print(particles[1])
+    # print(particles[1])
 
 
     simulation.AddParticles(particles)
@@ -357,8 +361,6 @@ with plot_col2:
         else:
             formatted_stats[key] = value
 
-    for key, value in formatted_stats.items():
-        print(f"{key}: {value}")
     st.table(formatted_stats)
 
 
@@ -392,7 +394,7 @@ with slider_col:
         magForce = Magnetic() # creating the Magnetic obj
         # updateing the field -> obj will save the direction and magitude seperatlly
         magForce.UpdateField(np.array([magneticX, magneticY, magneticZ])) 
-        print(magForce.Field())
+        # print(magForce.Field())r
         simulation.AddForce([magForce]) # Adds mag force to force list 
 
     # Electric Force
