@@ -72,7 +72,7 @@ slider_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
 with slider_col:
     particleNumber = st.slider("Number of particles", 10, 10000, 1000)
-    particleEnergy = st.slider("Inital average particle energy (eV)", 1, 100, 10) * 1e-16
+    particleEnergy = st.slider("Total inital energy (µJ)", 1, 100, 10) * 1e-6
     particleSize = st.slider('Particle Size (nm)',10.0, 150.0, (10.0, 100.0))
     useNonConstantZ = st.checkbox("Use non-constant Z component", value=False)
     randomness = st.checkbox("Randomness 🤷", value=False)
@@ -155,7 +155,7 @@ with col_plot1:
 
 
 
-    radius = 2 * 1e-6
+    radius = 15 * 1e-6
     center = (0, 0, 0)
     num_points = 100
 
@@ -167,8 +167,8 @@ with col_plot1:
 
     ax.plot(x, y, z, color='r')
 
-    ax.set_xlim([-3 * 1e-6, 3 * 1e-6])
-    ax.set_ylim([-3 * 1e-6, 3 * 1e-6])
+    ax.set_xlim([-20 * 1e-6, 20 * 1e-6])
+    ax.set_ylim([-20 * 1e-6, 20 * 1e-6])
     ax.set_zlim([0,0.000005])
     ax.set_xlabel('X (m)')
     ax.set_ylabel('Y (m)')

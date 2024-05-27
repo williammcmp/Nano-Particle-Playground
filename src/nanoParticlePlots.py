@@ -99,7 +99,7 @@ def plotExperimentalDistribution(dataSeries, fig, ax):
     
         
 
-def plotExperimentalData(dataSeries):
+def plotExperimentalData(m_type = "No Magentic Field" ):
     # This dictionary makes it easer to load the data files
     dataType = {
         "No Magentic Field" : "NoBField",
@@ -110,55 +110,57 @@ def plotExperimentalData(dataSeries):
     }
     
     # Loads the data frame of the specific data series selected by the user
-    data_df = load_experimental_data(dataType[dataSeries])
+    data_df = load_experimental_data(dataType[m_type])
 
     # Convert the X,Y positions to R or displcement values
-    data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2),
+    data = pd.DataFrame({"displacement":  np.sqrt(data_df["X"]**2 + data_df["Y"]**2) * 1e-3,
                          "size": data_df["Width"]})
 
     # Create a figure and axis
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = plt.subplots(figsize=(6,5))
     ax.scatter(data['size'], data['displacement'], c='g', alpha=0.05, label="Experimental - Raw") # raw data
-    # Creates the error bard from experimental data
-    for i in range(1,20):
-        filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
-        std_error = filted_data.std() # gets the standard error bars
+    
+    # # Creates the error bard from experimental data
+    # for i in range(1,20):
+    #     filted_data = data[(data['size'] >= (i * 5)-5) & (data['size'] <= (i * 5))] # grabs a range of sizes
+    #     std_error = filted_data.std() # gets the standard error bars
 
-        # Allows for label to be added to first plot (There could be a better solution)
-        if i == 1:
-            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental - Averages") # plots the avg displcement with error bars
-        else:
-            ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
+    #     # Allows for label to be added to first plot (There could be a better solution)
+    #     if i == 1:
+    #         ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r', label="Experimental - Averages") # plots the avg displcement with error bars
+    #     else:
+    #         ax.errorbar(filted_data['size'].mean(), filted_data['displacement'].mean(), yerr=std_error['displacement'], fmt='o', capsize=5, color='r') # plots the avg displcement with error bars
 
     
     ax.set_xlabel('Particle size (nm)')
-    ax.set_ylabel('Displacement (nm)')
-    ax.set_title(f'Silicon Nano-Particles Size Vs Displacement - {dataSeries}')
+    ax.set_ylabel('Displacement (mm)')
     ax.set_xlim(0, 100)
-    ax.set_ylim(0,14000)
+    ax.set_ylim(0,15)
     ax.grid(True)
 
     return fig, ax
 
-def plotSimulatedPosition(position, charge):
+def plotSimulatedPosition(position, charge, title = 'Simulated position of SiNPs'):
 
     # Create a scatter plot with colored points
-    fig, ax = plt.subplots(figsize=(10,6))
-    sc = ax.scatter(position[:, 0], position[:, 1], c=charge, alpha=0.5)
+    fig, ax = plt.subplots(figsize=(5,4))
+    sc = ax.scatter(position[:, 0] * 1e3, position[:, 1] * 1e3, c=charge, alpha=0.5)
 
     # Add a colorbar to indicate charge values
     cbar = plt.colorbar(sc, ax=ax, label='Charge')
 
-    circle = plt.Circle((0, 0), 1e-6, color='r', fill=False)
+    circle = plt.Circle((0, 0), 15e-3, color='r', fill=False, label=r"Creator Radius = $15µm$", linewidth=2)
     ax.add_artist(circle)
 
-    ax.set_xlabel('X (m)')
-    ax.set_ylabel('Y (m)')
-    ax.set_title('Simulated position of Silicion Nano-Particles')
+    ax.set_xlabel(r'X ($mm$)')
+    ax.set_ylabel(r'Y ($mm$)')
+    ax.set_title(title)
+    # ax.legend()
     ax.grid(True)
+    # ax.axis('equal')
 
-    ax.set_xlim(-1e-5, 1e-5)
-    ax.set_ylim(-1e-5, 1e-5)
+    ax.set_xlim(-2e-1, 2e-1)
+    ax.set_ylim(-2e-1, 2e-1)
 
     return fig, ax
 
@@ -211,7 +213,7 @@ def plotTrajectories(simulation):
     ax = fig.add_subplot(111, projection='3d')
 
     for particle in simulation.Particles:
-        ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2]) # each particles path
+        ax.plot(particle.History[:, 0], particle.History[:, 1], particle.History[:, 2], alpha=0.6) # each particles path
 
     # Need to set the B-filed to grow that the trajectories of SiNPS
     ax = plt.gca()  # Get the current axes
@@ -382,31 +384,38 @@ def list_to_markdown_table(data):
 
     return fList
 
-def PlotBeamFocal(ax, beam_width, z_air, z_silicon):
+# TODO refactor to be more maintainable
+def PlotBeamFocal(ax, beam_width, z_air, z_silicon, z_abs_depth, z_MPI_depth, line_thickness = 2):
     
-    x = np.linspace(-beam_width, beam_width, 200)  # Limit x to the range where the square root is defined
+
+    x = np.linspace(-beam_width, beam_width, 200) # Limit x to the range where the square root is defined
     
     # Calacuate the Air focal 
     eps_air = np.sqrt(z_air ** 2 * (1 - (x ** 2) / beam_width ** 2))
 
     # Plot Air focal spot
-    ax.plot(x, eps_air, color = 'blue', label = "Air")
+    ax.plot(x * 1e6, eps_air*1e3, color='blue', label=r'$z_R$ - Air', linewidth=line_thickness)
 
     # Calculate the Silicon focus plot
-    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2))
+    eps_silicon = -np.sqrt(z_silicon ** 2 * (1 - (x ** 2) / beam_width ** 2)) 
+    eps_abs_depth = -np.sqrt(z_abs_depth ** 2 * (1 - (x ** 2) / beam_width ** 2))
+    eps_MPI_depth = -np.sqrt(z_MPI_depth ** 2 * (1 - (x ** 2) / (beam_width * 0.5) ** 2))
 
-    # Plot Silicon focual spot
-    ax.plot(x, eps_silicon, color = 'green', label = "Silicon")
+    # Plot Silicon focal spot
+    ax.plot(x*1e6, eps_silicon*1e3, color='green', label=r'$z_R$ - Silicon', linewidth=line_thickness)
+    ax.plot(x*1e6, eps_abs_depth*1e3, color='orange', label="Thermal depth", linewidth=line_thickness)
+    ax.plot(x*1e6, eps_MPI_depth*1e3, color='purple', label="MPI depth", linewidth=line_thickness)
 
-
-    # Calcuate beam profiles
+    # Calculate beam profiles
     z = np.linspace(0, (z_air + z_air) / 2, 200)
     beam_air = beam_width * np.sqrt(1 + (z ** 2 / z_air ** 2))
     beam_silicon = beam_width * np.sqrt(1 + (z ** 2 / z_silicon ** 2))
 
-    ax.plot(beam_air, z, color = "lightgray", linestyle='dotted', label = 'Beam Width')
-    ax.plot(-beam_air, z, color = "lightgray", linestyle='dotted')
-    ax.plot(beam_silicon, -z, color = "lightgray", linestyle='dotted')
-    ax.plot(-beam_silicon, -z, color = "lightgray", linestyle='dotted')
+    # Plot beam widths
+    ax.plot(beam_air*1e6, z*1e3, color="lightgray", linestyle='dotted', label='Beam Width', linewidth=2)
+    ax.plot(-beam_air*1e6, z*1e3, color="lightgray", linestyle='dotted', linewidth=2)
+    ax.plot(beam_silicon*1e6, -z*1e3, color="lightgray", linestyle='dotted', linewidth=2)
+    ax.plot(-beam_silicon*1e6, -z*1e3, color="lightgray", linestyle='dotted', linewidth=2)
+
 
     return ax

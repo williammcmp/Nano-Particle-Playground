@@ -90,3 +90,38 @@ def simText():
     The summary includes simulation parameters and used forces.
     '''
     return text
+
+def laserSetting():
+    text = f'''
+    The figure displays the Gaussian beam intensity profile of the laser pulse, illustrating the distribution and focal point of the laser energy.
+    
+    '''
+    
+    return text
+
+def ablationProfile():
+    text = f'''
+    The figures illustrate the focal profile of the laser beam as it propagates into the silicon medium. The left plot depicts various ablation volumes calculated from the background research. These volumes are represented by different colored lines, each indicating specific depths and regions of interest
+
+    The right plot shows the intensity absorption profile of silicon. It details how the absorbed intensity varies as a function of the silicon depth. The different curves represent
+
+    These visualizations provide insights into how the laser beam interacts with the silicon, highlighting the regions of maximum ablation and intensity absorption critical for optimizing nanoparticle simulations.  
+    '''
+    return text
+
+def ablationProfileMore():
+    text = f'''
+    **Left Plot:**
+    - **z_R - Air (Blue):** Rayleigh range in air.
+    - **z_R - Silicon (Green):** Rayleigh range in silicon.
+    - **Thermal Depth (Red):** Thermal penetration depth.
+    - **MPI Depth (Purple):** Multiphoton ionization depth.
+    - **Beam Width (Dotted):** Laser beam width.
+
+    **Right Plot:**
+    - **Reflected (Blue):** Reflected intensity.
+    - **Propagating (Orange):** Intensity propagating into silicon.
+    - **Absorbed (Red):** Intensity absorbed at various depths.
+    - **z_R - Silicon (Dashed):** Rayleigh range in silicon.
+    '''
+    return text

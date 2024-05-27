@@ -24,3 +24,15 @@ src/__pycache__/streamlitText.cpython-310.pyc
 src/__pycache__/nanoParticlePlots.cpython-310.pyc
 img/Annotation 2023-10-15 230448.png
 __pycache__/streamlit.cpython-310.pyc
+tests/__pycache__/test_LaserBeam.cpython-310-pytest-7.4.2.pyc
+src/__pycache__/LaserBeam.cpython-310.pyc
+__pycache__/streamlit.cpython-39.pyc
+src/__pycache__/DataLoader.cpython-39.pyc
+src/__pycache__/LaserBeam.cpython-39.pyc
+src/__pycache__/nanoParticlePlots.cpython-39.pyc
+src/__pycache__/streamlitText.cpython-39.pyc
+tests/__pycache__/test_DataLoader.cpython-310-pytest-8.2.0.pyc
+tests/__pycache__/test_Forces.cpython-310-pytest-8.2.0.pyc
+tests/__pycache__/test_LaserBeam.cpython-310-pytest-8.2.0.pyc
+tests/__pycache__/test_Partilce.cpython-310-pytest-8.2.0.pyc
+tests/__pycache__/test_Simulation.cpython-310-pytest-8.2.0.pyc
