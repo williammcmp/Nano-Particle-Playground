@@ -143,7 +143,7 @@ def plotExperimentalData(m_type = "No Magentic Field" ):
 def plotSimulatedPosition(position, charge, title = 'Simulated position of SiNPs'):
 
     # Create a scatter plot with colored points
-    fig, ax = plt.subplots(figsize=(5,4))
+    fig, ax = plt.subplots(figsize=(8,7))
     sc = ax.scatter(position[:, 0] * 1e3, position[:, 1] * 1e3, c=charge, alpha=0.5)
 
     # Add a colorbar to indicate charge values
@@ -157,7 +157,7 @@ def plotSimulatedPosition(position, charge, title = 'Simulated position of SiNPs
     ax.set_title(title)
     # ax.legend()
     ax.grid(True)
-    # ax.axis('equal')
+    ax.axis('equal')
 
     ax.set_xlim(-2e-1, 2e-1)
     ax.set_ylim(-2e-1, 2e-1)
