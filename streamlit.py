@@ -92,7 +92,7 @@ simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value
 row0_1, row0_spacer2, row0_2, row_3 = st.columns((3, 1, 0.5, 0.5))
 with row0_1:
     st.title('Nano-Particle Playground (NPP)')
-    st.mardown("Welcome Angle participants")
+    st.markdown("Welcome Angle participants")
 with row0_2:
     image_container = st.container()
 
