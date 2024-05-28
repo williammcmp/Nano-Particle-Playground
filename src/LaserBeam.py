@@ -113,11 +113,14 @@ class PulsedLaserBeam:
 
         # Get absorption coefficient for default k value
         absorption_coefficient = self.calculate_absorption_coefficient()
+        
+        flunence = self.energy_per_pulse / self.focus_area
 
         data = {
             "Beam Waist (µm)": [f'{self.beam_waist*1e6:.3g}'],
             "Focus Area (cm^2)": [f'{self.focus_area*1e4:.3g}'],
             "Energy Per Pulse (µJ)": [f'{self.energy_per_pulse*1e6:.3g}'],
+            "Fluence (J/cm^2)": [f'{flunence*1e-3:.3g}'],
             "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
             "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}']

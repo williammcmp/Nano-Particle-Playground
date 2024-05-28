@@ -303,7 +303,7 @@ def ParticlesFromVolume(volume):
 
     mass = np.array([])
     diamaters = np.array([])
-    while np.sum(mass) < ablated_mass:
+    while np.sum(mass) < ablated_mass * 10:
         # Generate a particle Size from the gamma distribution
         diameter = sp.stats.gamma.rvs(2, 6, 10, size=1) * 1e-9
         m = ParticleShericalMass(diameter)

@@ -89,14 +89,32 @@ simTimeStep = st.sidebar.number_input("Time step (ms)", min_value=0.1, max_value
 # ---------------
 # Page Header
 # ---------------
-row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((2, 1, 1.3, .1))
+row0_1, row0_spacer2, row0_2, row_3 = st.columns((3, 1, 0.5, 0.5))
 with row0_1:
     st.title('Nano-Particle Playground (NPP)')
+    st.mardown("Welcome Angle participants")
 with row0_2:
     image_container = st.container()
 
     # Add the image to the container
     image_container.image("img/NPP-icon-blueBG.png", width=150)
+
+    # Apply CSS style to align the container to the right
+    image_container.markdown(
+        """
+        <style>
+        .st-dt {
+            float: right;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+with row_3:
+    image_container = st.container()
+
+    # Add the image to the container
+    image_container.image("img/Angel-transparent-icon.gif", width=150)
 
     # Apply CSS style to align the container to the right
     image_container.markdown(
@@ -127,7 +145,7 @@ slider_col, plot_col1, text_col= st.columns([0.7, 1, 1])
 
 with slider_col:
     options = ['PHAROS', 'SpitFire', 'Custom']
-    laster_option = st.selectbox('Select the laser system.', options, index=0)
+    laster_option = st.selectbox('Select the laser system.', options, index=0, disabled=True)
     # Laser input settings
     if laster_option == 'SpitFire':
     
@@ -290,138 +308,142 @@ with plot_col2:
 # Particle Settings
 # ---------------
 st.divider()
-slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
-with slider_col:
-    st.subheader('Particle Settings')
-    st.markdown('Define the inital state of the paritcles from the ablation proces.')
 
-    # Calculating the volume ablated
-    v_melt = 2 * np.pi * (Beam.beam_waist ** 2 ) * z_abs_depth # thermal
-    v_MPI = 2 * np.pi * ((0.5 * Beam.beam_waist) ** 2 ) * z_MPI_depth # MPI
+particleSettings, simulationSettings = st.columns([1,1])
+with particleSettings:
+    with st.expander("Particle Distributions"):
+        slider_col, plot_col1 = st.columns([0.7, 1])
+        # slider_col, plot_col1, plot_col2 = st.columns([0.7, 1, 1])
+        with slider_col:
+            st.subheader('Particle Settings')
+            st.markdown('Define the inital state of the paritcles from the ablation proces.')
 
-    mass, diamater = ParticlesFromVolume(v_melt)
-    #TODO: rename this to make more sense
-    abs_energy = ((1 - Beam.reflectanc_factor) * Beam.energy_per_pulse) - 16e-6 # the left over energy absoured in total from the beam
+            # Calculating the volume ablated
+            v_melt = 2 * np.pi * (Beam.beam_waist ** 2 ) * z_abs_depth # thermal
+            v_MPI = 2 * np.pi * ((0.5 * Beam.beam_waist) ** 2 ) * z_MPI_depth # MPI
 
-    config_settings = {
-        "particleNumber": len(mass), # Change the number of particles with correct proptions
-        "particleEnergy": abs_energy, 
-        "useNonConstantZ": False,
-        "randomness": False
-    }
+            mass, diamater = ParticlesFromVolume(v_melt)
+            #TODO: rename this to make more sense
+            abs_energy = ((1 - Beam.reflectanc_factor) * Beam.energy_per_pulse) - 16e-6 # the left over energy absoured in total from the beam
 
-    particles, dict = pLoad(config_settings)
-    
-    particle_energies = 0.5 * dict['mass'] * (np.linalg.norm(dict['velocity'], axis=1) ** 2)
+            config_settings = {
+                "particleNumber": len(mass), # Change the number of particles with correct proptions
+                "particleEnergy": abs_energy, 
+                "useNonConstantZ": False,
+                "randomness": False
+            }
 
-    # Sum up the energies for all particles
-    total_ablated_energy = np.sum(particle_energies)
+            particles, dict = pLoad(config_settings)
+            
+            particle_energies = 0.5 * dict['mass'] * (np.linalg.norm(dict['velocity'], axis=1) ** 2)
 
-    stats = {
-        'Melt Depth (m)': z_abs_depth,
-        'Melt Volume (m^3)': v_melt, 
-        'Melt mass (kg)': v_melt * 2330,
-        'MPI depth (m)': z_MPI_depth,
-        'MPI Volume (m^3)': v_MPI,
-        'Particle Count': dict['count'],
-        'Absorbed energy - leftover (J)': abs_energy,
-        'Avg particle mass (kg)': np.mean(dict['mass']),
-        'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1)),
-        'Total ablated mass': np.sum(dict['mass']),
-        'Total ablated energy': total_ablated_energy,
-        'particle 1 - energy': particles[0].Energy
-    }
+            # Sum up the energies for all particles
+            total_ablated_energy = np.sum(particle_energies)
 
-    particle_stats = {
-        'Thermal Volume (m^3)': v_melt, 
-        'MPI Volume (m^3)': v_MPI,
-        'Absorbed energy - leftover (J)': abs_energy,
-        'Avg particle mass (kg)': np.mean(dict['mass']),
-        'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1))
-    }
+            stats = {
+                'Melt Depth (m)': z_abs_depth,
+                'Melt Volume (m^3)': v_melt, 
+                'Melt mass (kg)': v_melt * 2330,
+                'MPI depth (m)': z_MPI_depth,
+                'MPI Volume (m^3)': v_MPI,
+                'Particle Count': dict['count'],
+                'Absorbed energy - leftover (J)': abs_energy,
+                'Avg particle mass (kg)': np.mean(dict['mass']),
+                'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1)),
+                'Total ablated mass': np.sum(dict['mass']),
+                'Total ablated energy': total_ablated_energy,
+                'particle 1 - energy': particles[0].Energy
+            }
 
-    # print(particles[1])
+            particle_stats = {
+                'Thermal Volume (m^3)': v_melt, 
+                'MPI Volume (m^3)': v_MPI,
+                'Absorbed energy - leftover (J)': abs_energy,
+                'Avg particle mass (kg)': np.mean(dict['mass']),
+                'Avg particle velocity (m/s)': np.mean(np.linalg.norm(dict['velocity'], axis=1))
+            }
 
 
-    simulation.AddParticles(particles)
-    
-    
-with plot_col1:
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax.hist(diamater * 1e9, 30, density=True)
-    ax.set_title("Distribution of particle diamater")
-    ax.set_xlabel("Diamater (nm)")
-    st.pyplot()
+            simulation.AddParticles(particles)
+            
+            
+        with plot_col1:
+            fig, ax = plt.subplots(figsize=(10,8))
+            ax.hist(diamater * 1e9, 30, density=True)
+            ax.set_title("Distribution of particle diamater")
+            ax.set_xlabel("Diamater (nm)")
+            st.pyplot()
 
-with plot_col2: 
-    formatted_stats = {}
-    for key, value in stats.items():
-        if isinstance(value, float):
-            formatted_stats[key] = f"{value:.3g}"
-        else:
-            formatted_stats[key] = value
+        # with plot_col2: 
+        #     formatted_stats = {}
+        #     for key, value in stats.items():
+        #         if isinstance(value, float):
+        #             formatted_stats[key] = f"{value:.3g}"
+        #         else:
+        #             formatted_stats[key] = value
 
-    st.table(formatted_stats)
+            # st.table(formatted_stats)
 
 
 
 # ---------------
 # Simulation Enviroment Setup
 # ---------------
-st.divider()
+with simulationSettings:
+    with st.expander("Simulation Settings"):
+        slider_col, plot_col1 = st.columns([1, 1])
+        # slider_col, spaceer_1, plot_col1, spacer_2r = st.columns([1, 0.4, 1, 0.5])
 
-slider_col, spaceer_1, plot_col1, spacer_2r = st.columns([1, 0.4, 1, 0.5])
+        with slider_col:
+            st.subheader('Simulation Settings')
+            st.markdown('Define the enviroment of the simulation')
+            st.markdown("Forces")
+            # Gravity
+            if st.checkbox("Gravity", value=True):
+                simulation.AddForce([Gravity()]) # Adds the ground plane to force list
+            
+            # Magnetic Force
+            if st.checkbox("Magnetic field"):
+                # TODO Make this better for non-side bar application
+                c = st.container()
+                c.markdown("Define the Magnetic Field (T) Componets:")
+                magneticX = c.number_input("Magnetic X", value=0.1, min_value = -0.2, max_value = 0.2)
+                magneticY = c.number_input("Magnetic Y", value=0.0, min_value = -0.2, max_value = 0.2)
+                magneticZ = c.number_input("Magnetic Z", value=0.0, min_value = -0.2, max_value = 0.2)
 
-with slider_col:
-    st.subheader('Simulation Settings')
-    st.markdown('Define the enviroment of the simulation')
-    st.markdown("Forces")
-    # Gravity
-    if st.checkbox("Gravity", value=True):
-        simulation.AddForce([Gravity()]) # Adds the ground plane to force list
-    
-    # Magnetic Force
-    if st.checkbox("Magnetic field"):
-        # TODO Make this better for non-side bar application
-        c = st.container()
-        c.markdown("Define the Magnetic Field (T) Componets:")
-        magneticX = c.number_input("Magnetic X", value=0.1, min_value = -0.2, max_value = 0.2)
-        magneticY = c.number_input("Magnetic Y", value=0.0, min_value = -0.2, max_value = 0.2)
-        magneticZ = c.number_input("Magnetic Z", value=0.0, min_value = -0.2, max_value = 0.2)
+                st.markdown(f"Magnetic Field Magnitude: {np.linalg.norm(np.array([magneticX, magneticY, magneticZ]))} T")
 
-        st.markdown(f"Magnetic Field Magnitude: {np.linalg.norm(np.array([magneticX, magneticY, magneticZ]))} T")
+                magForce = Magnetic() # creating the Magnetic obj
+                # updateing the field -> obj will save the direction and magitude seperatlly
+                magForce.UpdateField(np.array([magneticX, magneticY, magneticZ])) 
+                # print(magForce.Field())r
+                simulation.AddForce([magForce]) # Adds mag force to force list 
 
-        magForce = Magnetic() # creating the Magnetic obj
-        # updateing the field -> obj will save the direction and magitude seperatlly
-        magForce.UpdateField(np.array([magneticX, magneticY, magneticZ])) 
-        # print(magForce.Field())r
-        simulation.AddForce([magForce]) # Adds mag force to force list 
+            # Electric Force
+            if st.checkbox("Electric field"):
+                # TODO Make this better for non-side bar application
+                c = st.container()
+                c.markdown("Define the Electric Field (V/m):")
+                electricX = c.number_input("Electric X", value=0.0)
+                electricY = c.number_input("Electric Y", value=0.0)
+                electricZ = c.number_input("Electric Z", value=0.0)
 
-    # Electric Force
-    if st.checkbox("Electric field"):
-        # TODO Make this better for non-side bar application
-        c = st.container()
-        c.markdown("Define the Electric Field (V/m):")
-        electricX = c.number_input("Electric X", value=0.0)
-        electricY = c.number_input("Electric Y", value=0.0)
-        electricZ = c.number_input("Electric Z", value=0.0)
+                st.markdown(f"Electric Field Magnitude: {np.linalg.norm(np.array([electricX, electricY, electricZ]))} (V/m)")
 
-        st.markdown(f"Electric Field Magnitude: {np.linalg.norm(np.array([electricX, electricY, electricZ]))} (V/m)")
+                eleForce = Electric()
+                # updateing the field -> obj will save the direction and magitude seperatlly
+                eleForce.UpdateField(np.array([electricX, electricY, electricZ])) 
+                simulation.AddForce([eleForce])
 
-        eleForce = Electric()
-        # updateing the field -> obj will save the direction and magitude seperatlly
-        eleForce.UpdateField(np.array([electricX, electricY, electricZ])) 
-        simulation.AddForce([eleForce])
+            # Ground Plane - could be an option for the simulation
+            simulation.AddForce([GroundPlane()])
 
-    # Ground Plane - could be an option for the simulation
-    simulation.AddForce([GroundPlane()])
+        with plot_col1:
+            fig, ax = simulation.PlotFroces()
 
-with plot_col1:
-    fig, ax = simulation.PlotFroces()
+            st.pyplot(fig)
 
-    st.pyplot(fig)
 
-st.divider()
 # ---------------
 # Running the Simulation
 # ---------------
@@ -488,7 +510,7 @@ if st.button("Run the Simulation"):
 
 
         # There is some scaling on on the simulation results there.
-        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 3e4, alpha=0.8, label="Simulation")
+        ax.scatter(mass*5.1e13, np.linalg.norm(position, axis=1) * 2e5, alpha=0.8, label="Simulation")
 
         # Add the 1/r^3 curve
         # r = np.linspace(0.1, 10, 1000)  # Adjust the range as needed
