@@ -148,7 +148,60 @@ st.subheader("Two Temperature Model (TTM)")
 # -----
 # Setting up the TTM model
 # -----
+# TODO: changed these to use sliders where it makes sense
 
+#Define a Source
+s              = ntm.source()
+s.spaceprofile = "LB"
+s.timeprofile  = "Gaussian"
+s.FWHM         = Beam.beam_waist    #Full width half max of the laser pulse
+s.fluence      = Beam.fluence       #Fluence of the laser
+s.t0           = 50*u.fs            #Time when Gaussian peaks
+s.lambda_vac   = 1064               #Wavelength of incident light (in nm!)
+s.theta_in     = np.pi/4            #Incident angle
+s.polarization = "p"
+
+# TODO: make this respond to the material added in the Sim model
+# Silicon parameters at 1064 nm
+length_Si = 1 * u.mm  # Example thickness of silicon film
+n_Si = 3.656 + 0.00041j  # Approximate refractive index for silicon at 1064 nm (imaginary part is very small)
+k_el_Si     = 130#W/(m*K);
+k_lat_Si    = lambda T: np.piecewise(T,[T<=120.7,T>120.7],\
+                                      [lambda T: 100*(0.09*T**3*(0.016*np.exp(-0.05*T)+np.exp(-0.14*T))), 
+                                       lambda T: 100*(13*1e3*T**(-1.6))])
+rho_Si      = 2.32e3#kg/(m**3)
+C_el_Si     = lambda Te: 150/rho_Si *Te
+C_lat_Si    = 1.6e6/rho_Si
+G_Si        = 1e17*18
+
+#Temperature Model: 
+#Two temperatures are considered, electron and lattice
+sim = ntm.simulation(2,s)
+
+# Defining the system's layers
+sim.addLayer(length_Si, n_Si, [k_el_Si, k_el_Si], [C_el_Si, C_lat_Si], rho_Si, [G_Si]) #Silicon
+
+# Simulation Time
+sim.final_time = 1*u.ps  
+
+#To get the raw output
+[x,t,T] = sim.run() 
+
+#Visualize result
+#Create a visual object where the simulation gets passed on 
+v = ntm.visual(sim)
+
+col1, col2 = st.columns([1,1])
+
+with col1:
+    so = v.source()
+
+with col2:
+    #A contourplot of the electron system
+    v.contour('1')
+    #This will only work in the two temperature case.
+    v.contour('2') 
+    [timegrid, avT] = v.average()
 
 
 st.subheader("Ionisation Regime")
@@ -162,4 +215,3 @@ st.subheader("Particle Size Distribution")
 
 st.header("References")
 # st.markdown("[1] C. F. Bohren and D. R. Huffman. Absorption and scattering of light by small particles.John Wiley & Sons, 2008.")
-
