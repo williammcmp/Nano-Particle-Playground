@@ -1,4 +1,4 @@
-# particle_simulation_app.py
+# GC_page.py
 
 import streamlit as st
 import matplotlib.pyplot as plt
