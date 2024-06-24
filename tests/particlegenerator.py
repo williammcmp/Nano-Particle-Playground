@@ -14,9 +14,9 @@ from src.Particle import Particle
 from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
-from src.DataLoader import *
-from src.streamlitText import *
-from src.nanoParticlePlots import *
+from src.utilities.DataLoader import *
+from src.text.streamlitText import *
+from src.plots.nanoParticlePlots import *
 
 
 

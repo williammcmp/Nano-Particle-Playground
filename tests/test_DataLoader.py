@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from src.DataLoader import *
+from src.utilities.DataLoader import *
 
 # Define test data file paths
 existing_csv_path = 'data/BFieldIn/Left1.csv'

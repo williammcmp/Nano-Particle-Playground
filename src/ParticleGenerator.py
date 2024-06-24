@@ -1,7 +1,7 @@
 # src/ParticleGenerator.py
 from src.Particle import Particle
 from src.LaserBeam import PulsedLaserBeam
-from src.DataLoader import *
+from src.utilities.DataLoader import *
 
 from tqdm import tqdm
 import numpy as np

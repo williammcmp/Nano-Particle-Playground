@@ -10,9 +10,9 @@ from src.Particle import Particle
 from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
-from src.DataLoader import load_experimental_data
-from src.streamlitText import *
-from src.nanoParticlePlots import *
+from src.utilities.DataLoader import load_experimental_data
+from src.utilities.text.streamlitText import *
+from src.utilities.plots.nanoParticlePlots import *
 
 simulation = Simulation() # initalise the simulation object
 
