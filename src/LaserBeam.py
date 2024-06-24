@@ -38,6 +38,7 @@ class PulsedLaserBeam:
 
         self.focus_area = self._calculate_focus_area()
         self.energy_per_pulse = self._calculate_energy_per_pulse()
+        self.fluence = self.energy_per_pulse / self.focus_area
         self.power_per_pulse = self._calculate_power_per_pulse()
         self.intensity_per_pulse = self._calculate_intensity_per_pulse()
         self.peak_intensity = self._calculate_peak_intensity()
