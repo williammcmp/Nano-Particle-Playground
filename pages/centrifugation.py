@@ -54,7 +54,7 @@ def plot_centrifuge_pos(pos, size):
     x2, y2 = [0, 0.1], [-0.01, -0.01]
     x3, y3 = [0, 0], [-0.01, 0.01]
 
-    ax.scatter(pos, offset, s=size * 1e9, alpha=0.8)
+    ax.scatter(pos, offset, s=size * 1e9, alpha=0.8, color='green')
 
     ax.plot(x1, y1, x2, y2, x3, y3, color='red', linewidth=2)
     ax.set_ylim([-0.011, 0.011])
@@ -73,10 +73,10 @@ def plot_size_distro(pos, size):
     very_large_mask = size > 250 * 1e-9
 
     # Plot density plots for each size category along positions
-    sns.kdeplot(pos[small_mask], ax=ax, label='Small (0-50 nm)', color='blue', linewidth=2)
-    sns.kdeplot(pos[medium_mask], ax=ax, label='Medium (50-150 nm)', color='green', linewidth=2)
-    sns.kdeplot(pos[large_mask], ax=ax, label='Large (150-250 nm)', color='red', linewidth=2)
-    sns.kdeplot(pos[very_large_mask], ax=ax, label='Very Large (>250 nm)', color='red', linewidth=2, linestyle='--')
+    sns.kdeplot(pos[small_mask], ax=ax, label='Small (0-50 nm)', color='blue', linewidth=2, alpha=0.8)
+    sns.kdeplot(pos[medium_mask], ax=ax, label='Medium (50-150 nm)', color='green', linewidth=2, alpha=0.8)
+    sns.kdeplot(pos[large_mask], ax=ax, label='Large (150-250 nm)', color='red', linewidth=2, alpha=0.8)
+    sns.kdeplot(pos[very_large_mask], ax=ax, label='Very Large (>250 nm)', color='red', linewidth=2, linestyle='--', alpha=0.8)
 
     ax.set_title('Distribution of Particle Sizes Along Positions')
     ax.set_xlabel('Position (m)')
@@ -85,18 +85,27 @@ def plot_size_distro(pos, size):
 
     st.pyplot(fig)
 
-st.title("Centrifugation of SiNP Colloids")
+def cal_sedimentation(size, rho_particles = 2230, rho_liquid = 997, liquid_viscosity = 1e-3, angular_vel = 2000, arm_length = 0.1):
+    sed_coefficient = ((2 * (size ** 2) * (rho_particles - rho_liquid)) / (9 * liquid_viscosity)) # s = (2r^2(ρ_s - ρ_w) / (p * liquid_viscosity)
+    sed_rate = (angular_vel ** 2) * arm_length * sed_coefficient # ⍵^2 * r * s --> in cm/s
+
+    return sed_coefficient, sed_rate
+
+st.title("Centrifugation of Colloids")
 
 slider_col, results_col = st.columns([1,3])
 
 with slider_col:
-    count = st.number_input("Number of Particles", 10, 1000, 10) # number of particles in the ellips
-    angular_vel = st.number_input("Centrifuge speed (RPM)", 1, 40000, 4) * 2 * np.pi # RPM * 2pi of the centrifuge 
-    duration = st.number_input("Duration (min)", 1, 120, 10) * 60 # Duration of Centrifugation
+    count = st.number_input("Number of Particles", 10, 10000, 10) # number of particles in the ellips
+    rho_particles = st.number_input(r"Density of the colloids ($$kg/m^2$$)", 500, 3000, 2330) # density of the particles used
+    rho_liquid = st.number_input(r"Density of liquid ($$kg/m^2$$)", 50, 3000, 997) # default density 
+    liquid_viscosity = st.number_input(r"Viscosity of liquid ($$m Pa.s$$)", 0.1, 2.0, 1.0)  * 1e-3 # default density iw water at 20C
+    angular_vel = st.number_input(r"Centrifuge speed ($$RPM$$)", 1, 40000, 2000) * 2 * np.pi # RPM * 2pi of the centrifuge 
+    arm_length = st.number_input(r"Centrifuge arm length ($$cm$$)", 1, 20, 10) * 1e-2
+    duration = st.number_input(r"Duration ($$min$$)", 1, 120, 10) * 60 # Duration of Centrifugation
 
 # Inital parms of colloids
 position = np.random.uniform(0.0, 0.1, count)
-# size = np.random.random_integers(5, 500, count) * 1e-9 # Radius of the particle
 size = np.random.gamma(10,size=count) * 1e-8 # Radius of the particle
 offset = np.random.uniform(-0.01, 0.01, count) # off sets in the y direction --> only modifying the x position
 
@@ -112,36 +121,14 @@ with slider_col:
 
     st.divider()
     
-    st.markdown(r"""
-### Sedimentation Rate Equation
+    st.markdown(centrifugation_background())
 
-The sedimentation rate, \( \nu \), of a particle in a liquid is given by the equation:""")
+sed_coefficient, sed_rate = cal_sedimentation(size, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
 
-    st.markdown(r''' $$\nu = \frac{2r_s^2(\rho_s - \rho_l)F}{9\eta}$$''')
-
-    st.markdown(r'''
-where:<br>
-- \( r_s \) is the radius of the particle (sphere).<br>
-- \( \rho_s \) is the density of the particle.<br>
-- \( \rho_l \) is the density of the liquid.<br>
-- \( F = \omega^2 r \), where \( \omega \) is the rotor speed (in rad/s) and \( r \) is the distance between the particle and the center of rotation (in cm).<br>
-- \( \eta \) is the dynamic viscosity of the liquid.
-
-This equation describes the sedimentation rate characteristic of a particle, which can be determined in an ultracentrifuge.
-''')
-
-
-
-
-# Defining values
-rho_water, rho_silicon = 997, 2330
-liquid_viscosity = 0.001002 # m kg/(m·s) | water at 20°C
-
-sed_rate = (angular_vel ** 2) * 0.1 * ((2 * (size ** 2) * (rho_silicon - rho_water)) / (9 * liquid_viscosity)) # ⍵ * r (2r^2(ρ_s - ρ_w) / (p * liquid_viscosity) --> in cm/s
-displacement = (sed_rate * duration * 1e-2)
-
+# Caclcuated the displacement of the particle based on sedmentaiton rate
+displacement = (sed_rate * duration)
 new_pos = position - displacement
-new_pos[new_pos < 0] = 0
+new_pos[new_pos < 0] = 0 # sets any pos less then 0 to be 0 --> particle has reached the bottom of the tube
 
 with results_col:
     st.markdown("Results")
@@ -157,5 +144,18 @@ with results_col:
         plot_centrifuge_pos(new_pos, size)
         plot_size_distro(new_pos, size)
 
+    st.text("Additional Analysis")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
 
-print(np.mean(displacement))
+        sizes = np.linspace(0, 250, 100) * 1e-9
+        sed_coefficient, sed_rate = cal_sedimentation(sizes, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
+
+        fig, ax = plt.subplots(figsize=(5,4))
+
+        ax.plot(sizes * 1e9, sed_rate * 1e3, color='blue')
+        ax.set_ylabel('Sedimentation Rate (mm/s)')
+        ax.set_xlabel('Particle Radius (nm)')  
+        ax.set_title("Particle Size Vs Sedimentation Rate")  
+        st.pyplot(fig)
+

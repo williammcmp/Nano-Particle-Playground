@@ -125,3 +125,24 @@ def ablationProfileMore():
     - **z_R - Silicon (Dashed):** Rayleigh range in silicon.
     '''
     return text
+
+def centrifugation_background():
+    text = r'''
+### Sedimentation Rate Equation
+
+The sedimentation rate, $$ \nu $$, of a particle in a liquid is given by the equation:
+
+$$
+\nu = \frac{2r_s^2(\rho_s - \rho_l)F}{9\eta}
+$$
+
+where:<br>
+- $$ r_s $$ is the radius of the particle (sphere).
+- $$ \rho_s $$ is the density of the particle.
+- $$ \rho_l $$ is the density of the liquid.
+- $$ F = \omega^2 r $$, where $$ \omega $$ is the rotor speed (in rad/s) and $$ r $$ is the distance between the particle and the center of rotation (in cm).
+- $$ \eta $$ is the dynamic viscosity of the liquid.
+
+This equation describes the sedimentation rate characteristic of a particle, which can be determined in an ultracentrifuge.
+'''
+    return text
