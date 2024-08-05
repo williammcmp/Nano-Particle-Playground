@@ -128,7 +128,7 @@ def ablationProfileMore():
 
 def centrifugation_background():
     text = r'''
-### Sedimentation Rate Equation
+### Sedimentation Rate Equation (Mohr & Völkl)
 
 The sedimentation rate, $$ \nu $$, of a particle in a liquid is given by the equation:
 
@@ -145,4 +145,13 @@ where:<br>
 
 This equation describes the sedimentation rate characteristic of a particle, which can be determined in an ultracentrifuge.
 '''
+    return text
+
+def centrifuge_referes():
+    text = r'''
+    ## References
+
+    Mohr, H., & Völkl, A. (2017). Ultracentrifugation. In eLS , John Wiley & Sons, Ltd (Ed.) (pp. 1-9).
+
+    '''
     return text

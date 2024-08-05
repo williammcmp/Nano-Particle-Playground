@@ -24,8 +24,7 @@ simulation = Simulation() # initalise the simulation object
 # Display properties
 # ------------
 # Set page layout to wide
-st.set_page_config(layout="wide", 
-                   page_title="Nano Particle Simulation", 
+st.set_page_config(page_title="Nano Particle Simulation", 
                    initial_sidebar_state="collapsed",
                    page_icon="img/NPP-icon-blueBG.png")
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -93,35 +92,48 @@ def cal_sedimentation(size, rho_particles = 2230, rho_liquid = 997, liquid_visco
 
 st.title("Centrifugation of Colloids")
 
-slider_col, results_col = st.columns([1,3])
+st.markdown("""
+    This page simulates the movement of colloids undergoing centrifugation within a liquid medium.
 
-with slider_col:
-    count = st.number_input("Number of Particles", 10, 10000, 10) # number of particles in the ellips
-    rho_particles = st.number_input(r"Density of the colloids ($$kg/m^2$$)", 500, 3000, 2330) # density of the particles used
-    rho_liquid = st.number_input(r"Density of liquid ($$kg/m^2$$)", 50, 3000, 997) # default density 
-    liquid_viscosity = st.number_input(r"Viscosity of liquid ($$m Pa.s$$)", 0.1, 2.0, 1.0)  * 1e-3 # default density iw water at 20C
-    angular_vel = st.number_input(r"Centrifuge speed ($$RPM$$)", 1, 40000, 2000) * 2 * np.pi # RPM * 2pi of the centrifuge 
-    arm_length = st.number_input(r"Centrifuge arm length ($$cm$$)", 1, 20, 10) * 1e-2
-    duration = st.number_input(r"Duration ($$min$$)", 1, 120, 10) * 60 # Duration of Centrifugation
+    It is assumed that during operation, the centrifuge tubes are flared out at a 90° angle, perpendicular to gravity. Additionally, the acceleration due to gravity is ignored.
+    """)
+
+# mode = st.selectbox('Simulation mode:', ['instant'])
+
+# slider_col, results_col = st.columns([1,2])
+
+# st.markdown(mode_info())
+
+
+count = st.number_input(r"Number of Particles ($$100-10,000$$)", 10, 10000, 10) # number of particles in the ellips
+rho_particles = st.number_input(r"Density of the colloids ($$kg/m^2$$)", 500, 3000, 2330) # density of the particles used
+rho_liquid = st.number_input(r"Density of liquid ($$kg/m^2$$)", 50, 3000, 997) # default density 
+liquid_viscosity = st.number_input(r"Viscosity of liquid ($$m Pa.s$$)", 0.1, 2.0, 1.0)  * 1e-3 # default density iw water at 20C
+angular_vel = st.number_input(r"Centrifuge speed ($$RPM$$)", 1, 40000, 2000) * 2 * np.pi # RPM * 2pi of the centrifuge 
+arm_length = st.number_input(r"Centrifuge arm length ($$cm$$)", 1, 20, 10) * 1e-2
+duration = st.number_input(r"Duration ($$min$$)", 1, 120, 10) * 60 # Duration of Centrifugation
 
 # Inital parms of colloids
 position = np.random.uniform(0.0, 0.1, count)
 size = np.random.gamma(10,size=count) * 1e-8 # Radius of the particle
 offset = np.random.uniform(-0.01, 0.01, count) # off sets in the y direction --> only modifying the x position
 
+st.divider()
+slider_col, results_col = st.columns([1,2])
 with slider_col:
-    fig, ax = plt.subplots(figsize=(3,2))
+    st.markdown("""
+                ### Size distribution
+                The size distribution SiNPs resulting from PLAL will follow a gamma distribution. On th left here the randomlly genertaed particle szie distribtuion that follows a gamma pdf can be seen""")
+
+with results_col:
+    fig, ax = plt.subplots(figsize=(5,4))
 
     sns.kdeplot(size * 1e9, ax=ax, color='green', linewidth=2)
-    
+
     ax.set_title('Distribution of Particle Sizes')
     ax.set_xlabel('Particle size (nm)')
     ax.set_ylabel('Density')
     st.pyplot(fig)
-
-    st.divider()
-    
-    st.markdown(centrifugation_background())
 
 sed_coefficient, sed_rate = cal_sedimentation(size, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
 
@@ -130,32 +142,51 @@ displacement = (sed_rate * duration)
 new_pos = position - displacement
 new_pos[new_pos < 0] = 0 # sets any pos less then 0 to be 0 --> particle has reached the bottom of the tube
 
+st.divider()
+
+st.markdown("Results")
+before_col, after_col = st.columns([1,1])
+
+with before_col:
+    st.text("Before Centrifugation")
+    plot_centrifuge_pos(position, size)
+    plot_size_distro(position, size)
+
+with after_col:
+    st.text("After Centrifugation")
+    plot_centrifuge_pos(new_pos, size)
+    plot_size_distro(new_pos, size)
+
+    # the re-run buttons
+    left, right = st.columns([1,1])
+    right.button("Centrifuge supernates", disabled=True)
+    left.button("Centrifuge pallets", disabled=True)
+
+    st.text("** re-centrifuge function is WIP **")
+
+
+
+st.divider()
+
+slider_col, results_col = st.columns([1,1])
+with slider_col:
+    st.markdown("""
+                ### Fast sedementation rates(?)
+                There may be a mistake in the calcuations as the sedmentaion rates appear to be fast enough reach the bottom of the tubes after 1 min at 400rmp. I don't belive this aggrees with what we physically see.""")
+
 with results_col:
-    st.markdown("Results")
-    before_col, after_col = st.columns([1,1])
+    sizes = np.linspace(0, 250, 100) * 1e-9
+    sed_coefficient, sed_rate = cal_sedimentation(sizes, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
 
-    with before_col:
-        st.text("Before Centriguation")
-        plot_centrifuge_pos(position, size)
-        plot_size_distro(position, size)
+    fig, ax = plt.subplots(figsize=(5,4))
 
-    with after_col:
-        st.text("After Centriguation")
-        plot_centrifuge_pos(new_pos, size)
-        plot_size_distro(new_pos, size)
+    ax.plot(sizes * 1e9, sed_rate * 1e3, color='red')
+    ax.set_ylabel('Sedimentation Rate (mm/s)')
+    ax.set_xlabel('Particle Radius (nm)')  
+    ax.set_title("Particle Size Vs Sedimentation Rate")  
+    st.pyplot(fig)
 
-    st.text("Additional Analysis")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
+st.markdown(centrifugation_background())
 
-        sizes = np.linspace(0, 250, 100) * 1e-9
-        sed_coefficient, sed_rate = cal_sedimentation(sizes, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
-
-        fig, ax = plt.subplots(figsize=(5,4))
-
-        ax.plot(sizes * 1e9, sed_rate * 1e3, color='blue')
-        ax.set_ylabel('Sedimentation Rate (mm/s)')
-        ax.set_xlabel('Particle Radius (nm)')  
-        ax.set_title("Particle Size Vs Sedimentation Rate")  
-        st.pyplot(fig)
-
+st.divider()
+st.markdown(centrifuge_referes())
