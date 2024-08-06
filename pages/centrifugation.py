@@ -86,7 +86,7 @@ def plot_size_distro(pos, size):
 
 def cal_sedimentation(size, rho_particles = 2230, rho_liquid = 997, liquid_viscosity = 1e-3, angular_vel = 2000, arm_length = 0.1):
     sed_coefficient = ((2 * (size ** 2) * (rho_particles - rho_liquid)) / (9 * liquid_viscosity)) # s = (2r^2(ρ_s - ρ_w) / (p * liquid_viscosity)
-    sed_rate = (angular_vel ** 2) * arm_length * sed_coefficient # ⍵^2 * r * s --> in cm/s
+    sed_rate = (angular_vel ** 2) * arm_length * sed_coefficient * 1e1 # ⍵^2 * r * s --> in mm/min
 
     return sed_coefficient, sed_rate
 
@@ -111,7 +111,7 @@ rho_liquid = st.number_input(r"Density of liquid ($$kg/m^2$$)", 50, 3000, 997) #
 liquid_viscosity = st.number_input(r"Viscosity of liquid ($$m Pa.s$$)", 0.1, 2.0, 1.0)  * 1e-3 # default density iw water at 20C
 angular_vel = st.number_input(r"Centrifuge speed ($$RPM$$)", 1, 40000, 2000) * 2 * np.pi # RPM * 2pi of the centrifuge 
 arm_length = st.number_input(r"Centrifuge arm length ($$cm$$)", 1, 20, 10) * 1e-2
-duration = st.number_input(r"Duration ($$min$$)", 1, 120, 10) * 60 # Duration of Centrifugation
+duration = st.number_input(r"Duration ($$min$$)", 1, 120, 10) # Duration of Centrifugation
 
 # Inital parms of colloids
 position = np.random.uniform(0.0, 0.1, count)
@@ -138,7 +138,7 @@ with results_col:
 sed_coefficient, sed_rate = cal_sedimentation(size, rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
 
 # Caclcuated the displacement of the particle based on sedmentaiton rate
-displacement = (sed_rate * duration)
+displacement = (sed_rate * 1e-3 * duration)
 new_pos = position - displacement
 new_pos[new_pos < 0] = 0 # sets any pos less then 0 to be 0 --> particle has reached the bottom of the tube
 
@@ -180,8 +180,8 @@ with results_col:
 
     fig, ax = plt.subplots(figsize=(5,4))
 
-    ax.plot(sizes * 1e9, sed_rate * 1e3, color='red')
-    ax.set_ylabel('Sedimentation Rate (mm/s)')
+    ax.plot(sizes * 1e9, sed_rate, color='red')
+    ax.set_ylabel('Sedimentation Rate (mm/min)')
     ax.set_xlabel('Particle Radius (nm)')  
     ax.set_title("Particle Size Vs Sedimentation Rate")  
     st.pyplot(fig)
@@ -190,3 +190,7 @@ st.markdown(centrifugation_background())
 
 st.divider()
 st.markdown(centrifuge_referes())
+
+sed_coefficient, sed_rate = cal_sedimentation(np.array([150 * 1e-9]), rho_particles, rho_liquid, liquid_viscosity, angular_vel, arm_length)
+print("seed rate:")
+print(sed_rate)
