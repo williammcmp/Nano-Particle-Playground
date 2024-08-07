@@ -2,23 +2,15 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
-import scipy.stats as stats
-import math
-import random
+
 
 # Loading in the Simulation Objects
-from src.Particle import Particle
-from src.Simulation import Simulation
 from src.Forces import *
 from src.ParticleGenerator import *
-from src.DataLoader import load_experimental_data
 from src.streamlitText import *
 from src.nanoParticlePlots import *
 
-
-simulation = Simulation() # initalise the simulation object
 
 # ------------
 # Display properties
@@ -97,12 +89,6 @@ st.markdown("""
 
     It is assumed that during operation, the centrifuge tubes are flared out at a 90° angle, perpendicular to gravity. Additionally, the acceleration due to gravity is ignored.
     """)
-
-# mode = st.selectbox('Simulation mode:', ['instant'])
-
-# slider_col, results_col = st.columns([1,2])
-
-# st.markdown(mode_info())
 
 
 count = st.number_input(r"Number of Particles ($$100-10,000$$)", 10, 10000, 10) # number of particles in the ellips
