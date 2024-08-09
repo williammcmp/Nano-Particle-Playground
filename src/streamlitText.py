@@ -183,3 +183,14 @@ def centrifugation_ratios():
     In summary, the ratio \( P(r, t) \) decreases over time as more particles settle out of the suspension, reducing the amount of remaining supernatant. The rate at which this decrease happens depends on the sedimentation velocity and the duration of the centrifugation process.
     """
     return text
+
+def centrifugation_pallets():
+    text = r"""
+    During centrifugation, particles migrate to the bottom of the container, forming pellets. 
+    
+    The dashed lines in the plot represent the increasing percentage of particles becoming pellets over time. 
+                
+    As centrifugation progresses through multiple cycles, more particles sediment, reducing the supernatant and increasing the pellet fraction.
+    """
+
+    return text
