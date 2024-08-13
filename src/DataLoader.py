@@ -25,6 +25,27 @@ def load_data_from_csv(file_path):
     except Exception as e:
         print(f"Error loading data from CSV file: {str(e)}")
         return None
+    
+def load_data_from_txt(file_path):
+    """
+    Load data from a .txt file.
+
+    Args:
+        file_path (str): The path to the .txt file.
+
+    Returns:
+        pd.DataFrame or None: A pandas DataFrame containing the data from the .txt file.
+            Returns None if the file is not found or an error occurs during loading.
+    """
+    try:
+        data = pd.read_csv(file_path, sep='\t')
+        return data
+    except FileNotFoundError:
+        print(f"File not found at: {file_path}")
+        return None
+    except Exception as e:
+        print(f"Error loading data from .txt file: {str(e)}")
+        return None
 
 def get_file_names(folder_path):
     """
