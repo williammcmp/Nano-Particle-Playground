@@ -5,7 +5,7 @@ import os
 import numpy as np
 import json
 
-def load_data_from_csv(file_path):
+def load_data_from_csv(file_path : str):
     """
     Load data from a CSV file.
 
@@ -26,7 +26,7 @@ def load_data_from_csv(file_path):
         print(f"Error loading data from CSV file: {str(e)}")
         return None
     
-def load_data_from_txt(file_path):
+def load_data_from_txt(file_path : str):
     """
     Load data from a .txt file.
 
@@ -47,7 +47,7 @@ def load_data_from_txt(file_path):
         print(f"Error loading data from .txt file: {str(e)}")
         return None
 
-def get_file_names(folder_path):
+def get_file_names(folder_path : str):
     """
     Get a list of filenames in the specified folder path.
 
@@ -60,7 +60,7 @@ def get_file_names(folder_path):
     return os.listdir(folder_path)
 
 # Adjust values depending on what side of the crator they are recorded from
-def experimental_adjustment(experimental_csv, experimental_data, data_df):
+def experimental_adjustment(experimental_csv : str, experimental_data :  pd.DataFrame, data_df : pd.DataFrame):
     """
     Adjust and append experimental data to a combined DataFrame based on the position relative to the ablation creator.
 
@@ -158,7 +158,7 @@ def experimental_adjustment(experimental_csv, experimental_data, data_df):
 
 
 
-def Experimental_special_adjustment(experimental_csv, experimental_data, data_df):
+def Experimental_special_adjustment(experimental_csv : str, experimental_data :  pd.DataFrame, data_df : pd.DataFrame):
 
     # Checks the position relative to the ablation creator the data is from
 
@@ -245,7 +245,7 @@ def Experimental_special_adjustment(experimental_csv, experimental_data, data_df
 
 
 
-def load_experimental_data(experiment_type):
+def load_experimental_data(experiment_type : str):
     """
     Load experimental data for a specific experiment mode.
 
@@ -285,7 +285,7 @@ def load_experimental_data(experiment_type):
     return data_df
 
 # Function to write data to a JSON file
-def write_to_json(data, filename='output1.json'):
+def write_to_json(data, filename : str='output1.json'):
     data_serializable = {}
     for key, value in data.items():
         if isinstance(value, np.ndarray):
@@ -296,7 +296,7 @@ def write_to_json(data, filename='output1.json'):
         json.dump(data_serializable, json_file)
 
 # loads data from a JSON File
-def load_from_json(filename='output1.json'):
+def load_from_json(filename : str ='output1.json'):
     try:
         with open(filename, 'r') as json_file:
             data = json.load(json_file)
@@ -304,3 +304,28 @@ def load_from_json(filename='output1.json'):
     except FileNotFoundError:
         print(f"Error: {filename} not found.")
         return None
+
+
+def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)']):
+    """
+    Normalize the data in all columns except those in the exclude list and add new columns with normalized data.
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the data to normalize.
+        exclude (list): List of column names to exclude from normalization.
+
+    Returns:
+        pd.DataFrame: The DataFrame with additional columns for normalized data.
+    """
+    # Stops repeated column normalistions
+    columns = data.columns.copy()
+
+    for column in columns:
+        # Checks if the column is not in the exclude list
+        # Skips excluded columns
+        if column not in exclude:
+            max_value = data[column].max()
+            min_value = data[column].min()
+            data[column + '_norm'] = (data[column] - min_value) / (max_value - min_value)
+
+    return data  
