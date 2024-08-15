@@ -89,6 +89,16 @@ def cal_supernate_and_pallets(size, prob, time, p_density, l_density, l_viscosit
 
     pallets = prob - supernate
 
+#     data_dict = {
+#     'size': f'{size * 1e9:.1f}nm',  # Converted to nanometers with one decimal place
+#     'supernat_i': f'{prob:.2f}',
+#     'supernat_f': f'{supernate:.2f}',
+#     'pallets': f'{pallets:.2f}',
+#     'sed_rate': f'{sed_rate *1e5:.2f}'
+# }
+
+#     print(data_dict)
+
     return supernate, pallets
 
 
@@ -103,5 +113,42 @@ def plot_remaining_percent(time, remaining_percent, title=f"Supernatant Remainin
     ax.set_xlabel("Time (min)")
     ax.set_ylabel("Supernate Percentage (%)")
     ax.set_title(title)
+
+    return fig
+
+def plot_centrifuge_data(run1 : np.array, run2 : np.array, mask_limit: int = 0, bar_width : int = 2):               
+    # Creating the figure and subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Define the width of each bar and an offset for each series
+    offset = bar_width
+
+    # Plot for run1 (Side-by-side Bars)
+    mask1 = run1['Radii(nm)'] > mask_limit
+    radii1 = run1['Radii(nm)'][mask1]
+
+    ax1.bar(radii1 - 2*offset, run1['Raw'][mask1], width=bar_width, label='Raw', alpha=0.8)
+    ax1.bar(radii1 - 1*offset, run1['1kp'][mask1], width=bar_width, label='1kp', alpha=0.8)
+    ax1.bar(radii1 , run1['2kp'][mask1], width=bar_width, label='2kp', alpha=0.8)
+    ax1.bar(radii1 + offset , run1['4kp'][mask1], width=bar_width, label='4kp', alpha=0.8)
+    ax1.bar(radii1 + 2*offset, run1['4ks'][mask1], width=bar_width, label='4ks', alpha=0.8)
+
+    ax1.set_title("Run1: SiNP size concentrations - Recorded")
+    ax1.set_ylabel("Composition (%)")
+    ax1.set_xlabel("Particle Radii (nm)")
+    ax1.legend()
+
+    # Plot for run2 (Side-by-side Bars)
+    mask2 = run2['Radii(nm)'] > mask_limit
+    radii2 = run2['Radii(nm)'][mask2]
+
+    ax2.bar(radii2 - offset, run2['Raw'][mask2], width=bar_width, label='Raw', alpha=0.8)
+    ax2.bar(radii2, run2['2kp'][mask2], width=bar_width, label='2kp', alpha=0.8)
+    ax2.bar(radii2 + offset, run2['4kp'][mask2], width=bar_width, label='4kp', alpha=0.8)
+
+    ax2.set_title("Run2: SiNP size concentrations - Recorded")
+    ax2.set_ylabel("Composition (%)")
+    ax2.set_xlabel("Particle Radii (nm)")
+    ax2.legend()
 
     return fig
