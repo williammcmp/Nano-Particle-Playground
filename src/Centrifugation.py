@@ -180,3 +180,101 @@ def cal_average_size(data: pd.DataFrame, exclude: list = ['Radii(nm)']):
     pd_avgs = pd.DataFrame(list(avgs.items()), columns=['Cycle', 'Average Size (nm)'])
 
     return pd_avgs
+
+class Centrifugation:
+    def __init__(self, size : np.array, inital_supernate : np.array, 
+                 arm_length = 1e-1, length = 1e-2,
+                 liquid_density = 997, liquid_viscosity = 1,
+                 particle_density = 2330):
+        self.size = size
+        self.inital_supernate= inital_supernate
+        self.supernate = []
+        self.pallets = []
+        self._check_size()
+        self.count = len(self.size)
+
+        # Centrifugation machine properties
+        self.arm_length = arm_length # length of centrifuge 10cm  (m)
+        self.length = length # tube length 1cm (m)
+        self.liquid_density = liquid_density # water (kg/m^2)
+        self.liquid_viscosity = liquid_viscosity # water (mPa.s)
+        self.particle_density = particle_density # Silicon (kg.m^2)
+        self.rpms = [] # empty list to store the rpms
+
+    def run_cycles(self, rpms : list, duration):
+        # allows for multple cycles at difference RPMs
+        for rpm in rpms:
+            self.cycle(rpm, duration)
+            
+    
+    def cycle(self, rpm, duration):
+        
+        # Collected the most recent supernate data
+        if not self.supernate:
+            inital_supernate = self.inital_supernate.copy()
+        else:
+            inital_supernate = self.supernate[-1].copy()
+
+        # Cal sedmentaiton rates
+        sed_coefficient, sed_rate = cal_sedimentation(self, rpm)
+
+        # Calculates the remaining % of supernate 
+        supernate  = inital_supernate * ((self.length - (sed_rate * duration))/self.length)
+
+        # Sets all negative values to 0
+        supernate  = np.where(supernate < 0, 0, supernate)
+
+        pallets = inital_supernate - supernate
+
+        # Normalising the Supernate and Pallets --> see centrifugation theory
+        supernate /= np.sum(supernate)
+        pallets /= np.sum(pallets)
+
+        # Save data to state
+        self.supernate.append(supernate)
+        self.pallets.append(pallets)
+        self.rpms.append(rpm)
+
+        print(f'Centrifuge cycle at {rpm/1000:.0f}K RPM over {duration}min completed')
+
+    def results(self, avg = True):
+        # returns the calcuated results in a dict with average particle size per cycle (as an option)
+        results = {'Radii(nm)': self.size}
+        for i in range(len(self.rpms)):
+            rpm = self.rpms[i]
+
+            results[f'{rpm/1000:.0f}kp'] = self.pallets[i] # pallet stats
+            results[f'{rpm/1000:.0f}ks'] = self.supernate[i] # supernate states
+
+            if avg ==  True:
+                results[f'{rpm/1000:.0f}kp_avg'] = np.average(self.size, weights=self.pallets[i]) # avg particle size
+                results[f'{rpm/1000:.0f}ks_avg'] = np.average(self.size, weights=self.supernate[i]) # avg particle size
+
+        return results
+            
+
+    
+    def cal_sedimentation(self, rpm, size = None):
+        if size is None:
+            size = self.size
+
+        # Calculates the sedimentation rate and coefficent
+        angular_velocity = rpm * 2 * np.pi # Convert RPM to rad/s
+
+        sed_coefficient = ((2 * (size ** 2) * (self.particle_density - self.liquid_density)) / (9 * self.liquid_viscosity)) # s = (2r^2(ρ_s - ρ_w) / (p * liquid_viscosity)
+        sed_rate = (angular_velocity ** 2) * self.arm_length * sed_coefficient # ⍵^2 * r * s --> in cm/s
+
+        return sed_coefficient, sed_rate
+    
+
+
+    def _check_size(self):
+        if len(self.size) != len(self.inital_supernate):
+            raise ValueError(f'Size mismatch: Size has size {len(self.size)}, but inital_supernate has size {len(self.inital_supernate)}')
+        return
+        
+
+    def _clear_state(self):
+        # Clears the supernate and pallets data
+        self.supernate = []
+        self.pallets = []
