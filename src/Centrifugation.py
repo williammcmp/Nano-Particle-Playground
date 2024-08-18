@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 
 def plot_centrifuge_pos(pos, size, offset):
@@ -152,3 +153,30 @@ def plot_centrifuge_data(run1 : np.array, run2 : np.array, mask_limit: int = 0, 
     ax2.legend()
 
     return fig
+
+def cal_average_size(data: pd.DataFrame, exclude: list = ['Radii(nm)']):
+    """
+    Calculate the weighted average size for each cycle in the data, excluding specified columns.
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing particle size data and corresponding weights.
+        exclude (list): List of column names to exclude from the calculation (e.g., 'Radii(nm)').
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the weighted average size for each cycle.
+                      The resulting DataFrame has two columns: 'Cycle' and 'Average Size (nm)'.
+    """
+    # Initialize an empty dictionary to store the average sizes
+    avgs = {}
+
+    # Loop through each column in the DataFrame
+    for column in data.columns:
+        # Check if the column should be excluded
+        if column not in exclude:
+            # Calculate the weighted average size for the current column
+            avgs[column] = np.average(data['Radii(nm)'], weights=data[column])
+
+    # Convert the dictionary of averages to a DataFrame
+    pd_avgs = pd.DataFrame(list(avgs.items()), columns=['Cycle', 'Average Size (nm)'])
+
+    return pd_avgs
