@@ -60,6 +60,30 @@ class Centrifugation:
         self.particle_density = particle_density # Silicon (kg.m^2)
         self.rpms = [] # empty list to store the rpms
 
+    def info(self):
+        """
+        Basic information about the centrifugation object
+
+        Returns:
+            dict: details about the centrifuge and it's setup
+        """
+        text = {'Colloid Info':     {
+                    'Particle Count': self.count,
+                    'Particle Radii Range (m)': [np.min(self.size), np.max(self.size)],
+                    'Average Inital Radii (m)': np.average(self.size, weights=self.inital_supernate),
+                    'Particle Density (kg/m^3)': self.particle_density,
+                    'Liquid Density (kg/m^3)': self.liquid_density,
+                    'Liquid Viscosity (Pa.s)': self.liquid_viscosity,
+                    },
+
+                'Centrifuge Info' : {
+                    'Arm Length (m)': self.arm_length,
+                    'Tube length (m)': self.length,
+                    'RPMS': self.rpms
+                    }
+                }
+        return text
+
     def run_cycles(self, rpms : list, duration):
         """
         Runs multiple centrifugation cycles at specified RPMs and duration.
@@ -202,6 +226,8 @@ class Centrifugation:
         elif np.any(self.size >= 1e-6):
             print(f"Warning: Large particle size found ({len(self.size[self.size >= 1e-6])}): {self.size[self.size >= 1e-6]}. Particles should ideally be smaller than 1 µm.")
 
+    def __str__(self):
+        return str(self.info())
 
 
         
