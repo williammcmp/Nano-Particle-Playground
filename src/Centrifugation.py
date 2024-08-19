@@ -28,7 +28,7 @@ class Centrifugation:
         _check_size: Checks that the size and initial supernate arrays are the same size.
         _clear_state: Clears the stored supernate and pallet data.
     """
-    def __init__(self, size : np.array, inital_supernate : np.array, 
+    def __init__(self, size : np.array = np.linspace(5, 250, 100) * 1e-9, inital_supernate : np.array = np.ones(100), 
                  arm_length = 1e-1, length = 1e-2,
                  liquid_density = 997, liquid_viscosity = 1,
                  particle_density = 2330):
@@ -49,6 +49,7 @@ class Centrifugation:
         self.supernate = []
         self.pallets = []
         self._check_size()
+        self._scale_check()
         self.count = len(self.size)
 
         # Centrifugation machine properties
@@ -86,10 +87,12 @@ class Centrifugation:
         if not self.supernate:
             inital_supernate = self.inital_supernate.copy()
         else:
+            print('using previous supernate')
             inital_supernate = self.supernate[-1].copy()
+            print(inital_supernate)
 
         # Cal sedmentaiton rates
-        sed_coefficient, sed_rate = cal_sedimentation(self, rpm)
+        sed_coefficient, sed_rate = cal_sedimentation(rpm)
 
         # Calculates the remaining % of supernate 
         supernate  = inital_supernate * ((self.length - (sed_rate * duration))/self.length)
@@ -136,7 +139,7 @@ class Centrifugation:
             
 
     
-    def cal_sedimentation(self, rpm, size = None):
+    def cal_sedimentation_rate(self, rpm, size = None):
         """
         Calculates the sedimentation coefficient and rate for the particles.
 
@@ -147,6 +150,7 @@ class Centrifugation:
         Returns:
             tuple: The sedimentation coefficient and rate.
         """
+
         if size is None:
             size = self.size
 
@@ -168,7 +172,7 @@ class Centrifugation:
             ValueError: If the size and inital_supernate arrays do not match in length.
         """
         if len(self.size) != len(self.inital_supernate):
-            raise ValueError(f'Size mismatch: Size has size {len(self.size)}, but inital_supernate has size {len(self.inital_supernate)}')
+            raise ValueError(f'Size mismatch: Size has size ({len(self.size)}), but inital_supernate has size ({len(self.inital_supernate)})')
         return
         
 
@@ -178,6 +182,30 @@ class Centrifugation:
         """
         self.supernate = []
         self.pallets = []
+
+    def _scale_check(self):
+        """
+        Checks if the user input size scale is within the nanometer range.
+
+        The function will raise an error if any particle size is larger than or equal to 1 cm (1e-2 meters).
+        It will issue a warning if any particle size is larger than or equal to 1 µm (1e-6 meters) but smaller than 1 cm.
+
+        Raises:
+            ValueError: If any particle size is larger than or equal to 1 cm.
+            Warning: If any particle size is larger than or equal to 1 µm but smaller than 1 cm.
+        """
+        # Check if the size is larger than or equal to 1 cm
+        if np.any(self.size >= 1e-2):
+            raise ValueError(f"Invalid particle size found ({len(self.size[self.size >= 1e-2])}): {self.size[self.size >= 1e-2]}. Particle sizes must be smaller than 1 cm.")
+        
+        # Check if the size is larger than or equal to 1 µm but smaller than 1 cm
+        elif np.any(self.size >= 1e-6):
+            print(f"Warning: Large particle size found ({len(self.size[self.size >= 1e-6])}): {self.size[self.size >= 1e-6]}. Particles should ideally be smaller than 1 µm.")
+
+
+
+        
+
 
 def plot_centrifuge_pos(pos, size, offset):
     fig, ax = plt.subplots(figsize=(5,4))
