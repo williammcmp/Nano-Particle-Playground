@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import warnings
 
 class Centrifugation:
     """
-    A class to simulate the centrifugation process for a particle-laden suspension.
+    A class to simulate the centrifugation process for a colloids.
 
     Attributes:
         size (np.array): An array of particle sizes (in meters).
@@ -24,9 +25,13 @@ class Centrifugation:
         run_cycles: Runs multiple centrifugation cycles at specified RPMs and duration.
         cycle: Runs a single centrifugation cycle at a given RPM and duration.
         results: Returns the calculated results, including average particle sizes per cycle.
-        cal_sedimentation: Calculates the sedimentation coefficient and rate for particles.
-        _check_size: Checks that the size and initial supernate arrays are the same size.
+        cal_supernate_and_pallets: Calculates the remaining supernate and the resulting pallets after a centrifugation cycle.
+        cal_centrifuge_change: Simulates the change in supernate and pallets across multiple centrifugation cycles.
+        cal_sedimentation_rate: Calculates the sedimentation coefficient and rate for particles.
+        _check_size: Checks that the size and initial supernate arrays are the same length.
         _clear_state: Clears the stored supernate and pallet data.
+        _scale_check: Checks if the user input size scale is within the nanometer range.
+        __str__: Returns a string representation of the centrifugation object.
     """
     def __init__(self, size : np.array = np.linspace(5, 250, 100) * 1e-9, inital_supernate : np.array = np.ones(100), 
                  arm_length = 1e-1, length = 1e-2,
@@ -84,17 +89,30 @@ class Centrifugation:
                 }
         return text
 
-    def run_cycles(self, rpms : list, duration):
+    def run_cycles(self, rpms: list, duration):
         """
         Runs multiple centrifugation cycles at specified RPMs and duration.
 
         Args:
             rpms (list): List of RPMs for each cycle.
-            duration (float): Duration of each cycle in minutes.
+            duration (float or list): If a float is provided, it applies to all cycles.
+                                    If a list is provided, it must be the same length as `rpms`,
+                                    specifying the duration for each corresponding RPM.
+        
+        Raises:
+            ValueError: If the duration is a list and its length does not match the number of RPMs.
         """
-        # allows for multple cycles at difference RPMs
-        for rpm in rpms:
-            self.cycle(rpm, duration)
+        # Check if duration is a list or a single float
+        if isinstance(duration, list):
+            if len(duration) != len(rpms):
+                raise ValueError("The length of the duration list must match the number of RPMs.")
+            durations = duration  # Use the list as-is
+        else:
+            durations = [duration] * len(rpms)  # Repeat the single duration for each RPM
+
+        # Run each cycle with the corresponding RPM and duration
+        for rpm, dur in zip(rpms, durations):
+            self.cycle(rpm, dur)
         
             
     
@@ -113,22 +131,8 @@ class Centrifugation:
         else:
             print('using previous supernate')
             inital_supernate = self.supernate[-1].copy()
-            print(inital_supernate)
 
-        # Cal sedmentaiton rates
-        sed_coefficient, sed_rate = cal_sedimentation(rpm)
-
-        # Calculates the remaining % of supernate 
-        supernate  = inital_supernate * ((self.length - (sed_rate * duration))/self.length)
-
-        # Sets all negative values to 0
-        supernate  = np.where(supernate < 0, 0, supernate)
-
-        pallets = inital_supernate - supernate
-
-        # Normalising the Supernate and Pallets --> see centrifugation theory
-        supernate /= np.sum(supernate)
-        pallets /= np.sum(pallets)
+        supernate, pallets = self.cal_supernate_and_pallets(rpm, duration, inital_supernate)
 
         # Save data to state
         self.supernate.append(supernate)
@@ -160,9 +164,66 @@ class Centrifugation:
                 results[f'{rpm/1000:.0f}ks_avg'] = np.average(self.size, weights=self.supernate[i]) # avg particle size
 
         return results
-            
 
+    def cal_supernate_and_pallets(self, rpm, duration, inital_supernate, normalise = True, size = None):
+        """
+        Calculates the remaining supernate and the resulting pallets after a centrifugation cycle.
+
+        Args:
+            rpm (int): The RPM of the centrifugation cycle.
+            duration (float): The duration of the cycle in minutes.
+            inital_supernate (np.array): The initial distribution of particles in the supernate.
+            normalise (bool): Whether to normalise the supernate and pallets distributions (default: True).
+            size (np.array, optional): An array of particle sizes. If None, uses self.size.
+
+        Returns:
+            tuple: A tuple containing the supernate and pallets arrays after the centrifugation cycle.
+        """
+        # Cal sedmentaiton rates
+        sed_coefficient, sed_rate = self.cal_sedimentation_rate(rpm, size)
+
+        # Calculates the remaining % of supernate 
+        supernate  = inital_supernate * ((self.length - (sed_rate * duration))/self.length)
+
+        # Sets all negative values to 0
+        supernate  = np.where(supernate < 0, 0, supernate)
+
+        pallets = inital_supernate - supernate
+
+        if normalise:
+            # Normalising the Supernate and Pallets --> see centrifugation theory
+            supernate /= np.sum(supernate)
+            pallets /= np.sum(pallets)
+
+        return supernate, pallets
     
+
+    def cal_centrifuge_change(self, size, rpms, duration = 10, inital_supernate = 1):
+        """
+        Simulates the change in supernate and pallets across multiple centrifugation cycles.
+
+        Args:
+            size (np.array): An array of particle sizes.
+            rpms (list): A list of RPM values for the centrifugation cycles.
+            duration (float): The duration of each cycle in minutes (default: 10 minutes).
+            inital_supernate (float or np.array): The initial supernate percentage or distribution (default: 1, representing 100%).
+
+        Returns:
+            dict: A dictionary containing the resulting pallets ('kp') and supernate ('ks') for each RPM cycle.
+        """
+        time = np.linspace(0, duration, 100)
+
+        results = {}
+        for rpm in rpms:
+            supernate, pallets = self.cal_supernate_and_pallets(rpm, time, inital_supernate, size = size)
+            results[f'{rpm:.0f}kp'] = pallets
+            results[f'{rpm:.0f}ks'] = supernate
+            
+            # updated the inital supernate percent start where the previous cycle ends
+            inital_supernate = supernate[-1]
+
+        return results
+ 
     def cal_sedimentation_rate(self, rpm, size = None):
         """
         Calculates the sedimentation coefficient and rate for the particles.
@@ -186,7 +247,6 @@ class Centrifugation:
 
         return sed_coefficient, sed_rate
     
-
 
     def _check_size(self):
         """
