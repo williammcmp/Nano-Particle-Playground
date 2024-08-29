@@ -359,3 +359,66 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)']):
             data[column + '_norm'] = (data[column] - min_value) / (max_value - min_value)
 
     return data  
+
+def remove_offset(data: pd.DataFrame, wavelength: int = 300):
+    """
+    Removes the offset from a given DataFrame based on a specified wavelength.
+
+    This function checks if the specified wavelength is within the range of the DataFrame's 'Wavelength (nm)' column.
+    If the wavelength is out of range, a warning is printed. The function then calculates the average differential
+    offset for wavelengths below the specified value and adjusts the DataFrame values accordingly.
+
+    Parameters:
+    ----------
+    data : pd.DataFrame
+        The input DataFrame containing at least one column named 'Wavelength (nm)' and other columns to adjust.
+
+    wavelength : int, optional
+        The reference wavelength (in nm) to use for offset adjustment. Default is 300 nm.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A new DataFrame with the offset removed for values below the specified wavelength.
+
+    Notes:
+    -----
+    - The function assumes that the DataFrame has a column named 'Wavelength (nm)' and that it is numeric.
+    - The operation assumes a continuous range of wavelengths; missing values or non-numeric data may cause errors.
+    - If the specified wavelength is not within the 'Wavelength (nm)' column, the function issues a warning and terminates.
+    
+    Raises:
+    ------
+    KeyError
+        If 'Wavelength (nm)' is not a column in the input DataFrame.
+    
+    IndexError
+        If no valid indices are found for the given masks.
+
+    Example:
+    --------
+    >>> df = pd.DataFrame({'Wavelength (nm)': [290, 295, 300, 305], 'Intensity': [1.2, 1.5, 1.8, 2.1]})
+    >>> corrected_df = remove_offset(df, wavelength=300)
+    """
+
+    if not (data['Wavelength (nm)'] == wavelength).any():
+        print(f'Warning: Wavelength {wavelength}nm is out of range. Please select a wavelength that is valid to the data set.')
+        return
+
+    lower_mask = (data['Wavelength (nm)'] < wavelength - 10) & (data['Wavelength (nm)'] > wavelength - 10)
+
+    center_mask = data['Wavelength (nm)'].isin([wavelength - 10, wavelength])
+
+    lower_diff = np.diff(data[lower_mask], axis=0)
+    center_diff = np.diff(data[center_mask], axis=0)
+
+    lower_diff = np.average(lower_diff, axis=0)
+
+    lower_offset = center_diff - lower_diff
+
+    move_mask = data['Wavelength (nm)'] < wavelength
+
+    corrected = data.copy()
+    corrected[move_mask] = corrected[move_mask] - lower_offset
+
+    return corrected
