@@ -506,3 +506,11 @@ def load_dataframe(file_path: str, enable_pyarrow = False):
     except Exception as e:
         print(f"Error loading DataFrame: {e}")
         return None
+def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str = '.txt'):    
+    data_columns =  data.columns[1:]  # Assuming first column is 'Wavelength (nm)'
+    for column in data_columns:
+        save_path = basepath + column + file_fromatte
+        df = data[['Wavelength (nm)', column]]
+        save_dataframe(df, save_path)
+
+    print(f'{len(data_columns)} files have been saved.')
