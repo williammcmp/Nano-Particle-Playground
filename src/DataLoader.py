@@ -421,9 +421,11 @@ def remove_offset(data: pd.DataFrame, wavelength: int = 300):
     corrected = data.copy()
     corrected[move_mask] = corrected[move_mask] - lower_offset
 
+    print(corrected['Wavelength (nm)'] < 300)
+
     return corrected
 
-def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None):
+def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, headers=True, index = False):
     """
     Save a pandas DataFrame to a specified file format.
     
@@ -442,11 +444,11 @@ def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None):
         if file_format == 'parquet': # the binary type --> fastest
             df.to_parquet(file_path)
         elif file_format == 'csv':
-            df.to_csv(file_path, index=False)
+            df.to_csv(file_path, index=index)
         elif file_format == 'excel' or file_format == 'xlsx':
-            df.to_excel(file_path, index=False)
+            df.to_excel(file_path, index=index)
         elif file_format == 'txt':
-            df.to_csv(file_path, sep='\t', index=False)
+            df.to_csv(file_path, sep='\t', index=index, header=headers)
         elif file_format == "json":
             write_to_json(df, file_path)
   
@@ -506,11 +508,14 @@ def load_dataframe(file_path: str, enable_pyarrow = False):
     except Exception as e:
         print(f"Error loading DataFrame: {e}")
         return None
-def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str = '.txt'):    
+    
+
+def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str = '.txt'):  
+    # Will save all the columns to seperate files with the wavelength for the index column
     data_columns =  data.columns[1:]  # Assuming first column is 'Wavelength (nm)'
     for column in data_columns:
         save_path = basepath + column + file_fromatte
         df = data[['Wavelength (nm)', column]]
-        save_dataframe(df, save_path)
+        save_dataframe(df, save_path, headers=False)
 
     print(f'{len(data_columns)} files have been saved.')
