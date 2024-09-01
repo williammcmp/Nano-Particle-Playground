@@ -488,12 +488,35 @@ def load_dataframe(file_path: str, enable_pyarrow = False):
         return None
     
 
-def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str = '.txt'):  
-    # Will save all the columns to seperate files with the wavelength for the index column
-    data_columns =  data.columns[1:]  # Assuming first column is 'Wavelength (nm)'
+def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str = '.txt', field : str = 'Wavelength (nm)', excluded_fields : list = []):  
+    """
+    Exports multiple columns from a DataFrame to individual text files, excluding specified fields.
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the data to be exported.
+        basepath (str): The base directory path where the files will be saved.
+        file_format (str): The file extension format for the output files (default: '.txt').
+        field (str): The column name to use as a reference or index (default: 'Wavelength (nm)').
+        excluded_fields (list): A list of column names to exclude from the export (default: []).
+
+    Returns:
+        None
+
+    """
+
+    # Adds the wavelength field to the excluded fields
+    excluded_fields.append(field)
+
+    data_columns = data.drop(columns=excluded_fields, axis=1).columns.tolist()
+
+    
     for column in data_columns:
+        # Gets the completed path name
         save_path = basepath + column + file_fromatte
+
+        # Creates a single data frame with the wavelength and series of data
         df = data[['Wavelength (nm)', column]]
+
+        # Saves the dataframe to the spcificed path
         save_dataframe(df, save_path, headers=False)
 
-    print(f'{len(data_columns)} files have been saved.')
