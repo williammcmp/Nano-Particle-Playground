@@ -360,70 +360,48 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)']):
 
     return data  
 
-def remove_offset(data: pd.DataFrame, wavelength: int = 300):
+# the UV-Vis data had a problem where there is a noticable offset at a specific wavelength. This is due to poor calabration of the machine. 
+# To resolve the problem, an offset can be use to help make the data a continous curve.
+def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : str = 'Wavelength (nm)'):
     """
-    Removes the offset from a given DataFrame based on a specified wavelength.
+    Removes an offset in UV-Vis data to correct for a noticeable correction at a specific wavelength 
+    due to poor calibration of the machine, making the data a continuous curve.
 
-    This function checks if the specified wavelength is within the range of the DataFrame's 'Wavelength (nm)' column.
-    If the wavelength is out of range, a warning is printed. The function then calculates the average differential
-    offset for wavelengths below the specified value and adjusts the DataFrame values accordingly.
-
-    Parameters:
-    ----------
-    data : pd.DataFrame
-        The input DataFrame containing at least one column named 'Wavelength (nm)' and other columns to adjust.
-
-    wavelength : int, optional
-        The reference wavelength (in nm) to use for offset adjustment. Default is 300 nm.
+    Args:
+        data (pd.DataFrame): The DataFrame containing the UV-Vis data.
+        center_wavelength (int): The wavelength at which the data is offset and needs correction. 
+                                 Default is 300 nm.
+        field (str): The column name representing the wavelength data in the DataFrame. 
+                     Default is 'Wavelength (nm)'.
 
     Returns:
-    -------
-    pd.DataFrame
-        A new DataFrame with the offset removed for values below the specified wavelength.
-
-    Notes:
-    -----
-    - The function assumes that the DataFrame has a column named 'Wavelength (nm)' and that it is numeric.
-    - The operation assumes a continuous range of wavelengths; missing values or non-numeric data may cause errors.
-    - If the specified wavelength is not within the 'Wavelength (nm)' column, the function issues a warning and terminates.
-    
-    Raises:
-    ------
-    KeyError
-        If 'Wavelength (nm)' is not a column in the input DataFrame.
-    
-    IndexError
-        If no valid indices are found for the given masks.
-
-    Example:
-    --------
-    >>> df = pd.DataFrame({'Wavelength (nm)': [290, 295, 300, 305], 'Intensity': [1.2, 1.5, 1.8, 2.1]})
-    >>> corrected_df = remove_offset(df, wavelength=300)
+        pd.DataFrame: The corrected DataFrame with the offset applied to make the data continuous.
+                      Returns None if the specified field or center wavelength is not found in the data.
     """
+    # Checking if the field is present in the data provided
+    if field not in data.columns:
+        print(f"Warning: {field} field can not be found in prodived data. Please select from {data.columns}")
+        return None
 
-    if not (data['Wavelength (nm)'] == wavelength).any():
-        print(f'Warning: Wavelength {wavelength}nm is out of range. Please select a wavelength that is valid to the data set.')
-        return
+    # check that the center wavelength is present in the data
+    if center_wavelength not in data[field].values:
+        print(f"Warning: {center_wavelength}nm is not a wavelength present in your data")
+        return None
+    
+    # The center point at which the data is displaced at
+    center_mask =  (data[field] > center_wavelength - 3) & (data[field] < center_wavelength + 1)
 
-    lower_mask = (data['Wavelength (nm)'] < wavelength - 10) & (data['Wavelength (nm)'] > wavelength - 10)
+    # Selecting all rows with a lower wavelength than the center wavelength
+    lower_mask = data[field] < center_wavelength
 
-    center_mask = data['Wavelength (nm)'].isin([wavelength - 10, wavelength])
+    # Finds the offset difference per sample recording. 
+    # The offset would naturally be negative --> may need to add logic to allow for reverse opperation if offset gets applied in wrong direction for different data points.
+    offset = np.diff(np.diff(data[center_mask], axis=0), axis=0)
 
-    lower_diff = np.diff(data[lower_mask], axis=0)
-    center_diff = np.diff(data[center_mask], axis=0)
+    # Apply the offset to all required rows
+    data[lower_mask] += offset
 
-    lower_diff = np.average(lower_diff, axis=0)
-
-    lower_offset = center_diff - lower_diff
-
-    move_mask = data['Wavelength (nm)'] < wavelength
-
-    corrected = data.copy()
-    corrected[move_mask] = corrected[move_mask] - lower_offset
-
-    print(corrected['Wavelength (nm)'] < 300)
-
-    return corrected
+    return data
 
 def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, headers=True, index = False):
     """
