@@ -344,28 +344,74 @@ def load_from_json(filename : str ='output1.json'):
         return None
 
 
-def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)']):
+def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max') -> pd.DataFrame:
     """
-    Normalize the data in all columns except those in the exclude list and add new columns with normalized data.
+    Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
 
     Args:
         data (pd.DataFrame): The DataFrame containing the data to normalize.
-        exclude (list): List of column names to exclude from normalization.
+        exclude (list): List of column names to exclude from normalization. Default is ['Radii(nm)'].
+        mode (str): The normalization mode to apply. Options are:
+                    - 'L1': Normalize data so that the sum of absolute values in each column is equal to 1.
+                    - 'max': Normalize data by dividing each value by the maximum value in the column.
+                    - 'min-max' (default): Normalize data to a range [0, 1] based on the minimum and maximum values in the column.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for normalized data.
+
+    Normalization Modes:
+        - 'L1' Normalization: Useful when the relative proportions between data points are more important than their absolute magnitudes. 
+          It scales the data such that the sum of the absolute values of each column equals 1.
+        - 'max' Normalization: Scales the data relative to its maximum value, setting the maximum to 1 and scaling all other values proportionally.
+          This method preserves the relative distances and distribution of the data points.
+        - 'min-max' Normalization: Scales data to a fixed range [0, 1], making the minimum value 0 and the maximum value 1. It is sensitive to outliers
+          because it uses the extreme values for scaling.
+
+    Example:
+        >>> df = pd.DataFrame({'A': [1, 2, 3, 4], 'B': [10, 20, 30, 40]})
+        >>> normalized_df = normalize_data(df, exclude=['B'], mode='max')
+        Normalised data using max mode.
+        >>> print(normalized_df)
+           A   B  A_norm
+        0  1  10   0.25
+        1  2  20   0.50
+        2  3  30   0.75
+        3  4  40   1.00
     """
     # Stops repeated column normalistions
     columns = data.columns.copy()
+
+    # Check if all elements in the exclude list are in columns
+    for col in exclude:
+        if col not in columns:
+            print(f"Warning: {col} field cannot be found in provided data. Please select from {list(data.columns)}")
+            return None
 
     for column in columns:
         # Checks if the column is not in the exclude list
         # Skips excluded columns
         if column not in exclude:
-            max_value = data[column].max()
-            min_value = data[column].min()
-            data[column + '_norm'] = (data[column] - min_value) / (max_value - min_value)
 
+            if mode == 'L1':
+                data[column + '_norm_' + mode] = data[column] / data[column].sum()
+
+            elif mode == 'max':
+                data[column + '_norm_' + mode] = data[column] / data[column].max()
+
+            elif mode == 'all':
+                max_value = data[column].max()
+                min_value = data[column].min()
+                data[column + '_norm_min-max'] = (data[column] - min_value) / (max_value - min_value)                    
+                data[column + '_norm_max'] = data[column] / data[column].max()
+                data[column + '_norm_L1'] = data[column] / data[column].sum()
+                
+            # The default case
+            else:
+                max_value = data[column].max()
+                min_value = data[column].min()
+                data[column + '_norm'] = (data[column] - min_value) / (max_value - min_value)                    
+
+    print(f"Normalised data using {mode} mode.")
     return data  
 
 # the UV-Vis data had a problem where there is a noticable offset at a specific wavelength. This is due to poor calabration of the machine. 
