@@ -457,7 +457,7 @@ def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : st
 
     return data
 
-def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, headers=True, index = False):
+def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, headers=True, index = False, silent_mode = False):
     """
     Save a pandas DataFrame to a specified file format.
     
@@ -488,7 +488,9 @@ def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, h
             # Incase someone wants to save to an unsupported formate
             raise ValueError(f"Unsupported file format: {file_format}")
 
-        print(f"DataFrame successfully saved to {file_path}")
+        if not silent_mode:
+            print(f"DataFrame successfully saved to {file_path}")
+
         return True
 
     except Exception as e:
@@ -558,19 +560,22 @@ def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str 
 
     """
 
+    if field not in data.columns:
+        print(f"Warning: {field} field can not be found in prodived data. Please select from {data.columns}")
+        return None
+
     # Adds the wavelength field to the excluded fields
     excluded_fields.append(field)
 
     data_columns = data.drop(columns=excluded_fields, axis=1).columns.tolist()
 
-    
     for column in data_columns:
         # Gets the completed path name
         save_path = basepath + column + file_fromatte
 
         # Creates a single data frame with the wavelength and series of data
-        df = data[['Wavelength (nm)', column]]
+        df = data[[field, column]]
 
         # Saves the dataframe to the spcificed path
-        save_dataframe(df, save_path, headers=False)
+        save_dataframe(df, save_path, headers=False, silent_mode=True)
 
