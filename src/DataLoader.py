@@ -26,7 +26,7 @@ def load_data_from_csv(file_path : str):
         print(f"Error loading data from CSV file: {str(e)}")
         return None
     
-def load_data_from_txt(file_path : str):
+def load_data_from_txt(file_path : str, header : list[str] = None) -> pd.DataFrame:
     """
     Load data from a .txt file.
 
@@ -38,7 +38,7 @@ def load_data_from_txt(file_path : str):
             Returns None if the file is not found or an error occurs during loading.
     """
     try:
-        data = pd.read_csv(file_path, sep='\t')
+        data = pd.read_csv(file_path, sep='\t', header=header)
         return data
     except FileNotFoundError:
         print(f"File not found at: {file_path}")
@@ -77,17 +77,25 @@ def load_data_from_excel(file_path, sheet_name=0, load_all_sheets=False):
         print(f"Error loading data from Excel file: {str(e)}")
         return None
 
-def get_file_names(folder_path : str):
+def get_file_names(folder_path : str, filter_pattern : str = None):
     """
     Get a list of filenames in the specified folder path.
 
     Args:
         folder_path (str): The path to the folder from which to retrieve filenames.
+        filter_pattern (str): A pattern to filter the list of filenames by --> recommended to use file types
 
     Returns:
         list of str: A list of filenames in the specified folder.
     """
-    return os.listdir(folder_path)
+
+    file_names = os.listdir(folder_path)
+
+    # filter out the list of filenames based on a pattern
+    if filter_pattern is not None:
+        file_names = [col for col in file_names if filter_pattern in col.lower()]
+
+    return file_names
 
 # Adjust values depending on what side of the crator they are recorded from
 def experimental_adjustment(experimental_csv : str, experimental_data :  pd.DataFrame, data_df : pd.DataFrame):
