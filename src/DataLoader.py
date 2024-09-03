@@ -579,3 +579,94 @@ def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str 
         # Saves the dataframe to the spcificed path
         save_dataframe(df, save_path, headers=False, silent_mode=True)
 
+    print(f'Saved {len(data_columns)} files')
+
+
+def group_columns(columns : list) -> list[list]:
+    """
+    Groups columns by their prefix (power and date) while including 'Wavelength (nm)' in each group.
+
+    Args:
+    - columns (list of str): List of column names.
+
+    Returns:
+    - list of list of str: A list where each element is a group of column names.
+    """
+    from collections import defaultdict
+
+    # Initialize a dictionary to store grouped columns
+    grouped_columns = defaultdict(list)
+
+    # Iterate through each column name
+    for col in columns:
+        if col == 'Wavelength (nm)':
+            continue  # Skip 'Wavelength (nm)' for now
+        # Extract the prefix (everything before the last hyphen-separated part)
+        prefix = ' - '.join(col.split(' - ')[:2])
+        grouped_columns[prefix].append(col)
+
+    # Convert to a list of lists and include 'Wavelength (nm)' in each group
+    result = [['Wavelength (nm)'] + grouped_columns[key] for key in grouped_columns]
+
+    return result
+
+def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".txt", col_formatter : str = ".") -> pd.DataFrame:
+    """
+    Loads and combines multiple text files from a specified directory into a single pandas DataFrame.
+    
+    Each text file should contain two columns: one for particle radii and another for particle concentration.
+    The function merges these data files based on the particle size (radii) and uses the filenames as column headers
+    for the concentration data.
+
+    Args:
+        basepath (str): The base directory path where the text files are located.
+        field (str): The name of the first column representing the particle radii.
+        file_filter (str, optional): The file extension filter to select files from the base directory (default is ".txt").
+        col_formatter (str, optional): The delimiter used to format column names from filenames (default is ".").
+                                       Only the part of the filename before the first occurrence of this delimiter
+                                       will be used as the column name.
+
+    Returns:
+        pd.DataFrame: A merged DataFrame containing all the data from the text files, where the first column is the
+                      particle size (radii) and subsequent columns represent the concentration data from each file.
+
+    Raises:
+        FileNotFoundError: If no files matching the filter are found in the base directory.
+        ValueError: If any file cannot be loaded into a DataFrame or if merging fails.
+    
+    Example:
+        >>> load_df_from_txts('/data/particles/', 'Radii', '.txt', '_norm')
+        Returns a DataFrame where the first column is 'Radii' and subsequent columns are concentrations for different 
+        files, named after their respective file prefixes.
+    """
+    # Retive the files names from base path that match the file_filter patten
+    file_names = get_file_names(basepath, file_filter)
+
+    # This list will hold the df for each of the files loaded
+    df_list = []
+
+    # Generate a df for each file in the basepath
+    # and add it to the df_list --> will merge latter
+    for name in file_names:
+        df = load_data_from_txt(basepath + name, header = None)
+
+        # Chnaging the column names
+        # col_formatter will cut the stings off and take the first half
+        # i.e "1.8W - 21-08 - 14Ks_norm.txt" col_formatter = "." --> "1.8W - 21-08 - 14Ks_norm"
+        df.columns = [field,  name.split(col_formatter)[0]] 
+
+        # Check if the fild is on the nano-scale with SI units
+        # if so, convert to nm from SI units
+        # Else assume alread in nm units
+        if df[field].max() <= 1e-6:
+            df[field] *= 1e9
+
+        # Adding the df to the list
+        df_list.append(df)
+
+    # need an initial df to merge the others onto
+    merged_df = df_list[0]
+    for df in df_list[1:]:
+        merged_df = pd.merge(merged_df, df, on=field, how='outer')  # Outer join to ensure all radii are included
+
+    return merged_df
