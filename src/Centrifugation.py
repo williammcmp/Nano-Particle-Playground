@@ -470,3 +470,48 @@ def cal_average_size(data: pd.DataFrame, exclude: list = ['Radii(nm)']):
     pd_avgs = pd.DataFrame(list(avgs.items()), columns=['Cycle', 'Average Size (nm)'])
 
     return pd_avgs
+
+def rolling_quantiles(data, window, quantiles) -> tuple[pd.Series, pd.Series]:
+    """
+    Calculate rolling quantiles for a given data series.
+
+    Args:
+        data (pd.Series): The input data series.
+        window (int): The size of the moving window.
+        quantiles (list of float): A list containing two quantiles to calculate (e.g., [0.025, 0.975]).
+
+    Returns:
+        tuple of pd.Series: The lower and upper quantiles for the rolling window.
+
+    Example use:
+        lower_quantile, upper_quantile = rolling_quantiles(data, window=100, quantiles=[0.025, 0.975])
+    """
+    data = pd.Series(data)
+    rolling = data.rolling(window)
+    return rolling.quantile(quantiles[0]), rolling.quantile(quantiles[1]).to_numpy()
+
+def plot_raw_and_avg(ax : plt.axes, x_data_series : pd.Series, y_data_series : pd.Series, 
+                     key : str, color = None, avg_step = 1, 
+                     quantiles : list = [0.025, 0.975], 
+                     IQR : bool = False, scatter = False,
+                     legend = True):
+        
+    # Convert the Y-data to pd.series incase it comes in as np.array()
+    y_data_series = pd.Series(y_data_series)
+
+    # calculate the rolling mean
+    rolling_mean = y_data_series.rolling(window=int(avg_step)).mean()
+    ax.plot(x_data_series, rolling_mean, label = key, color=color, linewidth=2)
+
+    # Allows the scatter to be turned off
+    if scatter:
+        ax.scatter(x_data_series, y_data_series, s=0.7, alpha=0.5)  # The Raw data in a scatter plot
+    
+    # Plotting the IQR
+    if IQR :
+        lower_quantile, upper_quantile = rolling_quantiles(y_data_series, window=int(avg_step), quantiles=quantiles)
+        ax.fill_between(x_data_series, lower_quantile, upper_quantile, color=color, alpha=0.2)
+
+    if legend:
+        # Need to add the legend after each series
+        ax.legend()
