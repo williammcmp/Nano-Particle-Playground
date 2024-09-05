@@ -582,7 +582,7 @@ def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str 
     print(f'Saved {len(data_columns)} files')
 
 
-def group_columns(columns : list) -> list[list]:
+def group_columns(columns : list, index_field : str = 'Wavelength (nm)') -> list[list]:
     """
     Groups columns by their prefix (power and date) while including 'Wavelength (nm)' in each group.
 
@@ -597,16 +597,20 @@ def group_columns(columns : list) -> list[list]:
     # Initialize a dictionary to store grouped columns
     grouped_columns = defaultdict(list)
 
+    if index_field not in columns:
+        print(f"column {index_field} is not found in provided list {columns}")
+        return None
+
     # Iterate through each column name
     for col in columns:
-        if col == 'Wavelength (nm)':
+        if col == index_field:
             continue  # Skip 'Wavelength (nm)' for now
         # Extract the prefix (everything before the last hyphen-separated part)
         prefix = ' - '.join(col.split(' - ')[:2])
         grouped_columns[prefix].append(col)
 
     # Convert to a list of lists and include 'Wavelength (nm)' in each group
-    result = [['Wavelength (nm)'] + grouped_columns[key] for key in grouped_columns]
+    result = [[index_field] + grouped_columns[key] for key in grouped_columns]
 
     return result
 
