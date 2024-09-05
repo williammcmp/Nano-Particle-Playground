@@ -674,3 +674,92 @@ def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".
         merged_df = pd.merge(merged_df, df, on=field, how='outer')  # Outer join to ensure all radii are included
 
     return merged_df
+
+def reorder_list(data_list):
+    """
+    Reorder a list so that elements ending with 'Raw' come first, 
+    followed by those ending with '10Ks', '14Ks', '14Kp', and then any additional extras.
+
+    Args:
+        data_list (list of str): The list of strings to reorder.
+
+    Returns:
+        list of str: The reordered list.
+    """
+    # Define the order of the patterns
+    order_patterns = ['Raw', '10Ks', '14Ks', '14Kp']
+
+    # Create a list for each pattern and one for extras
+    categorized = {pattern: [] for pattern in order_patterns}
+    extras = []
+
+    # Categorize each item in the data_list
+    for item in data_list:
+        matched = False
+        for pattern in order_patterns:
+            if item.endswith(pattern):
+                categorized[pattern].append(item)
+                matched = True
+                break
+        if not matched:
+            extras.append(item)
+
+    # Combine the categorized lists and extras in the defined order
+    reordered_list = []
+    for pattern in order_patterns:
+        reordered_list.extend(categorized[pattern])
+    reordered_list.extend(extras)
+
+    return reordered_list
+
+
+def get_df_bins(data : pd.DataFrame, bins : int = 10) -> pd.DataFrame:
+    """
+    Split a DataFrame into a specified number of equal-sized segments (bins) and calculate the mean for each segment.
+
+    This function divides the input DataFrame into approximately equal-sized segments based on the number of specified bins.
+    It then computes the mean for each segment and returns a new DataFrame with the mean values for each bin. 
+    The first column of the resulting DataFrame is converted to integers.
+
+    Args:
+        data (pd.DataFrame): The input DataFrame to be split and analyzed.
+        bins (int, optional): The number of bins (segments) to divide the DataFrame into. Default is 10.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the mean values of each bin. 
+                      The first column is converted to integers, representing the mean of the first column of each segment.
+
+    Example:
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> df = pd.DataFrame({
+        ...     'A': np.random.rand(100),
+        ...     'B': np.random.rand(100),
+        ...     'C': np.random.rand(100)
+        ... })
+        >>> binned_means = get_df_bins(df, bins=5)
+        >>> print(binned_means)
+    
+    Notes:
+        - If the number of rows in the DataFrame is not perfectly divisible by the number of bins,
+          some segments will contain an extra row.
+        - The function uses `numpy.array_split` to ensure nearly equal-sized segments.
+
+    """
+    # Seperate the into event chunks 
+    segments = np.array_split(data, bins)
+
+    # This will store the list of dfs to merge together latter
+    mean_list = []
+
+    # Finding the mean for each bin
+    for bin in segments:
+        mean_list.append(bin.mean())
+
+    # Merging all dfs back together
+    mean_df = pd.concat(mean_list, axis=1).T.reset_index(drop=True)
+    
+    # Force the first axis to be int
+    mean_df.iloc[:, 0] = mean_df.iloc[:, 0].astype(int)
+
+    return mean_df
