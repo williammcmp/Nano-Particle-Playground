@@ -141,7 +141,7 @@ class Centrifugation:
 
         print(f'Centrifuge cycle at {rpm/1000:.0f}K RPM over {duration}min completed')
 
-    def results(self, avg = True):
+    def results(self, avg = True, supernates = False):
         """
         Returns the results of the centrifugation, including average particle sizes per cycle.
 
@@ -152,12 +152,18 @@ class Centrifugation:
             dict: A dictionary containing the particle radii, pallets, supernates, and (optionally) average sizes per cycle.
         """
         # returns the calcuated results in a dict with average particle size per cycle (as an option)
-        results = {'Radii(nm)': self.size}
+        results = {'Radii (nm)': self.size * 1e9} # converting size to nm scale 
         for i in range(len(self.rpms)):
             rpm = self.rpms[i]
 
             results[f'{rpm/1000:.0f}kp'] = self.pallets[i] # pallet stats
+            if supernates:
+                results[f'{rpm/1000:.0f}ks'] = self.supernate[i] # supernate states
+
+        # only get the last one --> simular to experimental data
+        if not supernates:
             results[f'{rpm/1000:.0f}ks'] = self.supernate[i] # supernate states
+
 
             if avg ==  True:
                 results[f'{rpm/1000:.0f}kp_avg'] = np.average(self.size, weights=self.pallets[i]) # avg particle size
@@ -165,7 +171,7 @@ class Centrifugation:
 
         return results
 
-    def cal_supernate_and_pallets(self, rpm, duration, inital_supernate, normalise = True, size = None):
+    def cal_supernate_and_pallets(self, rpm, duration, inital_supernate, normalise = False, size = None):
         """
         Calculates the remaining supernate and the resulting pallets after a centrifugation cycle.
 
@@ -192,8 +198,16 @@ class Centrifugation:
 
         if normalise:
             # Normalising the Supernate and Pallets --> see centrifugation theory
-            supernate /= np.sum(supernate)
-            pallets /= np.sum(pallets)
+            
+            def min_max_norm(data):
+                max_value = data.max()
+                min_value = data.min()
+                data = (data - min_value) / (max_value - min_value)
+
+                return data
+
+            supernate = min_max_norm(supernate)
+            pallets = min_max_norm(pallets)
 
         return supernate, pallets
     
