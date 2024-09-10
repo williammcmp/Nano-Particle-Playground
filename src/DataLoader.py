@@ -344,7 +344,7 @@ def load_from_json(filename : str ='output1.json'):
         return None
 
 
-def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max') -> pd.DataFrame:
+def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max', just_norm = False) -> pd.DataFrame:
     """
     Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
 
@@ -355,6 +355,7 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = '
                     - 'L1': Normalize data so that the sum of absolute values in each column is equal to 1.
                     - 'max': Normalize data by dividing each value by the maximum value in the column.
                     - 'min-max' (default): Normalize data to a range [0, 1] based on the minimum and maximum values in the column.
+        just_norm (bool): Allows for just the noramlised dataFrame to be retuned.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for normalized data.
@@ -379,13 +380,17 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = '
         3  4  40   1.00
     """
     # Stops repeated column normalistions
-    columns = data.columns.copy()
+    columns = data.columns
 
     # Check if all elements in the exclude list are in columns
     for col in exclude:
         if col not in columns:
             print(f"Warning: {col} field cannot be found in provided data. Please select from {list(data.columns)}")
             return None
+        
+    # Clears the dataFrame to be completly empty so only the normed dataFrames a placed inside
+    if just_norm:
+        data = pd.DataFrame()
 
     for column in columns:
         # Checks if the column is not in the exclude list
@@ -713,53 +718,48 @@ def reorder_list(data_list):
     return reordered_list
 
 
-def get_df_bins(data : pd.DataFrame, bins : int = 10) -> pd.DataFrame:
+def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
     """
-    Split a DataFrame into a specified number of equal-sized segments (bins) and calculate the mean for each segment.
-
-    This function divides the input DataFrame into approximately equal-sized segments based on the number of specified bins.
-    It then computes the mean for each segment and returns a new DataFrame with the mean values for each bin. 
-    The first column of the resulting DataFrame is converted to integers.
+    Split the DataFrame into bins based on the 'Radii (nm)' column with the given interval, 
+    and calculate the mean for each bin.
 
     Args:
-        data (pd.DataFrame): The input DataFrame to be split and analyzed.
-        bins (int, optional): The number of bins (segments) to divide the DataFrame into. Default is 10.
+        data (pd.DataFrame): The input DataFrame.
+        interval (int): The interval size for binning.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the mean values of each bin. 
-                      The first column is converted to integers, representing the mean of the first column of each segment.
-
-    Example:
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> df = pd.DataFrame({
-        ...     'A': np.random.rand(100),
-        ...     'B': np.random.rand(100),
-        ...     'C': np.random.rand(100)
-        ... })
-        >>> binned_means = get_df_bins(df, bins=5)
-        >>> print(binned_means)
-    
-    Notes:
-        - If the number of rows in the DataFrame is not perfectly divisible by the number of bins,
-          some segments will contain an extra row.
-        - The function uses `numpy.array_split` to ensure nearly equal-sized segments.
-
+        pd.DataFrame: A DataFrame containing the mean values for each bin.
     """
-    # Seperate the into event chunks 
-    segments = np.array_split(data, bins)
+    
+    # Define the bin edges (ranges from the min to max of 'Radii (nm)' with the given interval)
+    bins = np.arange(data['Radii (nm)'].min(), data['Radii (nm)'].max() + interval, interval)
 
-    # This will store the list of dfs to merge together latter
+    print(bins)
+    
+    # Use pd.cut() to bin the 'Radii (nm)' column into intervals
+    data['Bins'] = pd.cut(data['Radii (nm)'], bins=bins, right=False)
+    
+    # This will store the list of means for each bin
     mean_list = []
 
     # Finding the mean for each bin
-    for bin in segments:
-        mean_list.append(bin.mean())
+    for bin_interval in data['Bins'].unique():
+        # Get data for the current bin
+        data_section = data[data['Bins'] == bin_interval]
+        
+        # If there's data in this bin, calculate the mean (excluding non-numeric columns like 'Bins')
+        if not data_section.empty:
+            bin_mean = data_section.drop(columns=['Bins']).mean()  # Exclude non-numeric columns
+            # Store the bin mean
+            mean_list.append(bin_mean)
 
-    # Merging all dfs back together
+    # Merging all bin means into a single DataFrame
     mean_df = pd.concat(mean_list, axis=1).T.reset_index(drop=True)
     
-    # Force the first axis to be int
+    # Force the first column (which is likely the 'Radii (nm)' mean) to be int
     mean_df.iloc[:, 0] = mean_df.iloc[:, 0].astype(int)
+
+    # this will replace the radii names with the meddian values of each bin
+    mean_df['Radii (nm)'] = bins[:-1] + int(interval / 2)
 
     return mean_df
