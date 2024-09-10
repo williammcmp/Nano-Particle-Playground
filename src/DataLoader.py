@@ -733,8 +733,6 @@ def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
     
     # Define the bin edges (ranges from the min to max of 'Radii (nm)' with the given interval)
     bins = np.arange(data['Radii (nm)'].min(), data['Radii (nm)'].max() + interval, interval)
-
-    print(bins)
     
     # Use pd.cut() to bin the 'Radii (nm)' column into intervals
     data['Bins'] = pd.cut(data['Radii (nm)'], bins=bins, right=False)
