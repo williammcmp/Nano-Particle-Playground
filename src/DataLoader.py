@@ -1,9 +1,19 @@
-# src/DataLoader.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thursday September 12 2024
+
+Function and script use to load and save data
+
+@author: william.mcm.p
+"""
+
 
 import pandas as pd
 import os
 import numpy as np
 import json
+from analysis_tools import *
 
 def load_data_from_csv(file_path : str):
     """
@@ -282,7 +292,6 @@ def Experimental_special_adjustment(experimental_csv : str, experimental_data : 
     return data_df
 
 
-
 def load_experimental_data(experiment_type : str):
     """
     Load experimental data for a specific experiment mode.
@@ -343,124 +352,6 @@ def load_from_json(filename : str ='output1.json'):
         print(f"Error: {filename} not found.")
         return None
 
-
-def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max', just_norm = False) -> pd.DataFrame:
-    """
-    Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
-
-    Args:
-        data (pd.DataFrame): The DataFrame containing the data to normalize.
-        exclude (list): List of column names to exclude from normalization. Default is ['Radii(nm)'].
-        mode (str): The normalization mode to apply. Options are:
-                    - 'L1': Normalize data so that the sum of absolute values in each column is equal to 1.
-                    - 'max': Normalize data by dividing each value by the maximum value in the column.
-                    - 'min-max' (default): Normalize data to a range [0, 1] based on the minimum and maximum values in the column.
-        just_norm (bool): Allows for just the noramlised dataFrame to be retuned.
-
-    Returns:
-        pd.DataFrame: The DataFrame with additional columns for normalized data.
-
-    Normalization Modes:
-        - 'L1' Normalization: Useful when the relative proportions between data points are more important than their absolute magnitudes. 
-          It scales the data such that the sum of the absolute values of each column equals 1.
-        - 'max' Normalization: Scales the data relative to its maximum value, setting the maximum to 1 and scaling all other values proportionally.
-          This method preserves the relative distances and distribution of the data points.
-        - 'min-max' Normalization: Scales data to a fixed range [0, 1], making the minimum value 0 and the maximum value 1. It is sensitive to outliers
-          because it uses the extreme values for scaling.
-
-    Example:
-        >>> df = pd.DataFrame({'A': [1, 2, 3, 4], 'B': [10, 20, 30, 40]})
-        >>> normalized_df = normalize_data(df, exclude=['B'], mode='max')
-        Normalised data using max mode.
-        >>> print(normalized_df)
-           A   B  A_norm
-        0  1  10   0.25
-        1  2  20   0.50
-        2  3  30   0.75
-        3  4  40   1.00
-    """
-    # Stops repeated column normalistions
-    columns = data.columns
-
-    # Check if all elements in the exclude list are in columns
-    for col in exclude:
-        if col not in columns:
-            print(f"Warning: {col} field cannot be found in provided data. Please select from {list(data.columns)}")
-            return None
-        
-    # Clears the dataFrame to be completly empty so only the normed dataFrames a placed inside
-    if just_norm:
-        data = pd.DataFrame()
-
-    for column in columns:
-        # Checks if the column is not in the exclude list
-        # Skips excluded columns
-        if column not in exclude:
-
-            if mode == 'L1':
-                data[column + '_norm_' + mode] = data[column] / data[column].sum()
-
-            elif mode == 'max':
-                data[column + '_norm_' + mode] = data[column] / data[column].max()
-
-            elif mode == 'all':
-                max_value = data[column].max()
-                min_value = data[column].min()
-                data[column + '_norm_min-max'] = (data[column] - min_value) / (max_value - min_value)                    
-                data[column + '_norm_max'] = data[column] / data[column].max()
-                data[column + '_norm_L1'] = data[column] / data[column].sum()
-                
-            # The default case
-            else:
-                max_value = data[column].max()
-                min_value = data[column].min()
-                data[column + '_norm'] = (data[column] - min_value) / (max_value - min_value)                    
-
-    print(f"Normalised data using {mode} mode.")
-    return data  
-
-# the UV-Vis data had a problem where there is a noticable offset at a specific wavelength. This is due to poor calabration of the machine. 
-# To resolve the problem, an offset can be use to help make the data a continous curve.
-def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : str = 'Wavelength (nm)'):
-    """
-    Removes an offset in UV-Vis data to correct for a noticeable correction at a specific wavelength 
-    due to poor calibration of the machine, making the data a continuous curve.
-
-    Args:
-        data (pd.DataFrame): The DataFrame containing the UV-Vis data.
-        center_wavelength (int): The wavelength at which the data is offset and needs correction. 
-                                 Default is 300 nm.
-        field (str): The column name representing the wavelength data in the DataFrame. 
-                     Default is 'Wavelength (nm)'.
-
-    Returns:
-        pd.DataFrame: The corrected DataFrame with the offset applied to make the data continuous.
-                      Returns None if the specified field or center wavelength is not found in the data.
-    """
-    # Checking if the field is present in the data provided
-    if field not in data.columns:
-        print(f"Warning: {field} field can not be found in prodived data. Please select from {data.columns}")
-        return None
-
-    # check that the center wavelength is present in the data
-    if center_wavelength not in data[field].values:
-        print(f"Warning: {center_wavelength}nm is not a wavelength present in your data")
-        return None
-    
-    # The center point at which the data is displaced at
-    center_mask =  (data[field] > center_wavelength - 3) & (data[field] < center_wavelength + 1)
-
-    # Selecting all rows with a lower wavelength than the center wavelength
-    lower_mask = data[field] < center_wavelength
-
-    # Finds the offset difference per sample recording. 
-    # The offset would naturally be negative --> may need to add logic to allow for reverse opperation if offset gets applied in wrong direction for different data points.
-    offset = np.diff(np.diff(data[center_mask], axis=0), axis=0)
-
-    # Apply the offset to all required rows
-    data[lower_mask] += offset
-
-    return data
 
 def save_dataframe(df: pd.DataFrame, file_path: str, force_format: str = None, headers=True, index = False, silent_mode = False):
     """
@@ -587,38 +478,6 @@ def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str 
     print(f'Saved {len(data_columns)} files')
 
 
-def group_columns(columns : list, index_field : str = 'Wavelength (nm)') -> list[list]:
-    """
-    Groups columns by their prefix (power and date) while including 'Wavelength (nm)' in each group.
-
-    Args:
-    - columns (list of str): List of column names.
-
-    Returns:
-    - list of list of str: A list where each element is a group of column names.
-    """
-    from collections import defaultdict
-
-    # Initialize a dictionary to store grouped columns
-    grouped_columns = defaultdict(list)
-
-    if index_field not in columns:
-        print(f"column {index_field} is not found in provided list {columns}")
-        return None
-
-    # Iterate through each column name
-    for col in columns:
-        if col == index_field:
-            continue  # Skip 'Wavelength (nm)' for now
-        # Extract the prefix (everything before the last hyphen-separated part)
-        prefix = ' - '.join(col.split(' - ')[:2])
-        grouped_columns[prefix].append(col)
-
-    # Convert to a list of lists and include 'Wavelength (nm)' in each group
-    result = [[index_field] + grouped_columns[key] for key in grouped_columns]
-
-    return result
-
 def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".txt", col_formatter : str = ".") -> pd.DataFrame:
     """
     Loads and combines multiple text files from a specified directory into a single pandas DataFrame.
@@ -680,84 +539,3 @@ def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".
 
     return merged_df
 
-def reorder_list(data_list):
-    """
-    Reorder a list so that elements ending with 'Raw' come first, 
-    followed by those ending with '10Ks', '14Ks', '14Kp', and then any additional extras.
-
-    Args:
-        data_list (list of str): The list of strings to reorder.
-
-    Returns:
-        list of str: The reordered list.
-    """
-    # Define the order of the patterns
-    order_patterns = ['Raw', '10Ks', '14Ks', '14Kp']
-
-    # Create a list for each pattern and one for extras
-    categorized = {pattern: [] for pattern in order_patterns}
-    extras = []
-
-    # Categorize each item in the data_list
-    for item in data_list:
-        matched = False
-        for pattern in order_patterns:
-            if item.endswith(pattern):
-                categorized[pattern].append(item)
-                matched = True
-                break
-        if not matched:
-            extras.append(item)
-
-    # Combine the categorized lists and extras in the defined order
-    reordered_list = []
-    for pattern in order_patterns:
-        reordered_list.extend(categorized[pattern])
-    reordered_list.extend(extras)
-
-    return reordered_list
-
-
-def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
-    """
-    Split the DataFrame into bins based on the 'Radii (nm)' column with the given interval, 
-    and calculate the mean for each bin.
-
-    Args:
-        data (pd.DataFrame): The input DataFrame.
-        interval (int): The interval size for binning.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the mean values for each bin.
-    """
-    
-    # Define the bin edges (ranges from the min to max of 'Radii (nm)' with the given interval)
-    bins = np.arange(data['Radii (nm)'].min(), data['Radii (nm)'].max() + interval, interval)
-    
-    # Use pd.cut() to bin the 'Radii (nm)' column into intervals
-    data['Bins'] = pd.cut(data['Radii (nm)'], bins=bins, right=False)
-    
-    # This will store the list of means for each bin
-    mean_list = []
-
-    # Finding the mean for each bin
-    for bin_interval in data['Bins'].unique():
-        # Get data for the current bin
-        data_section = data[data['Bins'] == bin_interval]
-        
-        # If there's data in this bin, calculate the mean (excluding non-numeric columns like 'Bins')
-        if not data_section.empty:
-            bin_mean = data_section.drop(columns=['Bins']).mean()  # Exclude non-numeric columns
-            # Store the bin mean
-            mean_list.append(bin_mean)
-
-    # Merging all bin means into a single DataFrame
-    mean_df = pd.concat(mean_list, axis=1).T.reset_index(drop=True)
-    
-    # Force the first column (which is likely the 'Radii (nm)' mean) to be int
-    mean_df.iloc[:, 0] = mean_df.iloc[:, 0].astype(int)
-
-    # this will replace the radii names with the meddian values of each bin
-    mean_df['Radii (nm)'] = bins[:-1] + int(interval / 2)
-
-    return mean_df

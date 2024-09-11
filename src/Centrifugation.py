@@ -1,3 +1,14 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thursday September 12 2024
+
+Local verstion of the Centrifugation model. 
+refer to : https://github.com/williammcmp/pyspin
+
+@author: william.mcm.p
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -457,68 +468,6 @@ def plot_centrifuge_data(run1 : np.array, run2 : np.array, mask_limit: int = 0, 
     ax2.legend()
 
     return fig
-
-def cal_average_size(data: pd.DataFrame, exclude: list = ['Radii(nm)'], target_field : str = 'Raddii(nm)') -> pd.DataFrame:
-    """
-    Calculate the weighted average and standard deviation for each sample in the DataFrame, excluding specified columns.
-
-    Args:
-        data (pd.DataFrame): The DataFrame containing target values and weights for each sample.
-        exclude (list): List of column names to exclude from the calculation.
-        target_field (str): The name of the column containing the target values.
-
-    Returns:
-        pd.DataFrame: A DataFrame with 'Sample', 'Weighted Average', and 'Weighted Std Dev' columns.
-    """
-    # Initialize an empty dictionary to store the average sizes
-    avgs = {}
-    stds = {}
-
-    # Loop through each column in the DataFrame
-    for column in data.columns:
-        # Check if the column should be excluded
-        if column not in exclude:
-            # Calculate the weighted average size for the current column
-            weights = data[column]
-            weighted_avg = np.average(data[target_field], weights=weights)
-
-            # Calculate the weighted variance
-            weighted_variance = np.average((data[target_field] - weighted_avg) ** 2, weights=weights)
-
-            # Calculate the weighted standard deviation
-            weighted_std_dev = np.sqrt(weighted_variance)
-
-            # Store the weighted average and standard deviation
-            avgs[column] = weighted_avg
-            stds[column] = weighted_std_dev
-
-    # Convert the dictionary of averages to a DataFrame
-    result_df = pd.DataFrame({
-        'Sample': avgs.keys(),
-        'Average Size (nm)': avgs.values(),
-        'Standard Deviation (nm)': stds.values()
-    })
-
-    return result_df
-
-def rolling_quantiles(data, window, quantiles) -> tuple[pd.Series, pd.Series]:
-    """
-    Calculate rolling quantiles for a given data series.
-
-    Args:
-        data (pd.Series): The input data series.
-        window (int): The size of the moving window.
-        quantiles (list of float): A list containing two quantiles to calculate (e.g., [0.025, 0.975]).
-
-    Returns:
-        tuple of pd.Series: The lower and upper quantiles for the rolling window.
-
-    Example use:
-        lower_quantile, upper_quantile = rolling_quantiles(data, window=100, quantiles=[0.025, 0.975])
-    """
-    data = pd.Series(data)
-    rolling = data.rolling(window)
-    return rolling.quantile(quantiles[0]), rolling.quantile(quantiles[1]).to_numpy()
 
 def plot_raw_and_avg(ax : plt.axes, x_data_series : pd.Series, y_data_series : pd.Series, 
                      key : str, color = None, avg_step = 1, 
