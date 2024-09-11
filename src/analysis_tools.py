@@ -54,6 +54,43 @@ def cal_r_square(y_obs, y_fit):
     r_squared = 1 - (ss_res / ss_tot)          # R² formula
     return r_squared
 
+def get_trend_fit(x_data : pd.DataFrame, y_data : pd.DataFrame, degree : int = 1):
+    """
+    Calculate the best-fit trend line or curve for the given x and y data using polynomial regression.
+
+    This function fits a polynomial of the specified degree to the input data and returns the fitted 
+    values (y-values) based on the best-fit line or curve.
+
+    Args:
+        x_data (pd.DataFrame): The input data for the x-axis (independent variable).
+        y_data (pd.DataFrame): The input data for the y-axis (dependent variable).
+        degree (int, optional): The degree of the polynomial to fit. Default is 1 (linear regression).
+
+    Returns:
+        pd.Series: The y-values of the best-fit trend line or curve for the input x_data.
+
+    Notes:
+        - For a linear regression (degree = 1), the function returns the y-values of the best-fit line.
+        - For higher-degree polynomials, the function returns the y-values of the best-fit polynomial curve.
+        - The input data is converted to numeric form if necessary, to ensure proper calculations.
+
+    Example:
+        >>> x_data = pd.Series([1, 2, 3, 4, 5])
+        >>> y_data = pd.Series([2, 4, 5, 7, 10])
+        >>> y_fit = get_trend_fit(x_data, y_data, degree=1)
+        >>> print(y_fit)
+
+    """
+    # Converting the data into numerical incase it is not already
+    x_data = pd.to_numeric(x_data.copy())
+    y_data = pd.to_numeric(y_data.copy())
+
+    slope, intercept = np.polyfit(x_data, y_data, degree)
+
+    y_fit = slope * x_data + intercept
+
+    return y_fit
+
 def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max', just_norm = False) -> pd.DataFrame:
     """
     Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
@@ -190,6 +227,87 @@ def cal_average_size(data: pd.DataFrame, exclude: list = ['Radii(nm)'], target_f
     })
 
     return result_df
+
+
+def get_mass_precent(data_in : pd.DataFrame, norm_mode = 'L1') -> pd.DataFrame:
+    """
+    Calculate the mass percentage for each particle size in the given DataFrame, and optionally normalize the data.
+
+    This function computes the mass of silicon particles based on their radii (given in nanometers) and the known 
+    density of silicon (2330 kg/m^3). The mass is calculated for each size, and the input data is scaled accordingly.
+    Optionally, the data can be normalized using the specified normalization mode.
+
+    Args:
+        data_in (pd.DataFrame): The input DataFrame containing the particle size data (column 'Radii (nm)') and 
+                                corresponding raw measurements for each sample.
+        norm_mode (str, optional): The normalization mode to use. If provided, the data will be normalized. 
+                                   The default is 'L1'. If set to `None`, no normalization is applied.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the mass percentage of the samples. If normalization is applied, 
+                      the '_norm' suffix is removed from the column names. The 'Radii (nm)' column is retained 
+                      in the output.
+
+    Steps:
+        1. Compute the volume of each particle assuming spherical particles.
+        2. Compute the mass of each particle using the volume and the density of silicon (2330 kg/m^3).
+        3. Scale the sample data in the DataFrame by the calculated mass for each particle size.
+        4. Optionally normalize the data using the specified `norm_mode`.
+        5. Return the processed DataFrame with the mass percentage for each sample and the particle size ('Radii (nm)').
+
+    Example:
+        >>> data_in = pd.DataFrame({
+        ...     'Radii (nm)': [10, 20, 30],
+        ...     'Sample1': [0.1, 0.2, 0.3],
+        ...     'Sample2': [0.4, 0.5, 0.6]
+        ... })
+        >>> result = get_mass_precent(data_in)
+        >>> print(result)
+
+    Notes:
+        - The function assumes spherical particles for volume calculation.
+        - The default normalization mode is 'L1'. Other modes can be specified, or set to `None` to skip normalization.
+        - The output DataFrame retains the 'Radii (nm)' column and removes any temporary columns (e.g., 'Bins') if present.
+
+    """
+
+    data = data_in.copy()
+
+    volume = (4/3) * np.pi * np.pow((data_in['Radii (nm)'] * 1e-9), 3) # volume in SI --> m^3
+
+    silicon_density = 2330 #kg/m^3
+
+    mass = volume * silicon_density
+
+    # Drops the Radius column -> not needed for the analysis
+    data = data.drop('Radii (nm)', axis = 1)
+
+    # Removes the Bins field if present
+    if 'Bins' in data.columns:
+        data = data.drop('Bins', axis = 1)
+    
+
+    for y_col in data.columns:
+        data[y_col] = data[y_col] * mass
+
+
+    data['Radii (nm)'] = data_in['Radii (nm)']
+
+    # Will normalise the data if a mode is proided
+    if norm_mode is not None:
+        data = normalize_data(data, ['Radii (nm)'], mode = norm_mode)
+
+        # Only return the norm values
+        data = data.filter(like='_norm')
+
+    # Remove the _norm* from each of the column names
+    data.columns = data.columns.str.replace(r'_.*', '', regex=True)
+
+
+    # Add the radii column back to the df
+    data['Radii (nm)'] = data_in['Radii (nm)']
+
+    return data
 
 # ----------------
 # Processing Tools
