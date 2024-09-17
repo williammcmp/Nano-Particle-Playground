@@ -466,3 +466,38 @@ def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : st
     data[lower_mask] += offset
 
     return data
+
+def remove_str_from_cols(data: pd.DataFrame, str_pattern: str = '_norm', hold_list: list = []):
+    """
+    Filter columns based on a string pattern, remove the matching part from the column names, 
+    and retain specific columns unmodified.
+
+    Args:
+        data (pd.DataFrame): Input DataFrame to operate on.
+        str_pattern (str, optional): String pattern to filter columns. Default is '_norm'.
+        hold_list (list, optional): List of column names to be held and added back to the DataFrame 
+                                    after modification. Default is an empty list.
+
+    Returns:
+        pd.DataFrame: A new DataFrame with columns filtered and renamed, while holding specific columns unmodified.
+    """
+    data = data.copy()  # Defensive to avoid modifying the original object
+
+    # Check if all columns in hold_list exist in the original DataFrame
+    for col in hold_list:
+        if col not in data.columns:
+            raise KeyError(f"Column '{col}' not found in the DataFrame.")
+    
+    # Temporarily hold the specified columns
+    hold_df = data[hold_list].copy()
+
+    # Filter and rename the columns based on the str_pattern
+    data = data.filter(like=str_pattern)
+
+    # Remove the matching pattern and anything after it in the column names
+    data.columns = data.columns.str.replace(r'_.*', '', regex=True)
+
+    # Re-add the hold_list columns to the DataFrame
+    data[hold_list] = hold_df
+
+    return data
