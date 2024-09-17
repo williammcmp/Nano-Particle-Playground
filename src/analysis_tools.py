@@ -91,7 +91,7 @@ def get_trend_fit(x_data : pd.DataFrame, y_data : pd.DataFrame, degree : int = 1
 
     return y_fit
 
-def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max', just_norm = False) -> pd.DataFrame:
+def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max') -> pd.DataFrame:
     """
     Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
 
@@ -102,7 +102,6 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = '
                     - 'L1': Normalize data so that the sum of absolute values in each column is equal to 1.
                     - 'max': Normalize data by dividing each value by the maximum value in the column.
                     - 'min-max' (default): Normalize data to a range [0, 1] based on the minimum and maximum values in the column.
-        just_norm (bool): Allows for just the noramlised dataFrame to be retuned.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for normalized data.
@@ -134,10 +133,6 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = '
         if col not in columns:
             print(f"Warning: {col} field cannot be found in provided data. Please select from {list(data.columns)}")
             return None
-        
-    # Clears the dataFrame to be completly empty so only the normed dataFrames a placed inside
-    if just_norm:
-        data = pd.DataFrame()
 
     for column in columns:
         # Checks if the column is not in the exclude list
@@ -395,7 +390,7 @@ def reorder_list(data_list):
 
     return reordered_list
 
-def group_columns(columns : list, index_field : str = 'Wavelength (nm)') -> list[list]:
+def group_columns(columns : list, index_field : str = 'Wavelength (nm)', index : int = 2) -> list[list]:
     """
     Groups columns by their prefix (power and date) while including 'Wavelength (nm)' in each group.
 
@@ -419,7 +414,7 @@ def group_columns(columns : list, index_field : str = 'Wavelength (nm)') -> list
         if col == index_field:
             continue  # Skip 'Wavelength (nm)' for now
         # Extract the prefix (everything before the last hyphen-separated part)
-        prefix = ' - '.join(col.split(' - ')[:2])
+        prefix = ' - '.join(col.split(' - ')[:index])
         grouped_columns[prefix].append(col)
 
     # Convert to a list of lists and include 'Wavelength (nm)' in each group
