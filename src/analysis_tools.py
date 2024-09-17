@@ -91,7 +91,7 @@ def get_trend_fit(x_data : pd.DataFrame, y_data : pd.DataFrame, degree : int = 1
 
     return y_fit
 
-def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max') -> pd.DataFrame:
+def normalize_data(data_in : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = 'min-max') -> pd.DataFrame:
     """
     Normalize the data in all columns except those specified in the exclude list and add new columns with normalized data.
 
@@ -125,6 +125,8 @@ def normalize_data(data : pd.DataFrame, exclude : list = ['Radii(nm)'], mode = '
         2  3  30   0.75
         3  4  40   1.00
     """
+    data = data_in.copy()
+
     # Stops repeated column normalistions
     columns = data.columns
 
