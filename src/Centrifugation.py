@@ -15,6 +15,8 @@ import pandas as pd
 import seaborn as sns
 import warnings
 
+from src.analysis_tools import rolling_quantiles
+
 class Centrifugation:
     """
     A class to simulate the centrifugation process for a colloids.
