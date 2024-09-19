@@ -310,7 +310,7 @@ def get_mass_precent(data_in : pd.DataFrame, norm_mode = 'L1') -> pd.DataFrame:
 # Processing Tools
 # ----------------
 
-def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
+def get_df_bins(data: pd.DataFrame, interval: int = 20, bin_edges = None) -> pd.DataFrame:
     """
     Split the DataFrame into bins based on the 'Radii (nm)' column with the given interval, 
     and calculate the mean for each bin.
@@ -323,9 +323,13 @@ def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing the mean values for each bin.
     """
     
-    # Define the bin edges (ranges from the min to max of 'Radii (nm)' with the given interval)
-    bins = np.arange(data['Radii (nm)'].min(), data['Radii (nm)'].max() + interval, interval)
+    if bin_edges is not None:
+        bins = bin_edges
+    else:
+        # Define the bin edges (ranges from the min to max of 'Radii (nm)' with the given interval)
+        bins = np.arange(data['Radii (nm)'].min(), data['Radii (nm)'].max() + interval, interval)
     
+    print(bins)
     # Use pd.cut() to bin the 'Radii (nm)' column into intervals
     data['Bins'] = pd.cut(data['Radii (nm)'], bins=bins, right=False)
     
@@ -339,7 +343,7 @@ def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
         
         # If there's data in this bin, calculate the mean (excluding non-numeric columns like 'Bins')
         if not data_section.empty:
-            bin_mean = data_section.drop(columns=['Bins']).mean()  # Exclude non-numeric columns
+            bin_mean = data_section.drop(columns=['Bins']).sum()  # Exclude non-numeric columns
             # Store the bin mean
             mean_list.append(bin_mean)
 
@@ -350,7 +354,7 @@ def get_df_bins(data: pd.DataFrame, interval: int = 20) -> pd.DataFrame:
     mean_df.iloc[:, 0] = mean_df.iloc[:, 0].astype(int)
 
     # this will replace the radii names with the meddian values of each bin
-    mean_df['Radii (nm)'] = bins[:-1] + int(interval / 2)
+    mean_df['Radii (nm)'] = bins[:-1] + np.round(interval / 2, 0)
 
     return mean_df
 
@@ -469,17 +473,19 @@ def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : st
 
 def remove_str_from_cols(data: pd.DataFrame, str_pattern: str = '_norm', hold_list: list = []):
     """
-    Filter columns based on a string pattern, remove the matching part from the column names, 
-    and retain specific columns unmodified.
+    Filter columns based on a string pattern, remove the matching part from the column names,
+    and retain specific columns unmodified, placing them at the front of the DataFrame.
 
     Args:
         data (pd.DataFrame): Input DataFrame to operate on.
         str_pattern (str, optional): String pattern to filter columns. Default is '_norm'.
         hold_list (list, optional): List of column names to be held and added back to the DataFrame 
-                                    after modification. Default is an empty list.
+                                    after modification, placed at the front of the DataFrame.
+                                    Default is an empty list.
 
     Returns:
-        pd.DataFrame: A new DataFrame with columns filtered and renamed, while holding specific columns unmodified.
+        pd.DataFrame: A new DataFrame with columns filtered and renamed, while holding specific columns 
+                      unmodified and placing them at the front of the DataFrame.
     """
     data = data.copy()  # Defensive to avoid modifying the original object
 
@@ -500,4 +506,9 @@ def remove_str_from_cols(data: pd.DataFrame, str_pattern: str = '_norm', hold_li
     # Re-add the hold_list columns to the DataFrame
     data[hold_list] = hold_df
 
+    # Reorder the columns to put hold_list at the front
+    cols = hold_list + [col for col in data.columns if col not in hold_list]
+    data = data[cols]
+
     return data
+
