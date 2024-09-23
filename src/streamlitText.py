@@ -155,3 +155,42 @@ def centrifuge_referes():
 
     '''
     return text
+
+def centrifugation_ratios():
+    text=r"""
+    ### Determining the Amount of Supernatant Remaining Over Time
+
+    The process of determining how much supernatant remains after a given amount of time during centrifugation can be described by the following equation:
+
+    $$
+    P(r, t) = \frac{\text{length} - (\text{sedimentation velocity} \times \text{time})}{\text{length}}
+    $$
+
+    Where:
+    - \( P(r, t) \) is the ratio of the remaining supernatant to the starting composition after time \( t \) at a distance \( r \) from the center.
+    - **length** refers to the total length of the container that holds the colloid.
+    - **sedimentation velocity** is the velocity at which the particles settle out of the suspension due to the centrifugal force.
+    - **time** is the duration for which the centrifugation process has been running.
+
+    ### Explanation of the Ratio Changes Over Time
+
+    The equation \( P(r, t) \) represents how much of the original supernatant remains in the container at any given time during centrifugation. Initially, at \( t = 0 \), the amount of supernatant is equal to the original amount, so \( P(r, 0) = 1 \) (or 100% of the original amount).
+
+    As time progresses (\( t > 0 \)), particles in the colloid start to sediment due to the applied centrifugal force. This sedimentation reduces the amount of remaining supernatant, as indicated by the term \( \text{sedimentation velocity} \times \text{time} \) in the equation. The longer the centrifugation time, the more significant this term becomes, leading to a decrease in \( P(r, t) \).
+
+    When the sedimentation velocity and time are large enough, the product \( \text{sedimentation velocity} \times \text{time} \) can approach the value of **length**. At this point, \( P(r, t) \) approaches zero, indicating that nearly all the supernatant has been removed, and the particles have sedimented completely.
+
+    In summary, the ratio \( P(r, t) \) decreases over time as more particles settle out of the suspension, reducing the amount of remaining supernatant. The rate at which this decrease happens depends on the sedimentation velocity and the duration of the centrifugation process.
+    """
+    return text
+
+def centrifugation_pallets():
+    text = r"""
+    During centrifugation, particles migrate to the bottom of the container, forming pellets. 
+    
+    The dashed lines in the plot represent the increasing percentage of particles becoming pellets over time. 
+                
+    As centrifugation progresses through multiple cycles, more particles sediment, reducing the supernatant and increasing the pellet fraction.
+    """
+
+    return text
