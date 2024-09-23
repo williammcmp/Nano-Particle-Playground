@@ -21,7 +21,7 @@ simulation = Simulation() # initalise the simulation object
 # ------------
 # Set page layout to wide
 st.set_page_config(layout="wide", page_title="Nano Particle Simulation", initial_sidebar_state="collapsed")
-st.set_option('deprecation.showPyplotGlobalUse', False)
+
 
 # makes the plots in line with the style of the application dark mode
 # rc = {'figure.figsize':(8,4.5),

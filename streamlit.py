@@ -28,7 +28,6 @@ st.set_page_config(layout="wide",
                    page_title="Nano Particle Simulation", 
                    initial_sidebar_state="collapsed",
                    page_icon="img/NPP-icon-blueBG.png")
-st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 # makes the plots in line with the style of the application dark mode
