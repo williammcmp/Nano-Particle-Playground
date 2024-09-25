@@ -13,7 +13,7 @@ import pandas as pd
 import os
 import numpy as np
 import json
-from src.analysis_tools import *
+from analysis_tools import *
 
 def load_data_from_csv(file_path : str):
     """
@@ -526,7 +526,7 @@ def load_multiple_outputs(basepath : str, field : str, file_filter : str = ".txt
         # Chnaging the column names
         # col_formatter will cut the stings off and take the first half
         # i.e "1.8W - 21-08 - 14Ks_norm.txt" col_formatter = "." --> "1.8W - 21-08 - 14Ks_norm"
-        df.columns = [field,  name.split(col_formatter)[-1]] 
+        df.columns = [field,  name.split(col_formatter)[0]] 
 
         # Check if the fild is on the nano-scale with SI units
         # if so, convert to nm from SI units
