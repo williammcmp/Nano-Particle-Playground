@@ -478,7 +478,7 @@ def bulk_dump_columns(data :  pd.DataFrame, basepath : str, file_fromatte : str 
     print(f'Saved {len(data_columns)} files')
 
 
-def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".txt", col_formatter : str = ".") -> pd.DataFrame:
+def load_multiple_outputs(basepath : str, field : str, file_filter : str = ".txt", col_formatter : str = ".") -> pd.DataFrame:
     """
     Loads and combines multiple text files from a specified directory into a single pandas DataFrame.
     
@@ -516,12 +516,17 @@ def load_mathematica_outputs(basepath : str, field : str, file_filter : str = ".
     # Generate a df for each file in the basepath
     # and add it to the df_list --> will merge latter
     for name in file_names:
-        df = load_data_from_txt(basepath + name, header = None)
+
+        if file_filter == '.csv':
+            df = load_data_from_csv(basepath + name)
+        else:
+            df = load_data_from_txt(basepath + name, header = None)
+
 
         # Chnaging the column names
         # col_formatter will cut the stings off and take the first half
         # i.e "1.8W - 21-08 - 14Ks_norm.txt" col_formatter = "." --> "1.8W - 21-08 - 14Ks_norm"
-        df.columns = [field,  name.split(col_formatter)[0]] 
+        df.columns = [field,  name.split(col_formatter)[-1]] 
 
         # Check if the fild is on the nano-scale with SI units
         # if so, convert to nm from SI units

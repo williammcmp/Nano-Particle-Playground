@@ -430,7 +430,7 @@ def group_columns(columns : list, index_field : str = 'Wavelength (nm)', index :
 
 # the UV-Vis data had a problem where there is a noticable offset at a specific wavelength. This is due to poor calabration of the machine. 
 # To resolve the problem, an offset can be use to help make the data a continous curve.
-def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : str = 'Wavelength (nm)'):
+def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : str = 'Wavelength (nm)', scale=1):
     """
     Removes an offset in UV-Vis data to correct for a noticeable correction at a specific wavelength 
     due to poor calibration of the machine, making the data a continuous curve.
