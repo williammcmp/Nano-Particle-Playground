@@ -8,9 +8,7 @@ load the data into a combined DataFrame and then saves the data into a parquet f
 
 @author: william.mcm.p
 """
-
 # Loading in the Libraries
-
 import numpy as np
 import pandas as pd
 
@@ -31,12 +29,19 @@ print(loaded_data.columns)
 loaded_data = loaded_data.rename(columns={'0-6W - Raw': '0.6W - Raw',
                                           '0-6W - 5kp': '0.6W - 5kp', 
                                           '0-6W - 5ks': '0.6W - 5ks',
-                                          '5W  - Raw': '5W - Raw'})
+                                          '0-6W - 5kp5ks': '0.6W - 5kp5ks',
+                                          '0-6W - 5kp5kp5ks': '0.6W - 5kp5kp5ks',
+                                          '0-6W - 5kp5kp5kp': '0.6W - 5kp5kp5kp'})
 # Changing the order of the data files
 order = ['Wavelength (nm)', 
-        '0.6W - Raw', '1W - Raw', '2W - Raw', '3W - Raw', '4W - Raw','5W - Raw', '6W - Raw', '10W - Raw',
-        '0.6W - 5kp', '1W - 5kp', '2W - 5kp', '3W - 5kp', '4W - 5kp','5W - 5kp', '6W - 5kp', '10W - 5kp',
-        '0.6W - 5ks', '1W - 5ks', '2W - 5ks', '3W - 5ks', '4W - 5ks','5W - 5ks', '6W - 5ks', '10W - 5ks',
+        '0.6W - Raw', '0.6W - 5ks', '0.6W - 5kp', '0.6W - 5kp5ks', '0.6W - 5kp5kp5ks', '0.6W - 5kp5kp5kp',
+        '1W - Raw', '1W - 5ks', '1W - 5kp', '1W - 5kp5ks', '1W - 5kp5kp5ks', '1W - 5kp5kp5kp',
+        '2W - Raw', '2W - 5ks', '2W - 5kp', '2W - 5kp5ks', '2W - 5kp5kp5ks', '2W - 5kp5kp5kp',
+        '3W - Raw', '3W - 5ks', '3W - 5kp', '3W - 5kp5ks', '3W - 5kp5kp5ks', '3W - 5kp5kp5kp',
+        '4W - Raw', '4W - 5ks', '4W - 5kp', '4W - 5kp5ks', '4W - 5kp5kp5ks', '4W - 5kp5kp5kp',
+        '5W - Raw', '5W - 5ks', '5W - 5kp',                '5W - 5kp5kp5ks', '5W - 5kp5kp5kp',
+        '6W - Raw', '6W - 5ks', '6W - 5kp', '6W - 5kp5ks', '6W - 5kp5kp5ks', '6W - 5kp5kp5kp',
+        '10W - Raw', '10W - 5ks', '10W - 5kp', '10W - 5kp5ks', '10W - 5kp5kp5ks', '10W - 5kp5kp5kp',
         ]
 
 loaded_data = loaded_data[order]
@@ -62,11 +67,11 @@ loaded_data = normalize_data(loaded_data, ['Wavelength (nm)'])
 loaded_data_filtered = loaded_data[loaded_data['Wavelength (nm)'] <= 1100]
 
 # Save the Data frame as parquet
-path = "E:/Users/William/Uni/Swinburne OneDrive/OneDrive - Swinburne University/Classes/2024 hons/Silicon NP and Optical Forces - Project/Centrifugation Data/2024/20240924/UV-Vis Spectrums_new.parquet"
+path = "E:/Users/William/Uni/Swinburne OneDrive/OneDrive - Swinburne University/Classes/2024 hons/Silicon NP and Optical Forces - Project/Centrifugation Data/2024/20240924/UV-Vis Spectrums_complete.parquet"
 print("Saving the UV_Vis_spectrum df")
-save_dataframe(loaded_data, path)
+# save_dataframe(loaded_data, path)
 
 
 # Bulk dump each column into a txt file for the optmisation technique
 print("Column dummping UV_Vis_spectrum df - filtered (Wavelength (nm)' <= 900) -> for best optmisation results")
-bulk_dump_columns(loaded_data_filtered, directory)
+# bulk_dump_columns(loaded_data_filtered, directory + "cleaned_spectrums/")
