@@ -464,10 +464,12 @@ def remove_offset(data : pd.DataFrame, center_wavelength : int = 300, field : st
 
     # Finds the offset difference per sample recording. 
     # The offset would naturally be negative --> may need to add logic to allow for reverse opperation if offset gets applied in wrong direction for different data points.
-    offset = np.diff(np.diff(data[center_mask], axis=0), axis=0)
+    offset = np.diff(np.diff(data[center_mask], axis=0), axis=0) * scale
 
     # Apply the offset to all required rows
     data[lower_mask] += offset
+
+    print(f'Rmoved {offset.min():.2f} offset at {center_wavelength} nm')
 
     return data
 
