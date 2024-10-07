@@ -32,6 +32,8 @@ class Centrifugation:
         supernate (list): List to store supernate distributions after each centrifugation cycle.
         pallets (list): List to store pallet distributions after each centrifugation cycle.
         rpms (list): List to store RPM values for each cycle.
+        times (list): List to store duration values for each cycle.
+        mode (str): Defined which part of the centrifuged sample will be kept (pallets or supernatant)
 
     Methods:
         __init__: Initializes the Centrifugation class with specified parameters.
@@ -74,6 +76,7 @@ class Centrifugation:
         self._check_size()
         self._scale_check()
         self.count = len(self.size)
+        self.mode = 'super'
 
         # Centrifugation machine properties
         self.arm_length = arm_length # length of centrifuge 10cm  (m)
@@ -82,6 +85,7 @@ class Centrifugation:
         self.liquid_viscosity = liquid_viscosity # water (mPa.s)
         self.particle_density = particle_density # Silicon (kg.m^2)
         self.rpms = [] # empty list to store the rpms
+        self.times = [] # emptylist to store the times
 
     def info(self):
         """
@@ -141,14 +145,19 @@ class Centrifugation:
         Args:
             rpm (int): The RPM for this cycle.
             duration (float): The duration of the cycle in minutes.
-        """
+        """            
         
         # Collected the most recent supernate data
         if not self.supernate:
             inital_supernate = self.inital_supernate.copy()
         else:
-            print('using previous supernate')
-            inital_supernate = self.supernate[-1].copy()
+            if 'sup' in self.mode.lower():
+                print('Using previous supernate')
+                inital_supernate = self.supernate[-1].copy()
+            else:
+                print('Using previous Pallet')
+                inital_supernate = self.pallets[-1].copy()
+
 
         supernate, pallets = self.cal_supernate_and_pallets(rpm, duration, inital_supernate)
 
@@ -156,6 +165,7 @@ class Centrifugation:
         self.supernate.append(supernate)
         self.pallets.append(pallets)
         self.rpms.append(rpm)
+        self.times.append(duration)
 
         print(f'Centrifuge cycle at {rpm/1000:.0f}K RPM over {duration}min completed')
 
