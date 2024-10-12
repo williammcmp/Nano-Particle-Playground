@@ -12,6 +12,15 @@ class PulsedLaserBeam:
         pulse_rate (float): The pulse repetition frequency in Hz (default 300 kHz).
         pulse_duration (float): The duration of each pulse in seconds (default 100 fs).
         numerical_aperture (float): The numerical aperture of the laser (default 0.14).
+        reflectanc_factor (float): The reflectance factor at the silicon-air interface (default 0.3).
+        abs_threshold (float): The absorption threshold of the material.
+        beam_waist (float): The waist (radius) of the Gaussian beam at its focus.
+        focus_area (float): The area of the beam focus, calculated as π * beam_waist^2.
+        energy_per_pulse (float): The energy delivered by each laser pulse, calculated as power / pulse_rate.
+        power_per_pulse (float): The power delivered by each pulse, calculated as energy_per_pulse / pulse_duration.
+        intensity_per_pulse (float): The intensity of each pulse, calculated as power_per_pulse / focus_area.
+        peak_intensity (float): The peak intensity at the center of the beam, calculated as 2 * power_per_pulse / (π * beam_waist^2).
+        energy_density (float): The energy density at the focus, calculated as energy_per_pulse / focus_area.
 
     Methods:
         calculate_rayleigh_range(n1, n2): Calculates the Rayleigh range for two media with different refractive indices.
@@ -22,6 +31,7 @@ class PulsedLaserBeam:
 
     def __init__(self, wavelength=1064e-9, power=1, pulse_rate=300e3, pulse_duration=100e-13, numerical_aperture=0.14, beam_waist = 0):
         # All units are SI, meaning 300 KHz = 300e3 Hz
+        # https://www.pveducation.org/pvcdrom/materials/optical-properties-of-silicon
         self.wavelength = wavelength
         self.power = power
         self.pulse_rate = pulse_rate
@@ -36,11 +46,19 @@ class PulsedLaserBeam:
         if beam_waist == 0:
             self.beam_waist = self._calculate_beam_waist()
 
+        self.update()
+
+    def update(self):
+        """
+        Re-calcuates the beams internal properties, for the case a prameter is changed after initislation
+        """
         self.focus_area = self._calculate_focus_area()
         self.energy_per_pulse = self._calculate_energy_per_pulse()
         self.power_per_pulse = self._calculate_power_per_pulse()
         self.intensity_per_pulse = self._calculate_intensity_per_pulse()
         self.peak_intensity = self._calculate_peak_intensity()
+        self.energy_density = self._calculate_energy_density()
+
 
     def calculate_rayleigh_range(self, n1=1.003, n2=3.565):
         """
@@ -60,12 +78,13 @@ class PulsedLaserBeam:
 
         return z_n1, z_n2
     
-    def calculate_absorption_coefficient(self, k=0.00024048):
+    def calculate_absorption_coefficient(self, k=0.000024048):
         """
         Calculates the optical absorption coefficient based on Beer's Law.
 
-        Beer's Law - α = 4kπ/λ
+        Beer's Law - α = 2kπ⍵/c where ⍵ is the angular frequencey of light
         k - complex refractive index of ablated medium
+
         
         Parameters:
             k (float): Complex refractive index of the medium (default 0.0046).
@@ -73,8 +92,9 @@ class PulsedLaserBeam:
         Returns:
             float: Absorption coefficient.
         """
-        # return 4 * k * np.pi / self.wavelength
-        return 4387
+        # return (4 * k * np.pi / (self.wavelength) ) * 1e2
+        # return 4387
+        return 438700
     
     def calculate_focus_volume(self, n1=1.003, n2=3.5650):
         """
@@ -123,7 +143,10 @@ class PulsedLaserBeam:
             "Fluence (J/cm^2)": [f'{flunence*1e-3:.3g}'],
             "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
-            "Rayleigh Range in Silicon (mm)" : [f'{rayleigh_range_n2*1e3:.3g}']
+            "Peak Intesnsity Per Pulse (W/cm^2)": [f'{self.peak_intensity*1e-4:.3g}'],
+            "Rayleigh Range in Air (µm)" : [f'{rayleigh_range_n1*1e6:.3g}'],
+            "Rayleigh Range in Silicon (µm)" : [f'{rayleigh_range_n2*1e6:.3g}'],
+            "Absorption Coefficent ⍺ (m)" : [f'{absorption_coefficient:.3g}']
         }
 
         return pd.DataFrame(data).T
@@ -170,14 +193,21 @@ class PulsedLaserBeam:
         I_0 = 2P_per_pulse / 𝜋⍵_0^2
         '''
         return 2 * self.power_per_pulse / (np.pi * (self.beam_waist ** 2))
-
-
     
+    def _calculate_energy_density(self, area = None):
+        """
+        Calculates the energy density of the beam in the transiant directionn at the z=0
+        ρ = Energy per pulse / beams focus area
+        """
+        if area == None:
+            area = self.focus_area
+        return self.energy_per_pulse / area
 
 
-    def SetBeamWaist( self ):
-        # Change the beam radius --> need to alter the intensity profile
-        pass
+    def SetBeamWaist(self, new_waist ):
+        self.beam_waist =  new_waist
+        
+        self.update()
 
 
 
