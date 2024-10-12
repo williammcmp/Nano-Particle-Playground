@@ -520,7 +520,7 @@ def load_multiple_outputs(basepath : str, field : str, file_filter : str = ".txt
         if file_filter == '.csv':
             df = load_data_from_csv(basepath + name)
         else:
-            df = load_data_from_txt(basepath + name, header = None)
+            df = load_data_from_txt(basepath + name)
 
 
         # Chnaging the column names
