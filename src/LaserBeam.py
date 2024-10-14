@@ -37,7 +37,6 @@ class PulsedLaserBeam:
         self.pulse_rate = pulse_rate
         self.pulse_duration = pulse_duration
         self.numerical_aperture = numerical_aperture
-        self.reflectanc_factor = 0.30 #TODO add this as a process to calcuate
         self.abs_threshold = 0.64
 
         # Internal calculation methods
@@ -58,6 +57,7 @@ class PulsedLaserBeam:
         self.intensity_per_pulse = self._calculate_intensity_per_pulse()
         self.peak_intensity = self._calculate_peak_intensity()
         self.energy_density = self._calculate_energy_density()
+        self.reflectance = self._calculate_reflectance()
 
 
     def calculate_rayleigh_range(self, n1=1.003, n2=3.565):
@@ -141,12 +141,13 @@ class PulsedLaserBeam:
             "Focus Area (cm^2)": [f'{self.focus_area*1e4:.3g}'],
             "Energy Per Pulse (µJ)": [f'{self.energy_per_pulse*1e6:.3g}'],
             "Fluence (J/cm^2)": [f'{flunence*1e-3:.3g}'],
+            "Reflectance of interface (%)":[f'{self.reflectance*100:.2g}'],
             "Power Per Pulse (W)": [f'{self.power_per_pulse:.3g}'],
             "Intensity Per Pulse (W/cm^2)": [f'{self.intensity_per_pulse*1e-4:.3g}'],
             "Peak Intesnsity Per Pulse (W/cm^2)": [f'{self.peak_intensity*1e-4:.3g}'],
             "Rayleigh Range in Air (µm)" : [f'{rayleigh_range_n1*1e6:.3g}'],
             "Rayleigh Range in Silicon (µm)" : [f'{rayleigh_range_n2*1e6:.3g}'],
-            "Absorption Coefficent ⍺ (m)" : [f'{absorption_coefficient:.3g}']
+            "Absorption Coefficent ⍺ (m)" : [f'{absorption_coefficient:.3g}'],
         }
 
         return pd.DataFrame(data).T
@@ -202,6 +203,22 @@ class PulsedLaserBeam:
         if area == None:
             area = self.focus_area
         return self.energy_per_pulse / area
+    
+    def _calculate_reflectance(self, n1: complex = 3.5650 + 0.00024048j, n2: complex = 1.3265 + 0.0000039400j) -> float:
+        """
+        Calculates the reflectance of the ablated material. 
+
+        Args:
+            n1 (complex, optional): Refractive index of the incident medium (Silicon). Defaults to 3.5650+0.00024048j (Silicon at 1030nm).
+            n2 (complex, optional): Refractive index of the transmitive medium (Water/air). Defaults to 1.3265+0.0000039400j (water at 1030nm).
+
+        Returns:
+            float: The reflectance of the medium interface. Should be between a float between 0 to 1.
+        """
+        # TODO: need to check this to be correct
+        reflectance = np.abs((n1 - n2) / (n1 + n2))
+
+        return reflectance
 
 
     def SetBeamWaist(self, new_waist ):
