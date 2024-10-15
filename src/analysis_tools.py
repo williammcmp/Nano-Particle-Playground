@@ -420,7 +420,7 @@ def group_columns(columns : list, index_field : str = 'Wavelength (nm)', index :
         if col == index_field:
             continue  # Skip 'Wavelength (nm)' for now
         # Extract the prefix (everything before the last hyphen-separated part)
-        prefix = ' - '.join(col.split(' - ')[:index])
+        prefix = ' - '.join(col.split(' - ')[index:])
         grouped_columns[prefix].append(col)
 
     # Convert to a list of lists and include 'Wavelength (nm)' in each group

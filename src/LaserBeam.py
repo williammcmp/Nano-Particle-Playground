@@ -148,6 +148,7 @@ class PulsedLaserBeam:
             "Rayleigh Range in Air (µm)" : [f'{rayleigh_range_n1*1e6:.3g}'],
             "Rayleigh Range in Silicon (µm)" : [f'{rayleigh_range_n2*1e6:.3g}'],
             "Absorption Coefficent ⍺ (m)" : [f'{absorption_coefficient:.3g}'],
+
         }
 
         return pd.DataFrame(data).T
@@ -155,10 +156,10 @@ class PulsedLaserBeam:
     def _calculate_beam_waist(self):
         """
         Calculates the beam waist based on wavelength and numerical aperture.
-        ω_o = λ / (π * NA)
+        ω_o = 1.22 * λ_0 / 2 * NA
 
         """
-        return self.wavelength / (np.pi * self.numerical_aperture)
+        return (1.22 * self.wavelength) / (2 * self.numerical_aperture)
     
     def _calculate_focus_area(self):
         """
@@ -216,7 +217,7 @@ class PulsedLaserBeam:
             float: The reflectance of the medium interface. Should be between a float between 0 to 1.
         """
         # TODO: need to check this to be correct
-        reflectance = np.abs((n1 - n2) / (n1 + n2))
+        reflectance = np.abs((n1 - n2) / (n1 + n2)) ** 2
 
         return reflectance
 
